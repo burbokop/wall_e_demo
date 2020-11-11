@@ -1,6 +1,6 @@
 #include "appcore.h"
 #include "highlighter.h"
-#include <km2/km2.h>
+#include <src/km2/km2.h>
 #include <QTimer>
 #include <QTextBlock>
 

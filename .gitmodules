@@ -1,0 +1,3 @@
+[submodule "wall_e"]
+	path = wall_e
+	url = https://github.com/burbokop/wall_e.git

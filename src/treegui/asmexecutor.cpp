@@ -22,7 +22,7 @@ AsmExecutor::AsmExecutor(QObject *parent) : QObject(parent) {
     });
 }
 
-bool AsmExecutor::start(std::string code) {
+bool AsmExecutor::start(const std::string &code) {
     if(!executing()) {
         const auto asmFileName = tmpnam(nullptr) + std::string(".s");
         std::ofstream asm_output;

@@ -1,6 +1,4 @@
-
-
-print = () {
+print = (number num) {
 	asm('
 		.data
 	__km2_format: .asciz "gogadoda %d \n"
@@ -13,6 +11,4 @@ print = () {
 };
 
 
-print(5);
-print(50);
-
+print(444);

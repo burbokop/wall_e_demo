@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 
 
-#include <km2/km2.h>
+#include <src/km2/km2.h>
 
 //TreeWidget *MainWindow::treeWidget() const {
 //    return m_treeWidget;

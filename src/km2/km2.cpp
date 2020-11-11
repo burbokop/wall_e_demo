@@ -9,13 +9,13 @@
 #include <iostream>
 #include <fstream>
 
-#include "ctools/kgram.h"
-#include "ctools/kgram_smp.h"
-#include "ctools/tree_view_tools.h"
-#include "ctools/klex.h"
-#include "ctools/math_patterns.h"
-#include "ctools/km2_function.h"
-#include "ctools/km2_token_tools.h"
+#include <wall_e/src/kgram.h>
+#include <wall_e/src/kgram_smp.h>
+#include <wall_e/src/tree_view_tools.h>
+#include <wall_e/src/klex.h>
+#include <wall_e/src/math_patterns.h>
+#include <wall_e/src/km2_function.h>
+#include <wall_e/src/km2_token_tools.h>
 
 
 struct flags_private {

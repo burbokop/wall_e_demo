@@ -14,7 +14,7 @@ class AsmExecutor : public QObject {
     QProcess process;
 public:
     AsmExecutor(QObject *parent = nullptr);
-    bool start(std::string code);
+    bool start(const std::string &code);
     void abort();
 
 signals:

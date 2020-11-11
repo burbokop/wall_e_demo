@@ -1,7 +1,7 @@
 #ifndef KGRAMTREEVIEW_H
 #define KGRAMTREEVIEW_H
 
-#include <km2/ctools/kgramvariant.h>
+#include <wall_e/src/kgramvariant.h>
 #include <src/treegui/klibcore/kmacro.h>
 #include <QQuickPaintedItem>
 

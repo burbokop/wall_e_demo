@@ -2,9 +2,9 @@
 #define TEST2_H
 
 #include <string>
-#include "ctools/kgramvariant.h"
-#include "ctools/klex.h"
-#include "ctools/km2_asm_tools.h"
+#include <wall_e/src/kgramvariant.h>
+#include <wall_e/src/klex.h>
+#include <wall_e/src/km2_asm_tools.h>
 
 struct km2_error {
     std::string message;

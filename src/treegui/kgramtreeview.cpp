@@ -2,10 +2,10 @@
 
 #include <QPaintEvent>
 #include <QPainter>
-#include <km2/ctools/klex.h>
-#include <km2/ctools/kgram.h>
-#include <km2/km2.h>
-#include <km2/ctools/km2_asm_tools.h>
+#include <wall_e/src/klex.h>
+#include <wall_e/src/kgram.h>
+#include <wall_e/src/km2_asm_tools.h>
+#include <src/km2/km2.h>
 
 
 

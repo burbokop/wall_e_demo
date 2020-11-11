@@ -2,8 +2,8 @@
 #define APPCORE_H
 
 #include <QObject>
-#include <km2/ctools/kgramvariant.h>
-#include <km2/km2.h>
+#include <wall_e/src/kgramvariant.h>
+#include <src/km2/km2.h>
 #include "klibcore/kmacro.h"
 #include "asmexecutor.h"
 #include "highlighter.h"
