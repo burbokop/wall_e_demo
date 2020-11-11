@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/main.qml</file>
+        <file>resources/ToolBarButton.qml</file>
+        <file>resources/Tile.qml</file>
+        <file>resources/InfoArea.qml</file>
+        <file>resources/CodeArea.qml</file>
+        <file>resources/ExecArea.qml</file>
+        <file>resources/ToolBarChackBox.qml</file>
+    </qresource>
+</RCC>

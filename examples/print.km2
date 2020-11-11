@@ -1,0 +1,18 @@
+
+
+print = () {
+	asm('
+		.data
+	__km2_format: .asciz "gogadoda %d \n"
+		.text
+		mov 16(%rbp), %rsi
+		mov $__km2_format, %rdi
+		xor %rax, %rax
+		call printf
+	');
+};
+
+
+print(5);
+print(50);
+
