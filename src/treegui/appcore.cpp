@@ -16,7 +16,7 @@ void AppCore::recompile() {
 
     lastResult = km2_compile(code().toStdString(), flags);
 
-    setTokens(QString::fromStdString(klex_to_string(lastResult.tokens)));
+    setTokens(QString::fromStdString(wall_e::lex::to_string(lastResult.tokens)));
     setGramatic(QString::fromStdString(lastResult.rules));
     setTree(lastResult.tree);
     setAsmCode(QString::fromStdString(lastResult.assembly.code));

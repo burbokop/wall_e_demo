@@ -2,7 +2,7 @@
 #define APPCORE_H
 
 #include <QObject>
-#include <wall_e/src/kgramvariant.h>
+#include <wall_e/src/variant.h>
 #include <src/km2/km2.h>
 #include "klibcore/kmacro.h"
 #include "asmexecutor.h"
@@ -17,7 +17,7 @@ class AppCore : public QObject {
     K_READONLY_PROPERTY(QString, tokens, tokens, setTokens, tokensChanged, QString())
     K_READONLY_PROPERTY(QString, gramatic, gramatic, setGramatic, gramaticChanged, QString())
     K_READONLY_PROPERTY(QString, asmCode, asmCode, setAsmCode, asmCodeChanged, QString())
-    K_READONLY_PROPERTY(kgram_variant_t, tree, tree, setTree, treeChanged, kgram_variant_t())
+    K_READONLY_PROPERTY(wall_e::variant, tree, tree, setTree, treeChanged, wall_e::variant())
     K_META_TYPE(km2_error)
 
     Highlighter *higlighter = nullptr;

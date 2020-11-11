@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
 
 
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    qmlRegisterType<KGramTreeView>("Km2", 1, 0, kgram_type<KGramTreeView>().c_str());
+    qmlRegisterType<KGramTreeView>("Km2", 1, 0, wall_e::type_name<KGramTreeView>().c_str());
     QCoreApplication::setOrganizationName("bacul14");
     QCoreApplication::setOrganizationDomain("bacul14.kl.ua");
 

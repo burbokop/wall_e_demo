@@ -16,6 +16,8 @@ endif()
 
 find_package(Qt5 COMPONENTS Core Quick Qml REQUIRED)
 
+
+
 set(SOURCES
     src/main.cpp
     src/treegui/kgramtreeview.cpp

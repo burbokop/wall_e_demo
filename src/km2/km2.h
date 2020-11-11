@@ -2,8 +2,8 @@
 #define TEST2_H
 
 #include <string>
-#include <wall_e/src/kgramvariant.h>
-#include <wall_e/src/klex.h>
+#include <wall_e/src/variant.h>
+#include <wall_e/src/lex.h>
 #include <wall_e/src/km2_asm_tools.h>
 
 struct km2_error {
@@ -15,8 +15,8 @@ struct km2_error {
 bool operator==(const km2_error &error0, const km2_error &error1);
 
 struct km2_compilation_result {
-    kgram_variant_t tree;
-    std::vector<klex_token_t> tokens;
+    wall_e::variant tree;
+    std::vector<wall_e::lex::token> tokens;
     std::string rules;
     km2_asm_unit assembly;
     std::list<km2_error> errors;

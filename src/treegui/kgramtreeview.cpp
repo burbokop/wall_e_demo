@@ -2,7 +2,7 @@
 
 #include <QPaintEvent>
 #include <QPainter>
-#include <wall_e/src/klex.h>
+#include <wall_e/src/lex.h>
 #include <wall_e/src/kgram.h>
 #include <wall_e/src/km2_asm_tools.h>
 #include <src/km2/km2.h>
@@ -15,7 +15,7 @@ KGramTreeView::KGramTreeView(QQuickItem *parent) : QQuickPaintedItem(parent) {
 }
 
 
-void KGramTreeView::displayTree(const kgram_variant_t &var) {
+void KGramTreeView::displayTree(const wall_e::variant &var) {
     m_var = var;
     update();
 }
@@ -43,18 +43,18 @@ int KGramTreeView::string_radius(const std::string &string) {
     return string.size() / bnc;
 }
 
-void KGramTreeView::print_branch(const kgram_variant_t &branch, int x, int y, QPainter *painter) {
+void KGramTreeView::print_branch(const wall_e::variant &branch, int x, int y, QPainter *painter) {
     const auto cellMargins = 5;
     const auto cellRadius = painter->font().pointSize() * branch_width(branch, true) / 2 + cellMargins;
     const auto spacingX = 50;
-    const auto spacingY = branch.contains_type<kgram_variant_vector>() ? 100 : 50 + cellRadius;
+    const auto spacingY = branch.contains_type<wall_e::variant_vector>() ? 100 : 50 + cellRadius;
 
     painter->drawLine(QLine(x, y, x, y + spacingY - cellRadius));
     QRect cellRect(x - cellRadius, y + spacingY - cellRadius, cellRadius * 2, cellRadius * 2);
     painter->drawRect(cellRect);
 
-    if(branch.contains_type<kgram_variant_vector>()) {
-        auto vec = branch.value<kgram_variant_vector>();
+    if(branch.contains_type<wall_e::variant_vector>()) {
+        auto vec = branch.value<wall_e::variant_vector>();
 
         int pos = 0;
         for(size_t i = 0, cnt = vec.size(); i < cnt; ++i) {
@@ -65,8 +65,8 @@ void KGramTreeView::print_branch(const kgram_variant_t &branch, int x, int y, QP
             }
             pos += w;
         }
-    } else if(branch.contains_type<klex_token_t>()) {
-        painter->drawText(cellRect, QString::fromStdString(branch.value<klex_token_t>().text), QTextOption(Qt::AlignCenter));
+    } else if(branch.contains_type<wall_e::lex::token>()) {
+        painter->drawText(cellRect, QString::fromStdString(branch.value<wall_e::lex::token>().text), QTextOption(Qt::AlignCenter));
     } else if(branch.contains_type<std::string>()) {
         painter->drawText(cellRect, QString::fromStdString(branch.value<std::string>()), QTextOption(Qt::AlignCenter));
     } else if(branch.contains_type<int>()) {
@@ -78,7 +78,7 @@ void KGramTreeView::print_branch(const kgram_variant_t &branch, int x, int y, QP
         painter->setPen(QPen(QColor("#ff8800"), penBackup.width()));
         painter->drawRect(cellRect);
         if(branch.contains_type<kgram_recursion_error>()) {
-            painter->drawText(cellRect,  QString::fromStdString(kgram_type<kgram_recursion_error>()), QTextOption(Qt::AlignCenter));
+            painter->drawText(cellRect,  QString::fromStdString(wall_e::type_name<kgram_recursion_error>()), QTextOption(Qt::AlignCenter));
         } else {
             painter->drawText(cellRect, "???", QTextOption(Qt::AlignCenter));
         }
@@ -86,23 +86,23 @@ void KGramTreeView::print_branch(const kgram_variant_t &branch, int x, int y, QP
     }
 }
 
-int KGramTreeView::branch_width(const kgram_variant_t &branch, bool onlyCells) {
-    if(branch.contains_type<kgram_variant_vector>()) {
+int KGramTreeView::branch_width(const wall_e::variant &branch, bool onlyCells) {
+    if(branch.contains_type<wall_e::variant_vector>()) {
         if(onlyCells)
             return 0;
 
-        auto vec = branch.value<kgram_variant_vector>();
+        auto vec = branch.value<wall_e::variant_vector>();
         int count = 0;
         for(size_t i = 0, cnt = vec.size(); i < cnt; ++i) {
             count += branch_width(vec[i], onlyCells);
         }
         return count;
-    } else if(branch.contains_type<klex_token_t>()) {
-        return string_radius(branch.value<klex_token_t>().text);
+    } else if(branch.contains_type<wall_e::lex::token>()) {
+        return string_radius(branch.value<wall_e::lex::token>().text);
     } else if(branch.contains_type<std::string>()) {
         return string_radius(branch.value<std::string>());
     } else if(branch.contains_type<kgram_recursion_error>()) {
-        return kgram_type<kgram_recursion_error>().size();
+        return wall_e::type_name<kgram_recursion_error>().size();
     } else if(branch.contains_type<int>()) {
         return std::to_string(branch.value<int>()).size();
     } else if(branch.contains_type<km2_asm_unit>()) {

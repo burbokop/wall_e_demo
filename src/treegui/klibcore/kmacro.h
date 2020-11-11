@@ -224,9 +224,11 @@ private: \
         static inline const int TYPE ## QMLRegistration = qmlRegisterType<TYPE>(KLibInfo::libname, KLibInfo::major, KLibInfo::minor, # TYPE);
 #endif
 
+#define K_META_TYPE_PLI (K_META_TYPE_PLI + 1)
+
 #define K_META_TYPE(TYPE) \
 private: \
-    static inline const int TYPE ## MetaRegistration = qRegisterMetaType<TYPE>();
+    static inline const int K_META_TYPE_PLI ## MetaRegistration = qRegisterMetaType<TYPE>();
 
 #define K_META_TYPE_ALIAS(TYPE, ALIAS) \
 private: \
