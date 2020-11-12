@@ -65,8 +65,8 @@ void KGramTreeView::print_branch(const wall_e::variant &branch, int x, int y, QP
             }
             pos += w;
         }
-    } else if(branch.contains_type<wall_e::lex::token>()) {
-        painter->drawText(cellRect, QString::fromStdString(branch.value<wall_e::lex::token>().text), QTextOption(Qt::AlignCenter));
+    } else if(branch.contains_type<wall_e::lex::Token>()) {
+        painter->drawText(cellRect, QString::fromStdString(branch.value<wall_e::lex::Token>().text), QTextOption(Qt::AlignCenter));
     } else if(branch.contains_type<std::string>()) {
         painter->drawText(cellRect, QString::fromStdString(branch.value<std::string>()), QTextOption(Qt::AlignCenter));
     } else if(branch.contains_type<int>()) {
@@ -97,8 +97,8 @@ int KGramTreeView::branch_width(const wall_e::variant &branch, bool onlyCells) {
             count += branch_width(vec[i], onlyCells);
         }
         return count;
-    } else if(branch.contains_type<wall_e::lex::token>()) {
-        return string_radius(branch.value<wall_e::lex::token>().text);
+    } else if(branch.contains_type<wall_e::lex::Token>()) {
+        return string_radius(branch.value<wall_e::lex::Token>().text);
     } else if(branch.contains_type<std::string>()) {
         return string_radius(branch.value<std::string>());
     } else if(branch.contains_type<kgram_recursion_error>()) {

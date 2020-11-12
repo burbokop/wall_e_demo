@@ -16,7 +16,7 @@ bool operator==(const km2_error &error0, const km2_error &error1);
 
 struct km2_compilation_result {
     wall_e::variant tree;
-    std::vector<wall_e::lex::token> tokens;
+    std::vector<wall_e::lex::Token> tokens;
     std::string rules;
     km2_asm_unit assembly;
     std::list<km2_error> errors;
