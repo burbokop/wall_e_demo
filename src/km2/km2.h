@@ -1,5 +1,5 @@
-#ifndef TEST2_H
-#define TEST2_H
+#ifndef KM2_H
+#define KM2_H
 
 #include <string>
 #include <wall_e/src/variant.h>
@@ -16,9 +16,9 @@ bool operator==(const km2_error &error0, const km2_error &error1);
 
 struct km2_compilation_result {
     wall_e::variant tree;
-    std::vector<wall_e::lex::Token> tokens;
+    std::vector<wall_e::lex::token> tokens;
     std::string rules;
-    km2_asm_unit assembly;
+    wall_e::km2_asm_unit assembly;
     std::list<km2_error> errors;
 };
 

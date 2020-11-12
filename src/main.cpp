@@ -74,8 +74,8 @@ int main(int argc, char **argv) {
     engine.rootContext()->setContextProperty("appCore", &appCore);
     engine.load("qrc:/resources/main.qml");
 
-    kgram_rule_t::assignTypeSymbol(kgram_rule_type_t::Conjunction, '&');
-    kgram_rule_t::assignTypeSymbol(kgram_rule_type_t::Disjunction, '|');
+    wall_e::kgram_rule_t::assignTypeSymbol(wall_e::kgram_rule_type_t::Conjunction, '&');
+    wall_e::kgram_rule_t::assignTypeSymbol(wall_e::kgram_rule_type_t::Disjunction, '|');
 
     return app.exec();
 }

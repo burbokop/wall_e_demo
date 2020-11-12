@@ -65,20 +65,20 @@ void KGramTreeView::print_branch(const wall_e::variant &branch, int x, int y, QP
             }
             pos += w;
         }
-    } else if(branch.contains_type<wall_e::lex::Token>()) {
-        painter->drawText(cellRect, QString::fromStdString(branch.value<wall_e::lex::Token>().text), QTextOption(Qt::AlignCenter));
+    } else if(branch.contains_type<wall_e::lex::token>()) {
+        painter->drawText(cellRect, QString::fromStdString(branch.value<wall_e::lex::token>().text), QTextOption(Qt::AlignCenter));
     } else if(branch.contains_type<std::string>()) {
         painter->drawText(cellRect, QString::fromStdString(branch.value<std::string>()), QTextOption(Qt::AlignCenter));
     } else if(branch.contains_type<int>()) {
         painter->drawText(cellRect, QString::number(branch.value<int>()), QTextOption(Qt::AlignCenter));
-    } else if(branch.contains_type<km2_asm_unit>()) {
-        painter->drawText(cellRect, QString::fromStdString(branch.value<km2_asm_unit>().code), QTextOption(Qt::AlignCenter));
+    } else if(branch.contains_type<wall_e::km2_asm_unit>()) {
+        painter->drawText(cellRect, QString::fromStdString(branch.value<wall_e::km2_asm_unit>().code), QTextOption(Qt::AlignCenter));
     } else {
         const auto penBackup = painter->pen();
         painter->setPen(QPen(QColor("#ff8800"), penBackup.width()));
         painter->drawRect(cellRect);
-        if(branch.contains_type<kgram_recursion_error>()) {
-            painter->drawText(cellRect,  QString::fromStdString(wall_e::type_name<kgram_recursion_error>()), QTextOption(Qt::AlignCenter));
+        if(branch.contains_type<wall_e::kgram_recursion_error>()) {
+            painter->drawText(cellRect,  QString::fromStdString(wall_e::type_name<wall_e::kgram_recursion_error>()), QTextOption(Qt::AlignCenter));
         } else {
             painter->drawText(cellRect, "???", QTextOption(Qt::AlignCenter));
         }
@@ -97,16 +97,16 @@ int KGramTreeView::branch_width(const wall_e::variant &branch, bool onlyCells) {
             count += branch_width(vec[i], onlyCells);
         }
         return count;
-    } else if(branch.contains_type<wall_e::lex::Token>()) {
-        return string_radius(branch.value<wall_e::lex::Token>().text);
+    } else if(branch.contains_type<wall_e::lex::token>()) {
+        return string_radius(branch.value<wall_e::lex::token>().text);
     } else if(branch.contains_type<std::string>()) {
         return string_radius(branch.value<std::string>());
-    } else if(branch.contains_type<kgram_recursion_error>()) {
-        return wall_e::type_name<kgram_recursion_error>().size();
+    } else if(branch.contains_type<wall_e::kgram_recursion_error>()) {
+        return wall_e::type_name<wall_e::kgram_recursion_error>().size();
     } else if(branch.contains_type<int>()) {
         return std::to_string(branch.value<int>()).size();
-    } else if(branch.contains_type<km2_asm_unit>()) {
-        return string_radius(branch.value<km2_asm_unit>().code);
+    } else if(branch.contains_type<wall_e::km2_asm_unit>()) {
+        return string_radius(branch.value<wall_e::km2_asm_unit>().code);
     } else {
         return 3;
     }
@@ -118,7 +118,7 @@ void KGramTreeView::mousePressEvent(QMouseEvent *event) {
     startMouseX = event->x();
     startMouseY = event->y();
     startTreeX = treeX;
-    startTreeY = treeY;    
+    startTreeY = treeY;
 
     event->accept();
 }
