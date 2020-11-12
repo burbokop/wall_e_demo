@@ -4,7 +4,7 @@
 #include <string>
 #include <wall_e/src/variant.h>
 #include <wall_e/src/lex.h>
-#include <wall_e/src/km2_asm_tools.h>
+#include <wall_e/src/asm_tools.h>
 
 struct km2_error {
     std::string message;
@@ -18,7 +18,7 @@ struct km2_compilation_result {
     wall_e::variant tree;
     std::vector<wall_e::lex::token> tokens;
     std::string rules;
-    wall_e::km2_asm_unit assembly;
+    wall_e::asm_unit assembly;
     std::list<km2_error> errors;
 };
 

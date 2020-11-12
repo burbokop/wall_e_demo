@@ -4,7 +4,7 @@
 #include <QPainter>
 #include <wall_e/src/lex.h>
 #include <wall_e/src/kgram.h>
-#include <wall_e/src/km2_asm_tools.h>
+#include <wall_e/src/asm_tools.h>
 #include <src/km2/km2.h>
 
 
@@ -71,8 +71,8 @@ void KGramTreeView::print_branch(const wall_e::variant &branch, int x, int y, QP
         painter->drawText(cellRect, QString::fromStdString(branch.value<std::string>()), QTextOption(Qt::AlignCenter));
     } else if(branch.contains_type<int>()) {
         painter->drawText(cellRect, QString::number(branch.value<int>()), QTextOption(Qt::AlignCenter));
-    } else if(branch.contains_type<wall_e::km2_asm_unit>()) {
-        painter->drawText(cellRect, QString::fromStdString(branch.value<wall_e::km2_asm_unit>().code), QTextOption(Qt::AlignCenter));
+    } else if(branch.contains_type<wall_e::asm_unit>()) {
+        painter->drawText(cellRect, QString::fromStdString(branch.value<wall_e::asm_unit>().code), QTextOption(Qt::AlignCenter));
     } else {
         const auto penBackup = painter->pen();
         painter->setPen(QPen(QColor("#ff8800"), penBackup.width()));
@@ -105,8 +105,8 @@ int KGramTreeView::branch_width(const wall_e::variant &branch, bool onlyCells) {
         return wall_e::type_name<wall_e::kgram_recursion_error>().size();
     } else if(branch.contains_type<int>()) {
         return std::to_string(branch.value<int>()).size();
-    } else if(branch.contains_type<wall_e::km2_asm_unit>()) {
-        return string_radius(branch.value<wall_e::km2_asm_unit>().code);
+    } else if(branch.contains_type<wall_e::asm_unit>()) {
+        return string_radius(branch.value<wall_e::asm_unit>().code);
     } else {
         return 3;
     }

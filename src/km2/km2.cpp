@@ -14,8 +14,8 @@
 #include <wall_e/src/tree_view_tools.h>
 #include <wall_e/src/lex.h>
 #include <wall_e/src/math_patterns.h>
-#include <wall_e/src/km2_function.h>
-#include <wall_e/src/km2_token_tools.h>
+#include <wall_e/src/function.h>
+#include <wall_e/src/token_tools.h>
 
 
 struct flags_private {
@@ -97,11 +97,11 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
                 std::cout << "[ KLEX ERROR ]\n";
             }
 
-            return { wall_e::variant(), sorted_tokens, std::string(), wall_e::km2_asm_unit(), errors };
+            return { wall_e::variant(), sorted_tokens, std::string(), wall_e::asm_unit(), errors };
         }
     }
 
-    std::list<wall_e::km2_function> functions;
+    std::list<wall_e::function> functions;
 
 
     std::list<wall_e::kgram_pattern_t> gram_list;
@@ -127,8 +127,8 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
                         << (wall_e::kgram_rule_t("TOK_ID") & "EQUALS" & "OP" & (wall_e::kgram_rule_t("EP") | "decl_arg_list") & "OB" & (wall_e::kgram_rule_t("EB") | "internal_block"))
                         << [&functions](const wall_e::kgram_arg_vector_t &args) -> wall_e::kgram_argument_t {
         if(args.size() > 0 && args[0].contains_type<wall_e::lex::token>()) {
-            wall_e::km2_asm_unit unit;
-            const wall_e::km2_function function(args[0].value<wall_e::lex::token>().text, km2_produce_token_pairs(args[3]));
+            wall_e::asm_unit unit;
+            const wall_e::function function(args[0].value<wall_e::lex::token>().text, produce_token_pairs(args[3]));
 
             functions.push_back(function);
 
@@ -139,7 +139,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
             unit += "\tmovq %rsp, %rbp\n";
 
             if(args.size() > 5) {
-                unit += km2_produce_asm_unit(args[5]);
+                unit += produce_asm_unit(args[5]);
             }
 
             unit += "\tmovq %rbp, %rsp\n";
@@ -168,10 +168,11 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
         const auto function_name_token = args[0].value<wall_e::lex::token>();
         const auto function_original_name = function_name_token.text;
         const auto constrained_args = wall_e::variant_constrain(args[2]);
-        const auto function_args = km2_remove_tokens(constrained_args, { "EP" });
-        const auto overloads = wall_e::km2_function::find_overloads(function_original_name, functions);
+        const auto function_args = remove_tokens(constrained_args, { "EP" });
+        const auto overloads = wall_e::function::find_overloads(function_original_name, functions);
 
-        const auto overload = wall_e::km2_function::choose_overload(overloads, function_args, [](const std::string& type, const wall_e::variant& value) -> bool {
+
+        const auto overload = wall_e::function::choose_overload(overloads, function_args, [](const std::string& type, const wall_e::variant& value) -> bool {
             if(type == "TOK_NUMBER") {
                 return wall_e::is_number(value);
             } else if(type == "TOK_STRING") {
@@ -182,6 +183,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
             return false;
         });
 
+
         if(overload.fullName().size() <= 0) {
             errors.push_back({
                                  "function " + function_original_name + " not found",
@@ -190,7 +192,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
                              });
             return wall_e::variant();
         }
-        wall_e::km2_asm_unit push_asm_unit;
+        wall_e::asm_unit push_asm_unit;
         int stackOffset = 0;
         for(auto argument : function_args) {
             if(wall_e::is_number(argument, "NUMBER")) {
@@ -201,8 +203,8 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
         }
 
         return push_asm_unit
-                + wall_e::km2_asm_unit { "\tcall __km2_" + overload.fullName() + "\n" }
-                + wall_e::km2_asm_unit { "\tadd $" + std::to_string(stackOffset * 8) + ", %rsp\n" };
+                + wall_e::asm_unit { "\tcall __km2_" + overload.fullName() + "\n" }
+                + wall_e::asm_unit { "\tadd $" + std::to_string(stackOffset * 8) + ", %rsp\n" };
     });
 
 
@@ -223,7 +225,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
                 text.erase(text.end() - 1, text.end());
                 text = km2_trim_str(text, '\t');
                 text = km2_trim_str(text);
-                wall_e::km2_asm_unit result;
+                wall_e::asm_unit result;
                 if(text[text.size() - 1] == ':') {
                     result.code = text + "\n";
                 } else {
@@ -245,9 +247,9 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
 
     auto result = kgram_exec(gram_list, sorted_tokens, gram_flags);
 
-    wall_e::km2_asm_unit result_asm_unit;
+    wall_e::asm_unit result_asm_unit;
     result_asm_unit += "\t.globl main\n\n\t.text\nmain:\n";
-    result_asm_unit += km2_produce_asm_unit(result);
+    result_asm_unit += produce_asm_unit(result);
     result_asm_unit += "\n";
 
     if(__flags.verbose) {
