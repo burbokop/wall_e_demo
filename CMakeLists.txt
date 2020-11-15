@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.5)
 
 project(km2ide LANGUAGES CXX)
 
+#tell linker to search for .so in same folder as executable
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,-rpath='${ORIGIN}'")
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -52,10 +55,10 @@ add_executable(km2ide
 
 add_library(km2ide_resources SHARED resources.qrc)
 
-target_include_directories(km2ide PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(km2ide PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/wall_e/wall_e.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/wall_e/wall_e.cmake)
 
 
 target_link_libraries(km2ide

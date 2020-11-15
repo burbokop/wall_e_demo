@@ -1,5 +1,5 @@
 #include "highlighter.h"
-
+#include <QDebug>
 //! [0]
 Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent) {
     connect(this, &Highlighter::errorsChanged, this, [this](){
