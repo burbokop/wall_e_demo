@@ -1,7 +1,7 @@
 #include "asmexecutor.h"
 
 #include <fstream>
-
+#include <unistd.h>
 AsmExecutor::AsmExecutor(QObject *parent) : QObject(parent) {
     connect(&process, &QProcess::readyReadStandardOutput, this, [this](){
         emit message(QString::fromUtf8(process.readAllStandardOutput()), false);
@@ -24,17 +24,16 @@ AsmExecutor::AsmExecutor(QObject *parent) : QObject(parent) {
 
 bool AsmExecutor::start(const std::string &code) {
     if(!executing()) {
-        const auto asmFileName = tmpnam(nullptr) + std::string(".s");
-        std::ofstream asm_output;
-        asm_output.open(asmFileName, std::ios::out);
-        if(asm_output.is_open()) {
-            asm_output.write(code.data(), code.size());
-            asm_output.close();
+        char tmpfile[] = "/tmp/kmova_XXXXXX.s";
+        auto fd = mkstemps(tmpfile, 2);
+        if(fd >= 0) {
+            write(fd, code.data(), code.size());
 
-            auto programName = std::string(asmFileName) + ".elf" + std::to_string(static_cast<uint64_t>(rand() * clock()));
-            if(system((std::string("gcc -no-pie ") + asmFileName + " -o " + programName).c_str()) == 0) {
+            auto programName = std::string(tmpfile) + ".elf" + std::to_string(static_cast<uint64_t>(rand() * clock()));
+            if(system((std::string("gcc -no-pie ") + tmpfile + " -o " + programName).c_str()) == 0) {
                 process.start(QString::fromStdString(programName), QStringList());
             }
+            unlink(tmpfile);
         }
 
         setExecuting(true);

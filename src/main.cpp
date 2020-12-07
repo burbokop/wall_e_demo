@@ -21,6 +21,7 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <wall_e/src/utility/asm_tools.h>
@@ -28,7 +29,6 @@
 
 int main(int argc, char **argv) {
     std::string lastArg;
-
     std::string outputFilePath;
     std::string input;
     bool textInputMode = true;
@@ -76,6 +76,7 @@ int main(int argc, char **argv) {
 
     wall_e::kgram_rule_t::assignTypeSymbol(wall_e::kgram_rule_type_t::Conjunction, '&');
     wall_e::kgram_rule_t::assignTypeSymbol(wall_e::kgram_rule_type_t::Disjunction, '|');
+
 
     return app.exec();
 }

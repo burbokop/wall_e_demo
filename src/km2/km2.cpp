@@ -9,8 +9,7 @@
 #include <iostream>
 #include <fstream>
 
-#include <wall_e/src/kgram.h>
-#include <wall_e/src/private/kgram_smp.h>
+#include <wall_e/src/gram.h>
 #include <wall_e/src/utility/tree_view_tools.h>
 #include <wall_e/src/lex.h>
 #include <wall_e/src/utility/math_patterns.h>
@@ -65,12 +64,12 @@ const std::list<wall_e::lex::pattern> km2_lexlist = {
 km2_compilation_result km2_compile(const std::string &input, const km2_flags &flags) {
     const auto __flags = __km2_parse_flags(flags);
     std::list<km2_error> errors;
-    wall_e::gram::kgram_flags_list gram_flags;
+    wall_e::gram::flags_list gram_flags;
     if(__flags.verbose) {
-        gram_flags.push_back(wall_e::gram::kgram_verbose);
+        gram_flags.push_back(wall_e::gram::verbose);
     }
     if(__flags.tree_mode) {
-        gram_flags.push_back(wall_e::gram::kgram_use_default_parser);
+        gram_flags.push_back(wall_e::gram::use_default_parser);
     }
 
     if(__flags.verbose)
@@ -245,7 +244,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
         std::cout << "\n -------------- GRAMATIC --------------\n\n";
     }
 
-    auto result = kgram_exec(gram_list, sorted_tokens, gram_flags);
+    auto result = wall_e::gram::exec(gram_list, sorted_tokens, gram_flags);
 
     wall_e::asm_unit result_asm_unit;
     result_asm_unit += "\t.globl main\n\n\t.text\nmain:\n";
