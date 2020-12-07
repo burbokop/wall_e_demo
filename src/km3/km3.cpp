@@ -49,26 +49,26 @@ PCDProcessor::Unit PCDProcessor::compile(const std::string &input) {
 
     std::list<wall_e::function> functions;
 
-    std::list<wall_e::gram::kgram_pattern_t> gram_list;
-    gram_list.push_back(wall_e::gram::kgram_pattern_t("entry")
+    std::list<wall_e::gram::pattern> gram_list;
+    gram_list.push_back(wall_e::gram::pattern("entry")
                         << wall_e::gram::rule("block"));
 
-    gram_list.push_back(wall_e::gram::kgram_pattern_t("block")
+    gram_list.push_back(wall_e::gram::pattern("block")
                         << ((wall_e::gram::rule("cmd") & "SEMICOLON") & (wall_e::gram::rule() | "block")));
 
-    gram_list.push_back(wall_e::gram::kgram_pattern_t("internal_block")
+    gram_list.push_back(wall_e::gram::pattern("internal_block")
                         << ((wall_e::gram::rule("cmd") & "SEMICOLON") & (wall_e::gram::rule("EB") | "internal_block")));
 
-    gram_list.push_back(wall_e::gram::kgram_pattern_t("cmd")
+    gram_list.push_back(wall_e::gram::pattern("cmd")
                         << (wall_e::gram::rule("wait") | "curr_time" | "function_call" | "function_declaration" | "asm_insertion"));
 
-    gram_list.push_back(wall_e::gram::kgram_pattern_t("wait")
+    gram_list.push_back(wall_e::gram::pattern("wait")
                         << (wall_e::gram::rule("TOK_WAIT") & "NUMBER"));
 
-    gram_list.push_back(wall_e::gram::kgram_pattern_t("curr_time")
+    gram_list.push_back(wall_e::gram::pattern("curr_time")
                         << (wall_e::gram::rule("TOK_CTIME")));
 
-    gram_list.push_back(wall_e::gram::kgram_pattern_t("function_declaration")
+    gram_list.push_back(wall_e::gram::pattern("function_declaration")
                         << (wall_e::gram::rule("TOK_ID") & "EQUALS" & "OP" & (wall_e::gram::rule("EP") | "decl_arg_list") & "OB" & (wall_e::gram::rule("EB") | "internal_block"))
                         << [&functions](const wall_e::gram::arg_vector &args) -> wall_e::gram::argument {
         if(args.size() > 0 && args[0].contains_type<wall_e::lex::token>()) {
@@ -98,16 +98,16 @@ PCDProcessor::Unit PCDProcessor::compile(const std::string &input) {
 
 
     //https://www.onlinegdb.com/online_gcc_assembler
-    gram_list.push_back(wall_e::gram::kgram_pattern_t("decl_arg_list")
+    gram_list.push_back(wall_e::gram::pattern("decl_arg_list")
                         << (wall_e::gram::rule("decl_arg") & (wall_e::gram::rule("EP") | (wall_e::gram::rule("COMA") & "decl_arg_list"))));
 
-    gram_list.push_back(wall_e::gram::kgram_pattern_t("decl_arg")
+    gram_list.push_back(wall_e::gram::pattern("decl_arg")
                         << (wall_e::gram::rule("type") & "TOK_ID"));
 
-    gram_list.push_back(wall_e::gram::kgram_pattern_t("type")
+    gram_list.push_back(wall_e::gram::pattern("type")
                         << (wall_e::gram::rule("TOK_NUMBER") | "TOK_STRING"));
 
-    gram_list.push_back(wall_e::gram::kgram_pattern_t("function_call")
+    gram_list.push_back(wall_e::gram::pattern("function_call")
                         << (wall_e::gram::rule("TOK_ID") & "OP" & (wall_e::gram::rule("EP") | "arg_list"))
                         << [&functions, &errors](const wall_e::gram::arg_vector &args) -> wall_e::gram::argument {
         const auto function_name_token = args[0].value<wall_e::lex::token>();
@@ -153,13 +153,13 @@ PCDProcessor::Unit PCDProcessor::compile(const std::string &input) {
     });
 
 
-    gram_list.push_back(wall_e::gram::kgram_pattern_t("arg_list")
+    gram_list.push_back(wall_e::gram::pattern("arg_list")
                         << (wall_e::gram::rule("arg") & (wall_e::gram::rule("EP") | (wall_e::gram::rule("COMA") & "arg_list"))));
 
-    gram_list.push_back(wall_e::gram::kgram_pattern_t("arg")
+    gram_list.push_back(wall_e::gram::pattern("arg")
                         << (wall_e::gram::rule("TOK_ID") | "STRING_LITERAL" | wall_e::math_patterns::add_to(&gram_list, "math")));
 
-    gram_list.push_back(wall_e::gram::kgram_pattern_t("asm_insertion")
+    gram_list.push_back(wall_e::gram::pattern("asm_insertion")
                         << (wall_e::gram::rule("TOK_ASM") & "OP" & "STRING_LITERAL" & "EP")
                         << [](const wall_e::gram::arg_vector &args) -> wall_e::gram::argument {
         if(args.size() > 2 && args[2].contains_type<wall_e::lex::token>()) {
@@ -180,7 +180,7 @@ PCDProcessor::Unit PCDProcessor::compile(const std::string &input) {
             }
             return {};
         }
-        return wall_e::gram::kgram_pattern_t::__default_processor(args);
+        return wall_e::gram::pattern::__default_processor(args);
     });
 
 
