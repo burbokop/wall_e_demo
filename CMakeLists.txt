@@ -32,6 +32,7 @@ set(SOURCES
     src/treegui/asmexecutor.cpp
     src/treegui/highlighter.cpp
     src/km2/km2.cpp
+    src/km3/km3.cpp
     )
 set(HEADERS
     src/treegui/kgramtreeview.h
@@ -44,6 +45,7 @@ set(HEADERS
     src/treegui/asmexecutor.h
     src/treegui/highlighter.h
     src/km2/km2.h
+    src/km3/km3.h
     )
 
 
