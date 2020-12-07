@@ -103,28 +103,28 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
     std::list<wall_e::function> functions;
 
 
-    std::list<wall_e::kgram_pattern_t> gram_list;
-    gram_list.push_back(wall_e::kgram_pattern_t("entry")
-                        << wall_e::kgram_rule_t("block"));
+    std::list<wall_e::gram::kgram_pattern_t> gram_list;
+    gram_list.push_back(wall_e::gram::kgram_pattern_t("entry")
+                        << wall_e::gram::kgram_rule_t("block"));
 
-    gram_list.push_back(wall_e::kgram_pattern_t("block")
-                        << ((wall_e::kgram_rule_t("cmd") & "SEMICOLON") & (wall_e::kgram_rule_t() | "block")));
+    gram_list.push_back(wall_e::gram::kgram_pattern_t("block")
+                        << ((wall_e::gram::kgram_rule_t("cmd") & "SEMICOLON") & (wall_e::gram::kgram_rule_t() | "block")));
 
-    gram_list.push_back(wall_e::kgram_pattern_t("internal_block")
-                        << ((wall_e::kgram_rule_t("cmd") & "SEMICOLON") & (wall_e::kgram_rule_t("EB") | "internal_block")));
+    gram_list.push_back(wall_e::gram::kgram_pattern_t("internal_block")
+                        << ((wall_e::gram::kgram_rule_t("cmd") & "SEMICOLON") & (wall_e::gram::kgram_rule_t("EB") | "internal_block")));
 
-    gram_list.push_back(wall_e::kgram_pattern_t("cmd")
-                        << (wall_e::kgram_rule_t("wait") | "curr_time" | "function_call" | "function_declaration" | "asm_insertion"));
+    gram_list.push_back(wall_e::gram::kgram_pattern_t("cmd")
+                        << (wall_e::gram::kgram_rule_t("wait") | "curr_time" | "function_call" | "function_declaration" | "asm_insertion"));
 
-    gram_list.push_back(wall_e::kgram_pattern_t("wait")
-                        << (wall_e::kgram_rule_t("TOK_WAIT") & "NUMBER"));
+    gram_list.push_back(wall_e::gram::kgram_pattern_t("wait")
+                        << (wall_e::gram::kgram_rule_t("TOK_WAIT") & "NUMBER"));
 
-    gram_list.push_back(wall_e::kgram_pattern_t("curr_time")
-                        << (wall_e::kgram_rule_t("TOK_CTIME")));
+    gram_list.push_back(wall_e::gram::kgram_pattern_t("curr_time")
+                        << (wall_e::gram::kgram_rule_t("TOK_CTIME")));
 
-    gram_list.push_back(wall_e::kgram_pattern_t("function_declaration")
-                        << (wall_e::kgram_rule_t("TOK_ID") & "EQUALS" & "OP" & (wall_e::kgram_rule_t("EP") | "decl_arg_list") & "OB" & (wall_e::kgram_rule_t("EB") | "internal_block"))
-                        << [&functions](const wall_e::kgram_arg_vector_t &args) -> wall_e::kgram_argument_t {
+    gram_list.push_back(wall_e::gram::kgram_pattern_t("function_declaration")
+                        << (wall_e::gram::kgram_rule_t("TOK_ID") & "EQUALS" & "OP" & (wall_e::gram::kgram_rule_t("EP") | "decl_arg_list") & "OB" & (wall_e::gram::kgram_rule_t("EB") | "internal_block"))
+                        << [&functions](const wall_e::gram::kgram_arg_vector_t &args) -> wall_e::gram::kgram_argument_t {
         if(args.size() > 0 && args[0].contains_type<wall_e::lex::token>()) {
             wall_e::asm_unit unit;
             const wall_e::function function(args[0].value<wall_e::lex::token>().text, produce_token_pairs(args[3]));
@@ -152,18 +152,18 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
 
 
     //https://www.onlinegdb.com/online_gcc_assembler
-    gram_list.push_back(wall_e::kgram_pattern_t("decl_arg_list")
-                        << (wall_e::kgram_rule_t("decl_arg") & (wall_e::kgram_rule_t("EP") | (wall_e::kgram_rule_t("COMA") & "decl_arg_list"))));
+    gram_list.push_back(wall_e::gram::kgram_pattern_t("decl_arg_list")
+                        << (wall_e::gram::kgram_rule_t("decl_arg") & (wall_e::gram::kgram_rule_t("EP") | (wall_e::gram::kgram_rule_t("COMA") & "decl_arg_list"))));
 
-    gram_list.push_back(wall_e::kgram_pattern_t("decl_arg")
-                        << (wall_e::kgram_rule_t("type") & "TOK_ID"));
+    gram_list.push_back(wall_e::gram::kgram_pattern_t("decl_arg")
+                        << (wall_e::gram::kgram_rule_t("type") & "TOK_ID"));
 
-    gram_list.push_back(wall_e::kgram_pattern_t("type")
-                        << (wall_e::kgram_rule_t("TOK_NUMBER") | "TOK_STRING"));
+    gram_list.push_back(wall_e::gram::kgram_pattern_t("type")
+                        << (wall_e::gram::kgram_rule_t("TOK_NUMBER") | "TOK_STRING"));
 
-    gram_list.push_back(wall_e::kgram_pattern_t("function_call")
-                        << (wall_e::kgram_rule_t("TOK_ID") & "OP" & (wall_e::kgram_rule_t("EP") | "arg_list"))
-                        << [&functions, &errors](const wall_e::kgram_arg_vector_t &args) -> wall_e::kgram_argument_t {
+    gram_list.push_back(wall_e::gram::kgram_pattern_t("function_call")
+                        << (wall_e::gram::kgram_rule_t("TOK_ID") & "OP" & (wall_e::gram::kgram_rule_t("EP") | "arg_list"))
+                        << [&functions, &errors](const wall_e::gram::kgram_arg_vector_t &args) -> wall_e::gram::kgram_argument_t {
         const auto function_name_token = args[0].value<wall_e::lex::token>();
         const auto function_original_name = function_name_token.text;
         const auto constrained_args = args[2].constrain();
@@ -207,15 +207,15 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
     });
 
 
-    gram_list.push_back(wall_e::kgram_pattern_t("arg_list")
-                        << (wall_e::kgram_rule_t("arg") & (wall_e::kgram_rule_t("EP") | (wall_e::kgram_rule_t("COMA") & "arg_list"))));
+    gram_list.push_back(wall_e::gram::kgram_pattern_t("arg_list")
+                        << (wall_e::gram::kgram_rule_t("arg") & (wall_e::gram::kgram_rule_t("EP") | (wall_e::gram::kgram_rule_t("COMA") & "arg_list"))));
 
-    gram_list.push_back(wall_e::kgram_pattern_t("arg")
-                        << (wall_e::kgram_rule_t("TOK_ID") | "STRING_LITERAL" | wall_e::math_patterns::add_to(&gram_list, "math")));
+    gram_list.push_back(wall_e::gram::kgram_pattern_t("arg")
+                        << (wall_e::gram::kgram_rule_t("TOK_ID") | "STRING_LITERAL" | wall_e::math_patterns::add_to(&gram_list, "math")));
 
-    gram_list.push_back(wall_e::kgram_pattern_t("asm_insertion")
-                        << (wall_e::kgram_rule_t("TOK_ASM") & "OP" & "STRING_LITERAL" & "EP")
-                        << [](const wall_e::kgram_arg_vector_t &args) -> wall_e::kgram_argument_t {
+    gram_list.push_back(wall_e::gram::kgram_pattern_t("asm_insertion")
+                        << (wall_e::gram::kgram_rule_t("TOK_ASM") & "OP" & "STRING_LITERAL" & "EP")
+                        << [](const wall_e::gram::kgram_arg_vector_t &args) -> wall_e::gram::kgram_argument_t {
         if(args.size() > 2 && args[2].contains_type<wall_e::lex::token>()) {
             const auto token = args[2].value<wall_e::lex::token>();
             if(token.text.size() > 2) {
@@ -234,7 +234,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
             }
             return {};
         }
-        return wall_e::kgram_pattern_t::__default_processor(args);
+        return wall_e::gram::kgram_pattern_t::__default_processor(args);
     });
 
 
@@ -270,7 +270,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
         std::cout << "error: output file not open\n";
     }
 
-    return { result, sorted_tokens, wall_e::kgram_pattern_t::to_string(gram_list), result_asm_unit, errors };
+    return { result, sorted_tokens, wall_e::gram::kgram_pattern_t::to_string(gram_list), result_asm_unit, errors };
 }
 
 std::string km2_trim_str(const std::string &str, char symbol) {
