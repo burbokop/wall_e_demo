@@ -76,7 +76,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
     if(__flags.verbose)
         std::cout << ">>> INPUT TEXT <<<\n\n" << input << "\n\n>>> ----- ---- <<<\n";
 
-    const auto tokens = wall_e::lex::get_tokents(input, km2_lexlist);
+    const auto tokens = wall_e::lex::make_tokents(input, km2_lexlist);
 
     if(__flags.verbose) {
         for(auto t : tokens)
@@ -167,7 +167,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
                         << [&functions, &errors](const wall_e::kgram_arg_vector_t &args) -> wall_e::kgram_argument_t {
         const auto function_name_token = args[0].value<wall_e::lex::token>();
         const auto function_original_name = function_name_token.text;
-        const auto constrained_args = wall_e::variant_constrain(args[2]);
+        const auto constrained_args = args[2].constrain();
         const auto function_args = remove_tokens(constrained_args, { "EP" });
         const auto overloads = wall_e::function::find_overloads(function_original_name, functions);
 

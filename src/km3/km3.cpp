@@ -113,7 +113,7 @@ PCDProcessor::Unit PCDProcessor::compile(const std::string &input) {
                         << [&functions, &errors](const wall_e::kgram_arg_vector_t &args) -> wall_e::kgram_argument_t {
         const auto function_name_token = args[0].value<wall_e::lex::token>();
         const auto function_original_name = function_name_token.text;
-        const auto constrained_args = wall_e::variant_constrain(args[2]);
+        const auto constrained_args = args[2].constrain();
         const auto function_args = remove_tokens(constrained_args, { "EP" });
         const auto overloads = wall_e::function::find_overloads(function_original_name, functions);
 
