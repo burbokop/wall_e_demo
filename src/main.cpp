@@ -23,7 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <wall_e/src/kgram_smp.h>
+#include <wall_e/src/utility/asm_tools.h>
 #include <src/treegui/appcore.h>
 
 int main(int argc, char **argv) {

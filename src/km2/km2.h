@@ -4,7 +4,7 @@
 #include <string>
 #include <wall_e/src/variant.h>
 #include <wall_e/src/lex.h>
-#include <wall_e/src/asm_tools.h>
+#include <wall_e/src/utility/asm_tools.h>
 
 struct km2_error {
     std::string message;

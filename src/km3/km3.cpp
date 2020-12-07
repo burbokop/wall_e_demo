@@ -10,12 +10,12 @@
 #include <fstream>
 
 #include <wall_e/src/kgram.h>
-#include <wall_e/src/kgram_smp.h>
-#include <wall_e/src/tree_view_tools.h>
+#include <wall_e/src/private/kgram_smp.h>
+#include <wall_e/src/utility/tree_view_tools.h>
 #include <wall_e/src/lex.h>
-#include <wall_e/src/math_patterns.h>
-#include <wall_e/src/function.h>
-#include <wall_e/src/token_tools.h>
+#include <wall_e/src/utility/math_patterns.h>
+#include <wall_e/src/utility/function.h>
+#include <wall_e/src/utility/token_tools.h>
 
 
 const std::list<wall_e::lex::pattern> PCDProcessor::lex = {
