@@ -65,12 +65,12 @@ const std::list<wall_e::lex::pattern> km2_lexlist = {
 km2_compilation_result km2_compile(const std::string &input, const km2_flags &flags) {
     const auto __flags = __km2_parse_flags(flags);
     std::list<km2_error> errors;
-    wall_e::kgram_flags_list gram_flags;
+    wall_e::gram::kgram_flags_list gram_flags;
     if(__flags.verbose) {
-        gram_flags.push_back(wall_e::kgram_verbose);
+        gram_flags.push_back(wall_e::gram::kgram_verbose);
     }
     if(__flags.tree_mode) {
-        gram_flags.push_back(wall_e::kgram_use_default_parser);
+        gram_flags.push_back(wall_e::gram::kgram_use_default_parser);
     }
 
     if(__flags.verbose)
