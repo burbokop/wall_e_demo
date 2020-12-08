@@ -28,6 +28,27 @@
 #include <src/treegui/appcore.h>
 
 int main(int argc, char **argv) {
+
+
+    //stmt:      ID '=' expr ';'
+    //expr:      term | expr '-' term | expr '+' term
+    //term:      factor | term '*' factor | term '/' factor
+    //factor:    ID | NUMBER | '(' expr ')' | '-' factor
+    //
+    //set:       '(' ')' | '(' expr_list ')'
+    //expr_list: expr | expr_list ',' expr
+    //
+    //value:     expr | set
+    //
+    //stmt:      ID '=' value ';'
+
+
+
+    const auto ff = from_str("cmd & SEMICOLON & (null | block)");
+
+    std::cout << ff << "\n";
+    return 0;
+
     std::string lastArg;
     std::string outputFilePath;
     std::string input;

@@ -180,7 +180,7 @@ PCDProcessor::Unit PCDProcessor::compile(const std::string &input) {
             }
             return {};
         }
-        return wall_e::gram::pattern::__default_processor(args);
+        return wall_e::gram::pattern::default_processor(args);
     });
 
 

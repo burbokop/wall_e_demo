@@ -150,8 +150,6 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
         return args;
     });
 
-
-    //https://www.onlinegdb.com/online_gcc_assembler
     gram_list.push_back(wall_e::gram::pattern("decl_arg_list")
                         << (wall_e::gram::rule("decl_arg") & (wall_e::gram::rule("EP") | (wall_e::gram::rule("COMA") & "decl_arg_list"))));
 
@@ -234,7 +232,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
             }
             return {};
         }
-        return wall_e::gram::pattern::__default_processor(args);
+        return wall_e::gram::pattern::default_processor(args);
     });
 
 
@@ -287,4 +285,60 @@ std::string km2_trim_str(const std::string &str, char symbol) {
 
 bool operator==(const km2_error &error0, const km2_error &error1) {
     return error0.message == error1.message && error0.start == error1.start && error0.end == error1.end;
+}
+
+wall_e::gram::rule from_str(const std::string &string) {
+    const auto tokens = wall_e::lex::parse(string, {
+        { std::regex("[a-zA-Z][a-zA-Z0-9]*"), "W" },
+        { std::regex("[(]"), "OP" },
+        { std::regex("[)]"), "EP" },
+        { std::regex("[&]"), "C" },
+        { std::regex("[|]"), "D" },
+        { std::regex("[ \t\n]+"), wall_e::lex::ignore }
+    });
+
+    std::cout << "t: " << tokens << "\n";
+
+    (void)"expression << disj | term";
+    (void)"disj       << term & TOK_D & expression";
+    (void)"term       << conj | factor";
+    (void)"conj       << factor & TOK_C & term";
+    (void)"factor     << OP & expression & EP | TOK_W";
+
+    const auto r = wall_e::gram::exec({
+        wall_e::gram::pattern("expression")
+        << (wall_e::gram::rule("disj") | wall_e::gram::rule("term")),
+        wall_e::gram::pattern("disj")
+        << ((wall_e::gram::rule("term") & "D" & "expression"))
+        << [](wall_e::gram::arg_vector args) -> wall_e::gram::argument {
+            return binary_operator<wall_e::gram::rule>(args, std::bit_or<wall_e::gram::rule>());
+        },
+        wall_e::gram::pattern("term")
+        << (wall_e::gram::rule("conj") | "factor"),
+        wall_e::gram::pattern("conj")
+        << (wall_e::gram::rule("factor") & "C" & "term")
+        << [](wall_e::gram::arg_vector args) -> wall_e::gram::argument {
+            return binary_operator<wall_e::gram::rule>(args, std::bit_and<wall_e::gram::rule>());
+        },
+        wall_e::gram::pattern("closed_expr")
+        << (wall_e::gram::rule("OP") & "expression" & "EP")
+        << wall_e::gram::pattern::pass_argument(1),
+        wall_e::gram::pattern("factor")
+        << (wall_e::gram::rule("closed_expr") | "rule"),
+        wall_e::gram::pattern("rule")
+        << wall_e::gram::rule("W")
+        << [](wall_e::gram::arg_vector args) -> wall_e::gram::argument {
+            if(args.size() > 0) {
+                if(args[0].contains_type<wall_e::lex::token>()) {
+                    return wall_e::gram::rule(args[0].value<wall_e::lex::token>().text);
+                }
+                return args[0];
+            }
+            return {};
+        }
+    }, tokens, { wall_e::gram::verbose });
+
+    std::cout << "r: " << r << "\n";
+
+    return r.value_default<wall_e::gram::rule>();
 }
