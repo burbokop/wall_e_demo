@@ -28,26 +28,10 @@
 #include <src/treegui/appcore.h>
 
 int main(int argc, char **argv) {
+    wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Conjunction, '&');
+    wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Disjunction, '|');
 
-
-    //stmt:      ID '=' expr ';'
-    //expr:      term | expr '-' term | expr '+' term
-    //term:      factor | term '*' factor | term '/' factor
-    //factor:    ID | NUMBER | '(' expr ')' | '-' factor
-    //
-    //set:       '(' ')' | '(' expr_list ')'
-    //expr_list: expr | expr_list ',' expr
-    //
-    //value:     expr | set
-    //
-    //stmt:      ID '=' value ';'
-
-
-
-    const auto ff = from_str("cmd & SEMICOLON & (null | block)");
-
-    std::cout << ff << "\n";
-    return 0;
+    std::cout << "rule test: " << wall_e::gram::rule_from_str("cmd & SEMICOLON & (null | block)") << "\n";
 
     std::string lastArg;
     std::string outputFilePath;
@@ -95,8 +79,6 @@ int main(int argc, char **argv) {
     engine.rootContext()->setContextProperty("appCore", &appCore);
     engine.load("qrc:/resources/main.qml");
 
-    wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Conjunction, '&');
-    wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Disjunction, '|');
 
 
     return app.exec();
