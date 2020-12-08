@@ -71,6 +71,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
     if(__flags.tree_mode) {
         gram_flags.push_back(wall_e::gram::use_default_parser);
     }
+    gram_flags.push_back(wall_e::gram::unconditional_transition);
 
     if(__flags.verbose)
         std::cout << ">>> INPUT TEXT <<<\n\n" << input << "\n\n>>> ----- ---- <<<\n";
