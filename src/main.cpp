@@ -31,7 +31,13 @@ int main(int argc, char **argv) {
     wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Conjunction, '&');
     wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Disjunction, '|');
 
-    std::cout << "rule test: " << wall_e::gram::rule_from_str("cmd & SEMICOLON & (null | block)") << "\n";
+    const auto r0 = wall_e::gram::rule_from_str("cmd & SEMICOLON & (0 | block)");
+    const auto r1 = (wall_e::gram::rule("cmd") & "SEMICOLON") & (wall_e::gram::rule() | "block");
+
+    std::cout << "r0: " << r0 << " : " << wall_e::gram::simplify_rule(r0) << '\n';
+    std::cout << "r1: " << r1 << " : " << wall_e::gram::simplify_rule(r1) << '\n';
+
+    return 0;
 
     std::string lastArg;
     std::string outputFilePath;
