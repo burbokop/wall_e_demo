@@ -27,8 +27,20 @@
 #include <wall_e/src/utility/asm_tools.h>
 #include <src/treegui/appcore.h>
 #include <src/cmp.h>
+#include <wall_e/src/flag.h>
 
 int main(int argc, char **argv) {
+    wall_e::flag_provider flag_provider(argc, argv);
+
+    std::cout << flag_provider.value_flag(std::pair { "i", "input" }, "input", "def_in") << "\n";
+    std::cout << flag_provider.value_flag("o", "output", "def_out") << "\n";
+    std::cout << flag_provider.bool_flag("f", "flag") << "\n";
+    std::cout << flag_provider.bool_flag(std::pair { "g", "gog" }, "goga") << "\n";
+    std::cout << flag_provider.value_flag("a", "A", "AAA") << "\n";
+
+
+
+
     wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Conjunction, '&');
     wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Disjunction, '|');
 
@@ -38,7 +50,7 @@ int main(int argc, char **argv) {
     //std::cout << "r0: " << r0 << " : " << smp::simplify(r0) << '\n';
     //std::cout << "r1: " << r1 << " : " << smp::simplify(r1) << '\n';
 
-    //return 0;
+    return 0;
 
     std::string lastArg;
     std::string outputFilePath;
