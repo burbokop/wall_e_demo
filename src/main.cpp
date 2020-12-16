@@ -32,13 +32,13 @@
 int main(int argc, char **argv) {
     wall_e::flag_provider flag_provider(argc, argv);
 
-    std::cout << flag_provider.value_flag(std::pair { "i", "input" }, "input", "def_in") << "\n";
-    std::cout << flag_provider.value_flag("o", "output", "def_out") << "\n";
-    std::cout << flag_provider.bool_flag("f", "flag") << "\n";
-    std::cout << flag_provider.bool_flag(std::pair { "g", "gog" }, "goga") << "\n";
-    std::cout << flag_provider.value_flag("a", "A", "AAA") << "\n";
+    std::cout << flag_provider.value_flag(std::pair { 'i', "input" }, "input", "def_in") << "\n";
+    std::cout << flag_provider.value_flag('o', "output", "def_out") << "\n";
+    std::cout << flag_provider.bool_flag('f', "flag") << "\n";
+    std::cout << flag_provider.bool_flag(std::pair { 'g', "gog" }, "goga") << "\n";
+    std::cout << flag_provider.value_flag('a', "A", "AAA") << "\n";
 
-
+    flag_provider.finish(std::cout);
 
 
     wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Conjunction, '&');
