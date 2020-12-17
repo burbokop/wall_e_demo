@@ -11,6 +11,7 @@
 #include <QResource>
 #include <QDirIterator>
 #include <QQmlContext>
+#include <ostream>
 
 #include <string.h>
 #include <fstream>
@@ -21,6 +22,7 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include <filesystem>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,6 +30,30 @@
 #include <src/treegui/appcore.h>
 #include <src/cmp.h>
 #include <wall_e/src/flag.h>
+
+
+
+void to_pdf(const wall_e::relation_list &rl, const std::string &path) {
+    const auto compile_line = "dot -Tpdf " + path + ".gv -o " + path + ".pdf";
+    std::ofstream stream(path + ".gv", std::ios::out);
+    stream << "digraph G {\n";
+    for(const auto& relation : rl) {
+        stream << "\tv" << relation.vertex1 << " -> v" << relation.vertex0;
+        if(relation.symbol != 0)
+            stream << "[label=\"" << relation.symbol << "\"]";
+
+        stream << ";\n";
+    }
+    stream << "}\n";
+    stream.close();
+    if(std::system(compile_line.c_str()) == 32512) {
+        if(std::system("sudo apt -y install graphviz") == 0) {
+            std::system(compile_line.c_str());
+        }
+    }
+}
+
+
 
 int main(int argc, char **argv) {
     wall_e::flag_provider flag_provider(argc, argv);
@@ -46,6 +72,27 @@ int main(int argc, char **argv) {
 
     const auto r0 = wall_e::gram::rule_from_str("cmd & SEMICOLON & (0 | block)");
     const auto r1 = (wall_e::gram::rule("cmd") & "SEMICOLON") & (wall_e::gram::rule() | "block");
+
+
+    //wall_e::write_graph(std::cout, r0.to_graph());
+
+    std::cout << r0 << "\n";
+    wall_e::write_relation_list(std::cout, r0.to_relation_list());
+    std::cout << r1 << "\n";
+    wall_e::write_relation_list(std::cout, r1.to_relation_list());
+    std::cout << "sm: " << wall_e::gram::simplify_rule_default(r0) << "\n";
+    wall_e::write_relation_list(std::cout, wall_e::gram::simplify_rule_default(r0).to_relation_list());
+    std::cout << "sm: " << wall_e::gram::simplify_rule_default(r1) << "\n";
+    wall_e::write_relation_list(std::cout, wall_e::gram::simplify_rule_default(r1).to_relation_list());
+
+    std::filesystem::create_directory("app_out");
+    to_pdf(r0.to_relation_list(), "./app_out/r0");
+    to_pdf(r1.to_relation_list(), "./app_out/r1");
+    to_pdf(wall_e::gram::simplify_rule_default(r0).to_relation_list(), "./app_out/r0_s");
+    to_pdf(wall_e::gram::simplify_rule_default(r1).to_relation_list(), "./app_out/r1_s");
+
+    wall_e::write_graph(std::cout, r0.to_graph());
+    std::cout << "\n";
 
     //std::cout << "r0: " << r0 << " : " << smp::simplify(r0) << '\n';
     //std::cout << "r1: " << r1 << " : " << smp::simplify(r1) << '\n';

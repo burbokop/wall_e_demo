@@ -25,8 +25,8 @@ wall_e::gram::rule smp::simplifier::exec(const wall_e::gram::rule &r) {
 
 wall_e::gram::rule smp::simplify(const wall_e::gram::rule &rule) {
     simplifier s;
-    s.installOperator({ rule_type::Conjunction, rule_type::Conjunction }, [](const wall_e::gram::rule& value, size_t i) -> decltype (value) {
-
-    });
+    //s.installOperator({ rule_type::Conjunction, rule_type::Conjunction }, [](const wall_e::gram::rule& value, size_t i) -> decltype (value) {
+    //
+    //});
     return s.exec(rule);
 }
