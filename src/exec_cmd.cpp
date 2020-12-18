@@ -7,14 +7,18 @@
 #include <filesystem>
 #include "wall_e/src/color.h"
 #include <fstream>
+#include <regex>
 #include "wall_e/src/lex.h"
 #include <iostream>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 
 namespace clang_interface {
-    decltype (close) *__close = close;
-    decltype (pipe) *__pipe = pipe;
-    decltype (fork) *__fork = fork;
+decltype (close) *__close = close;
+decltype (pipe) *__pipe = pipe;
+decltype (fork) *__fork = fork;
 };
 
 
@@ -114,23 +118,27 @@ bool sexy_proc::install_package(const std::string &package) {
 }
 
 
-std::string sexy_proc::env::root_dir() const {
+std::string sexy_proc::environment::root_dir() const {
     return m_root_dir;
 }
 
-bool sexy_proc::env::install_package(const std::string &package) {
+bool sexy_proc::environment::install_package(const std::string &package) const {
     temporary_path tmp_p(m_root_dir);
     return sexy_proc::install_package(package);
 }
 
+sexy_proc::process_result sexy_proc::environment::exec(const std::string &cmd, const std::string &package) const {
+    if(install_package(package)) {
+        return this->exec(cmd);
+    } else {
+        return {};
+    }
+}
 
-static int aaaaa = [] {
-    std::cout << "TEST STARTED...\n";
-    sexy_proc::env e("./env");
-    e.install_package("clang-10");
-    std::cout << "TEST FINISHED.\n";
-    return 0;
-}();
+sexy_proc::process_result sexy_proc::environment::exec(const std::string &cmd) const {
+    const auto path_setup_cmd = "export PATH=" + m_root_dir + "/usr/bin:" + m_root_dir + "/bin:$PATH";
+    return sexy_proc::exec(path_setup_cmd + " && " + cmd);
+}
 
 sexy_proc::temporary_path::temporary_path(const std::string &new_path) {
     std::filesystem::create_directory(new_path);
@@ -141,41 +149,38 @@ sexy_proc::temporary_path::temporary_path(const std::string &new_path) {
 sexy_proc::temporary_path::~temporary_path() { std::filesystem::current_path(m_prev_path); }
 
 
-bool sexy_proc::download_package(const std::string &package) {
-    std::cout << "Downloading pack..: " << wall_e::color::BrightCyan(package) << "\n";
+bool sexy_proc::download_package(const std::string &package, bool with_dependencies) {
+    std::cout << "Downloading pack .:. " << wall_e::color::BrightCyan(package) << "\n";
+    if(check_in_root(package)) {
+        std::cout << "                 ::: " << wall_e::color::BrightGreen("Found in root.") << "\n";
+        return true;
+    }
     if(contains_meta(package)) {
-        std::cout << wall_e::color::BrightYellow("Pack..: ") << wall_e::color::BrightCyan(package) << " already downloaded." << "\n";
+        std::cout << "                 ::: " << wall_e::color::BrightYellow("Already downloaded.") << "\n";
         return true;
     }
 
-    std::filesystem::create_directories("./deb");
-    std::filesystem::current_path("./deb");
-    const auto download_res = exec("apt-get download " + package);
-    std::filesystem::current_path("..");
-    if(download_res.err.size() == 0) {
-        append_meta(package);
-        const auto search_res = exec("apt-cache rdepends " + package);
-        if(search_res.err.size() == 0) {
-            std::istringstream ss(search_res.out);
-            while (!ss.eof()) {
-                std::string line;
-                std::getline(ss, line, '\n');
-                if(line.size() > 2 && line[0] == ' ' && line[1] == ' ') {
-                    const std::string pname = wall_e::lex::trim(line);
-                    if(!download_package(pname)) {
-                        throw std::runtime_error("Dependency solving failed: " + pname);
-                    }
+    if(with_dependencies) {
+        std::list<std::string> packs_to_install;
+        if(list_dependencies(package, &packs_to_install)) {
+            for(const auto &p : packs_to_install) {
+                if(!download_package(p, false)) {
+                    return false;
                 }
             }
-            std::cout << "Downloading finished with code: " << download_res.code << "\n";
-            return true;
         } else {
-            std::cerr << "Getting dependencies failed: " << search_res.err << "\n";
+            std::cerr << "                 ::: " << wall_e::color::BrightRed("Getting dependencies failed.") << "\n";
+            return false;
         }
-    } else {
-        std::cerr << "Downloading failed: " << download_res.err << "\n";
     }
-    return false;
+
+    if(download_deb(package)) {
+        std::cout << "                 ::: " << wall_e::color::BrightGreen("Success: ", package) << "\n";
+        return true;
+    } else {
+        std::cerr << "                 ::: " << wall_e::color::BrightRed("Downloading failed: ") << "\n";
+        return false;
+    }
 }
 
 bool sexy_proc::contains_meta(const std::string &package, const std::string &path) {
@@ -221,7 +226,7 @@ void sexy_proc::local_install() {
             const auto pname = it->path().string();
             if(!contains_meta(pname, meta_file_name)) {
                 std::cout << wall_e::color::BrightMagenta("Unpucking pack..: ", pname) << "\n";
-                const auto res = exec("dpkg-deb --extract " + pname + " ./");
+                const auto res = sexy_proc::exec("dpkg-deb --extract " + pname + " ./");
                 if(res.err.size() == 0) {
                     append_meta(pname, meta_file_name);
                     std::cout << wall_e::color::BrightGreen("Pack unpucked: ", pname) << "\n";
@@ -232,4 +237,46 @@ void sexy_proc::local_install() {
         }
         ++it;
     }
+}
+
+std::string sexy_proc::home_directory() {
+    struct passwd *pw = getpwuid(getuid());
+    if(pw)
+        return pw->pw_dir;
+    return {};
+}
+
+bool sexy_proc::check_in_root(const std::string &package) {
+    const auto out = sexy_proc::exec("dpkg -s " + package).out;
+    const auto i = out.find("Status: install ok installed");
+    return i >= 0 && i < out.size();
+}
+
+bool sexy_proc::list_dependencies(const std::string &package, std::list<std::string> *list) {
+    const auto search_res = sexy_proc::exec("apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks --no-replaces --no-enhances " + package + " | grep \"^\\w\" | sort -u");
+    if(search_res.err.size() == 0) {
+        std::istringstream ss(search_res.out);
+        while (!ss.eof()) {
+            std::string line;
+            std::getline(ss, line, '\n');
+            if(line.size() > 0) {
+                std::cout << "DEP: " << line << "\n";
+                list->push_back(line);
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+bool sexy_proc::download_deb(const std::string &package) {
+    std::filesystem::create_directories("./deb");
+    std::filesystem::current_path("./deb");
+    const auto download_res = sexy_proc::exec("apt-get download " + package);
+    std::filesystem::current_path("..");
+    if(download_res.err.size() == 0) {
+        append_meta(package);
+        return true;
+    }
+    return false;
 }

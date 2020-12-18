@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <list>
 
 namespace sexy_proc {
 
@@ -49,9 +50,13 @@ bool contains_meta(const std::string& package, const std::string &path = "meta.l
 bool append_meta(const std::string& package, const std::string &path = "meta.list");
 void foreach_meta(const std::function<void(const std::string&)>& callback, const std::string &path = "meta.list");
 
-bool download_package(const std::string& package);
+bool download_deb(const std::string& package);
+bool list_dependencies(const std::string& package, std::list<std::string> *list);
+bool check_in_root(const std::string& package);
+bool download_package(const std::string& package, bool with_dependencies = true);
 void local_install();
 bool install_package(const std::string &package);
+std::string home_directory();
 
 
 class temporary_path {
@@ -61,14 +66,17 @@ public:
     ~temporary_path();
 };
 
-class env {
+class environment {
     std::string m_root_dir;
 public:
-    env(const std::string &root_dir) { m_root_dir = root_dir; }
-    bool install_package(const std::string &package);
+    environment(const std::string &root_dir) { m_root_dir = root_dir; }
+    bool install_package(const std::string &package) const;
+    process_result exec(const std::string &cmd) const;
+    process_result exec(const std::string &cmd, const std::string &package) const;
     std::string root_dir() const;
 };
 
+static inline const environment home = environment(home_directory() + "/.sexy_proc");
 
 }
 

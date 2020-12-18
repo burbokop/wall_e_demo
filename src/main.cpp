@@ -46,27 +46,29 @@ std::string exec_cmd(const std::string &cmd) {
     return result;
 }
 
-
-void install_pack(const std::string &package) {
-    std::cout << "aaa__" << exec_cmd("apt-cache rdepends " + package) << "__aaa\n";
-}
-
-void exec_cmd(const std::string &cmd, const std::string &package) {
-
-
-    std::system(("apt-get download " + package).c_str());
-
-}
-
-
 int main(int argc, char **argv) {
+    std::cout << "home dir: " << sexy_proc::home_directory() << "\n";
+
+    {
+        const auto res = sexy_proc::home.exec("clang-10", "clang-10");
+        std::cout << "TEST0: " << res.valid << ":" << res.code << ":" << res.out << ":" << res.err << "\n";
+    }
+
+//    const auto res = sexy_proc::home.exec("lsscsi", "lsscsi");
+    {
+        const auto res = sexy_proc::home.exec("hello", "hello");
+        std::cout << "TEST1: " << res.valid << ":" << res.code << ":" << res.out << ":" << res.err << "\n";
+    }
+
+    //const auto res = sexy_proc::home.exec("micro", "micro");
+
     //std::cout << sexy_proc::fork([]{ return std::system("echo goga"); }).code << "\n";
     //std::cout << sexy_proc::fork([]{ std::system("echo kili"); return 123; }).out << "\n";
 
     //std::cout << sexy_proc::exec("ls -l").out << "\n";
 
 
-    std::cout << sexy_proc::fork([]{ std::cout << "aaaaaa"; return 0; }).out << "\n";
+    //std::cout << sexy_proc::fork([]{ std::cout << "aaaaaa"; return 0; }).out << "\n";
 
     //install_pack("npm333");
     return 0;
