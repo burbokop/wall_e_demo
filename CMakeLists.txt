@@ -34,6 +34,7 @@ set(SOURCES
     src/km2/km2.cpp
     src/km3/km3.cpp
     src/cmp.cpp
+    src/exec_cmd.cpp
     )
 set(HEADERS
     src/treegui/kgramtreeview.h
@@ -48,6 +49,7 @@ set(HEADERS
     src/km2/km2.h
     src/km3/km3.h
     src/cmp.h
+    src/exec_cmd.h
     )
 
 

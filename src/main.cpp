@@ -1,36 +1,15 @@
-
-#include "treegui/mainwindow.h"
-
-#include <vector>
-#include <string>
-#include <fstream>
-#include <iostream>
 #include <QCoreApplication>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QResource>
-#include <QDirIterator>
-#include <QQmlContext>
-#include <ostream>
 
-#include <string.h>
-#include <fstream>
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <sys/types.h>
-
-#include <filesystem>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <wall_e/src/utility/asm_tools.h>
 #include <src/treegui/appcore.h>
-#include <src/cmp.h>
+#include <src/treegui/kgramtreeview.h>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <QQmlContext>
 #include <wall_e/src/flag.h>
-
+#include "exec_cmd.h"
 
 
 void to_pdf(const wall_e::relation_list &rl, const std::string &path) {
@@ -54,8 +33,44 @@ void to_pdf(const wall_e::relation_list &rl, const std::string &path) {
 }
 
 
+std::string exec_cmd(const std::string &cmd) {
+    std::array<char, 256> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+    if (!pipe) {
+        throw std::runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
+}
+
+
+void install_pack(const std::string &package) {
+    std::cout << "aaa__" << exec_cmd("apt-cache rdepends " + package) << "__aaa\n";
+}
+
+void exec_cmd(const std::string &cmd, const std::string &package) {
+
+
+    std::system(("apt-get download " + package).c_str());
+
+}
+
 
 int main(int argc, char **argv) {
+    //std::cout << sexy_proc::fork([]{ return std::system("echo goga"); }).code << "\n";
+    //std::cout << sexy_proc::fork([]{ std::system("echo kili"); return 123; }).out << "\n";
+
+    //std::cout << sexy_proc::exec("ls -l").out << "\n";
+
+
+    std::cout << sexy_proc::fork([]{ std::cout << "aaaaaa"; return 0; }).out << "\n";
+
+    //install_pack("npm333");
+    return 0;
+
     wall_e::flag_provider flag_provider(argc, argv);
 
     std::cout << flag_provider.value_flag(std::pair { 'i', "input" }, "input", "def_in") << "\n";
@@ -77,13 +92,14 @@ int main(int argc, char **argv) {
     //wall_e::write_graph(std::cout, r0.to_graph());
 
     std::cout << r0 << "\n";
-    wall_e::write_relation_list(std::cout, r0.to_relation_list());
-    std::cout << r1 << "\n";
-    wall_e::write_relation_list(std::cout, r1.to_relation_list());
+    wall_e::write_graph(std::cout, r0.to_graph());
     std::cout << "sm: " << wall_e::gram::simplify_rule_default(r0) << "\n";
-    wall_e::write_relation_list(std::cout, wall_e::gram::simplify_rule_default(r0).to_relation_list());
+    wall_e::write_graph(std::cout, wall_e::gram::simplify_rule_default(r0).to_graph());
+
+    std::cout << r1 << "\n";
+    wall_e::write_graph(std::cout, r1.to_graph());
     std::cout << "sm: " << wall_e::gram::simplify_rule_default(r1) << "\n";
-    wall_e::write_relation_list(std::cout, wall_e::gram::simplify_rule_default(r1).to_relation_list());
+    wall_e::write_graph(std::cout, wall_e::gram::simplify_rule_default(r1).to_graph());
 
     std::filesystem::create_directory("app_out");
     to_pdf(r0.to_relation_list(), "./app_out/r0");
@@ -91,7 +107,6 @@ int main(int argc, char **argv) {
     to_pdf(wall_e::gram::simplify_rule_default(r0).to_relation_list(), "./app_out/r0_s");
     to_pdf(wall_e::gram::simplify_rule_default(r1).to_relation_list(), "./app_out/r1_s");
 
-    wall_e::write_graph(std::cout, r0.to_graph());
     std::cout << "\n";
 
     //std::cout << "r0: " << r0 << " : " << smp::simplify(r0) << '\n';
