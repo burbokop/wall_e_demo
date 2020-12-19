@@ -41,6 +41,8 @@ struct process_result {
     bool valid = false;
 };
 
+std::ostream &operator<<(std::ostream& stream, const process_result& r);
+
 process_result fork(const std::function<int()> &callback);
 
 inline process_result exec(const std::string &cmd) { return fork([cmd]{ return std::system(cmd.c_str()); }); }
@@ -49,15 +51,25 @@ inline process_result exec(const std::string &cmd) { return fork([cmd]{ return s
 bool contains_meta(const std::string& package, const std::string &path = "meta.list");
 bool append_meta(const std::string& package, const std::string &path = "meta.list");
 void foreach_meta(const std::function<void(const std::string&)>& callback, const std::string &path = "meta.list");
+bool clear_meta(const std::string &path = "meta.list");
 
 bool download_deb(const std::string& package);
-bool list_dependencies(const std::string& package, std::list<std::string> *list);
+bool list_dependencies(const std::string& package, std::list<std::string> *list, const std::vector<std::string> &args = {
+        "--recurse",
+        "--no-recommends",
+        "--no-suggests",
+        "--no-conflicts",
+        "--no-breaks",
+        "--no-replaces",
+        "--no-enhances"
+});
 bool check_in_root(const std::string& package);
-bool download_package(const std::string& package, bool with_dependencies = true);
+bool download_package(const std::string& package, bool forced = false, bool with_dependencies = true);
 void local_install();
 bool install_package(const std::string &package);
+bool force_install_package(const std::string &package);
 std::string home_directory();
-
+std::string find_pack_by_cmd(const std::string& cmd);
 
 class temporary_path {
     std::string m_prev_path;
@@ -71,9 +83,13 @@ class environment {
 public:
     environment(const std::string &root_dir) { m_root_dir = root_dir; }
     bool install_package(const std::string &package) const;
+    bool force_install_package(const std::string &package) const;
+    void local_install() const;
     process_result exec(const std::string &cmd) const;
     process_result exec(const std::string &cmd, const std::string &package) const;
+    process_result auto_exec(const std::string &cmd) const;
     std::string root_dir() const;
+    bool clear() const;
 };
 
 static inline const environment home = environment(home_directory() + "/.sexy_proc");

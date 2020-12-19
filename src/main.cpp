@@ -10,6 +10,7 @@
 #include <QQmlContext>
 #include <wall_e/src/flag.h>
 #include "exec_cmd.h"
+#include <wall_e/src/color.h>
 
 
 void to_pdf(const wall_e::relation_list &rl, const std::string &path) {
@@ -25,11 +26,7 @@ void to_pdf(const wall_e::relation_list &rl, const std::string &path) {
     }
     stream << "}\n";
     stream.close();
-    if(std::system(compile_line.c_str()) == 32512) {
-        if(std::system("sudo apt -y install graphviz") == 0) {
-            std::system(compile_line.c_str());
-        }
-    }
+    std::cout << sexy_proc::home.exec(compile_line, "graphviz");
 }
 
 
@@ -49,29 +46,12 @@ std::string exec_cmd(const std::string &cmd) {
 int main(int argc, char **argv) {
     std::cout << "home dir: " << sexy_proc::home_directory() << "\n";
 
-    {
-        const auto res = sexy_proc::home.exec("clang-10", "clang-10");
-        std::cout << "TEST0: " << res.valid << ":" << res.code << ":" << res.out << ":" << res.err << "\n";
-    }
+    sexy_proc::home.force_install_package("graphviz");
 
-//    const auto res = sexy_proc::home.exec("lsscsi", "lsscsi");
-    {
-        const auto res = sexy_proc::home.exec("hello", "hello");
-        std::cout << "TEST1: " << res.valid << ":" << res.code << ":" << res.out << ":" << res.err << "\n";
-    }
+    //sexy_proc::home.clear();
+    //sexy_proc::home.install_package("libgvc6");
+    //const auto a = sexy_proc::find_pack_by_cmd("micro");
 
-    //const auto res = sexy_proc::home.exec("micro", "micro");
-
-    //std::cout << sexy_proc::fork([]{ return std::system("echo goga"); }).code << "\n";
-    //std::cout << sexy_proc::fork([]{ std::system("echo kili"); return 123; }).out << "\n";
-
-    //std::cout << sexy_proc::exec("ls -l").out << "\n";
-
-
-    //std::cout << sexy_proc::fork([]{ std::cout << "aaaaaa"; return 0; }).out << "\n";
-
-    //install_pack("npm333");
-    return 0;
 
     wall_e::flag_provider flag_provider(argc, argv);
 
