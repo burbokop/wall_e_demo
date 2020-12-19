@@ -127,6 +127,10 @@ bool sexy_proc::environment::clear() const {
     return clear_meta();
 }
 
+bool sexy_proc::environment::forced() const {
+    return m_forced;
+}
+
 bool sexy_proc::environment::install_package(const std::string &package) const {
     temporary_path tmp_p(m_root_dir);
     return sexy_proc::install_package(package);
@@ -142,8 +146,14 @@ void sexy_proc::environment::local_install() const {
     sexy_proc::local_install();
 }
 
+void sexy_proc::environment::local_install(const std::string &package) const {
+    temporary_path tmp_p(m_root_dir);
+    std::filesystem::copy_file(package, "./deb");
+    sexy_proc::local_install();
+}
+
 sexy_proc::process_result sexy_proc::environment::exec(const std::string &cmd, const std::string &package) const {
-    if(install_package(package)) {
+    if(m_forced ? force_install_package(package) : install_package(package)) {
         return this->exec(cmd);
     } else {
         return {};
@@ -151,6 +161,19 @@ sexy_proc::process_result sexy_proc::environment::exec(const std::string &cmd, c
 }
 
 sexy_proc::process_result sexy_proc::environment::auto_exec(const std::string &cmd) const {
+    const auto pos = cmd.find(' ');
+    std::string cmd_name;
+    if(pos >= 0 && pos < cmd.size()) {
+        cmd_name = cmd.substr(0, pos);
+    } else {
+        cmd_name = cmd;
+    }
+
+    const auto package = find_pack_by_cmd(cmd_name);
+    if(package.size() > 0)
+        return this->exec(cmd, package);
+
+    return {};
 }
 
 sexy_proc::process_result sexy_proc::environment::exec(const std::string &cmd) const {
@@ -180,15 +203,7 @@ bool sexy_proc::download_package(const std::string &package, bool forced, bool w
 
     if(with_dependencies) {
         std::list<std::string> packs_to_install;
-        if(list_dependencies(package, &packs_to_install, {
-                             "--recurse",
-                             //"--no-recommends",
-                             "--no-suggests",
-                             "--no-conflicts",
-                             "--no-breaks",
-                             "--no-replaces",
-                             "--no-enhances"
-    })) {
+        if(list_dependencies(package, &packs_to_install)) {
             for(const auto &p : packs_to_install) {
                 if(!download_package(p, forced, false)) {
                     return false;
@@ -344,10 +359,30 @@ bool sexy_proc::force_install_package(const std::string &package) {
 }
 
 std::string sexy_proc::find_pack_by_cmd(const std::string &cmd) {
-    const auto res = home.exec("apt-file search " + cmd, "apt-file");
-    if(res.err == "E: The cache is empty. You need to run \"apt-file update\" first.\n") {
-        std::cout << wall_e::color::BrightYellow("UPDATE NEEDED") << "\n";
-        std::cout << home.exec("apt-file update");
+    const static std::vector<std::string> cmds = { "/usr/lib/command-not-found", "/usr/share/command-not-found/command-not-found" };
+    for(const auto &c : cmds) {
+        if(std::filesystem::exists(c)) {
+            const auto res = sexy_proc::exec(c + " " + cmd);
+            if(res.err.size() > 0) {
+                std::istringstream ss(res.err);
+                while (!ss.eof()) {
+                    std::string line;
+                    std::getline(ss, line, '\n');
+                    const auto pos = line.find("apt");
+                    if(pos >= 0 && pos < line.size()) {
+                        const auto begin = line.find("install") + sizeof ("install");
+                        if(begin >= 0 && begin < line.size()) {
+                            const auto end = line.find(' ', begin);
+                            if(end >= 0 && end <= line.size()) {
+                                return line.substr(begin, end - begin);
+                            } else {
+                                return line.substr(begin, line.size() - begin);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
-    return res.err;
+    return {};
 }

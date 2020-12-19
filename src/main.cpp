@@ -26,7 +26,7 @@ void to_pdf(const wall_e::relation_list &rl, const std::string &path) {
     }
     stream << "}\n";
     stream.close();
-    std::cout << sexy_proc::home.exec(compile_line, "graphviz");
+    std::cout << sexy_proc::system(compile_line);
 }
 
 
@@ -44,13 +44,18 @@ std::string exec_cmd(const std::string &cmd) {
 }
 
 int main(int argc, char **argv) {
+    std::cout << sexy_proc::system("fgfs");
+    return 0;
+
     std::cout << "home dir: " << sexy_proc::home_directory() << "\n";
 
-    sexy_proc::home.force_install_package("graphviz");
+    //sexy_proc::home.force_install_package("graphviz");
 
     //sexy_proc::home.clear();
     //sexy_proc::home.install_package("libgvc6");
-    //const auto a = sexy_proc::find_pack_by_cmd("micro");
+    const auto a = sexy_proc::find_pack_by_cmd("micro");
+    const auto b = sexy_proc::find_pack_by_cmd("dot");
+
 
 
     wall_e::flag_provider flag_provider(argc, argv);

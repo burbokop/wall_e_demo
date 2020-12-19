@@ -80,19 +80,31 @@ public:
 
 class environment {
     std::string m_root_dir;
+    bool m_forced = false;
 public:
-    environment(const std::string &root_dir) { m_root_dir = root_dir; }
+    environment(const std::string &root_dir, bool forced = false) { m_root_dir = root_dir; m_forced = forced; }
     bool install_package(const std::string &package) const;
     bool force_install_package(const std::string &package) const;
     void local_install() const;
+    void local_install(const std::string &package) const;
     process_result exec(const std::string &cmd) const;
     process_result exec(const std::string &cmd, const std::string &package) const;
     process_result auto_exec(const std::string &cmd) const;
     std::string root_dir() const;
     bool clear() const;
+    bool forced() const;
 };
 
 static inline const environment home = environment(home_directory() + "/.sexy_proc");
+static inline const environment forced_home = environment(home_directory() + "/.sexy_proc_forced", true);
+
+inline process_result system(const std::string& cmd, bool forced = true) {
+    if(forced) {
+        return forced_home.auto_exec(cmd);
+    } else {
+        return home.auto_exec(cmd);
+    }
+}
 
 }
 
