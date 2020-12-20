@@ -54,7 +54,6 @@ set(HEADERS
 
 
 
-
 add_executable(km2ide
     ${SOURCES}
     ${HEADERS}
@@ -66,11 +65,12 @@ target_include_directories(km2ide PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
 
 include(${CMAKE_CURRENT_LIST_DIR}/wall_e/wall_e.cmake)
-
+include(${CMAKE_CURRENT_LIST_DIR}/sproc/sproc.cmake)
 
 target_link_libraries(km2ide
     km2ide_resources
     wall_e
+    sproc
     Qt5::Qml
     Qt5::Quick
 )

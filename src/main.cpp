@@ -44,7 +44,7 @@ std::string exec_cmd(const std::string &cmd) {
 }
 
 int main(int argc, char **argv) {
-    std::cout << sexy_proc::system("fgfs");
+    std::cout << sexy_proc::system("fgfs", false);
     return 0;
 
     std::cout << "home dir: " << sexy_proc::home_directory() << "\n";

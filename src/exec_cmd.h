@@ -5,48 +5,15 @@
 #include <vector>
 #include <functional>
 #include <list>
+#include <sproc/src/fork.h>
 
 namespace sexy_proc {
 
-struct cpipe_container {
-    typedef int file_des;
-    typedef file_des cpipe[2];
-    typedef std::vector<cpipe> cpipe_vector;
-private:
-    cpipe_vector pipes;
-    bool closed = false;
-    std::string __read_all(file_des fd);
-public:
-    cpipe_container(size_t count);
-    inline file_des &rfile(size_t index) { return pipes[index][0]; }
-    inline file_des &wfile(size_t index) { return pipes[index][1]; }
-    inline file_des rfile(size_t index) const { return pipes[index][0]; }
-    inline file_des wfile(size_t index) const { return pipes[index][1]; }
-    inline void rclose(size_t index);
-    inline void wclose(size_t index);
-    inline void rdup2(size_t index, file_des fd);
-    inline void wdup2(size_t index, file_des fd);
-    inline size_t size() const { return pipes.size(); }
-    inline std::string read_all(size_t index) { return __read_all(rfile(index)); }
-    inline std::string read_all_reversed(size_t index) { return __read_all(wfile(index)); }
-    void close();
-    inline ~cpipe_container() { close(); }
-};
-
-
-struct process_result {
-    std::string out;
-    std::string err;
-    int code;
-    bool valid = false;
-};
-
-std::ostream &operator<<(std::ostream& stream, const process_result& r);
-
-process_result fork(const std::function<int()> &callback);
-
-inline process_result exec(const std::string &cmd) { return fork([cmd]{ return std::system(cmd.c_str()); }); }
-
+inline sproc::process_result exec(const std::string &cmd) {
+    return sproc::fork([cmd]{
+        return std::system(cmd.c_str());
+    });
+}
 
 bool contains_meta(const std::string& package, const std::string &path = "meta.list");
 bool append_meta(const std::string& package, const std::string &path = "meta.list");
@@ -87,9 +54,9 @@ public:
     bool force_install_package(const std::string &package) const;
     void local_install() const;
     void local_install(const std::string &package) const;
-    process_result exec(const std::string &cmd) const;
-    process_result exec(const std::string &cmd, const std::string &package) const;
-    process_result auto_exec(const std::string &cmd) const;
+    sproc::process_result exec(const std::string &cmd) const;
+    sproc::process_result exec(const std::string &cmd, const std::string &package) const;
+    sproc::process_result auto_exec(const std::string &cmd) const;
     std::string root_dir() const;
     bool clear() const;
     bool forced() const;
@@ -98,7 +65,7 @@ public:
 static inline const environment home = environment(home_directory() + "/.sexy_proc");
 static inline const environment forced_home = environment(home_directory() + "/.sexy_proc_forced", true);
 
-inline process_result system(const std::string& cmd, bool forced = true) {
+inline sproc::process_result system(const std::string& cmd, bool forced = true) {
     if(forced) {
         return forced_home.auto_exec(cmd);
     } else {
