@@ -9,53 +9,41 @@
 #include <iostream>
 #include <QQmlContext>
 #include <wall_e/src/flag.h>
-#include "exec_cmd.h"
 #include <wall_e/src/color.h>
+#include <src/to_pdf.h>
+#include <sproc/src/apt.h>
 
 
-void to_pdf(const wall_e::relation_list &rl, const std::string &path) {
+#include <sproc/src/environment.h>
+#include <fstream>
+
+void auto_system_example(const std::list<std::pair<int, int>> &rl, const std::string &path) {
     const auto compile_line = "dot -Tpdf " + path + ".gv -o " + path + ".pdf";
     std::ofstream stream(path + ".gv", std::ios::out);
     stream << "digraph G {\n";
     for(const auto& relation : rl) {
-        stream << "\tv" << relation.vertex1 << " -> v" << relation.vertex0;
-        if(relation.symbol != 0)
-            stream << "[label=\"" << relation.symbol << "\"]";
-
-        stream << ";\n";
+        stream
+                << "\tv"
+                << relation.second
+                << " -> v"
+                << relation.first
+                << ";\n";
     }
     stream << "}\n";
     stream.close();
-    std::cout << sexy_proc::system(compile_line);
+    std::cout << sproc::home.auto_system(compile_line);
 }
 
-
-std::string exec_cmd(const std::string &cmd) {
-    std::array<char, 256> buffer;
-    std::string result;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
-    if (!pipe) {
-        throw std::runtime_error("popen() failed!");
-    }
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        result += buffer.data();
-    }
-    return result;
-}
 
 int main(int argc, char **argv) {
-    std::cout << sexy_proc::system("fgfs", false);
+
+    auto_system_example({
+                            { 0, 1 },
+                            { 0, 2 },
+                            { 0, 3 },
+                            { 2, 3 }
+                        }, "result_file");
     return 0;
-
-    std::cout << "home dir: " << sexy_proc::home_directory() << "\n";
-
-    //sexy_proc::home.force_install_package("graphviz");
-
-    //sexy_proc::home.clear();
-    //sexy_proc::home.install_package("libgvc6");
-    const auto a = sexy_proc::find_pack_by_cmd("micro");
-    const auto b = sexy_proc::find_pack_by_cmd("dot");
-
 
 
     wall_e::flag_provider flag_provider(argc, argv);
@@ -67,7 +55,6 @@ int main(int argc, char **argv) {
     std::cout << flag_provider.value_flag('a', "A", "AAA") << "\n";
 
     flag_provider.finish(std::cout);
-
 
     wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Conjunction, '&');
     wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Disjunction, '|');

@@ -23,6 +23,7 @@ find_package(Qt5 COMPONENTS Core Quick Qml REQUIRED)
 
 set(SOURCES
     src/main.cpp
+    src/to_pdf.cpp
     src/treegui/kgramtreeview.cpp
     src/treegui/mainwindow.cpp
     src/treegui/appcore.cpp
@@ -34,9 +35,9 @@ set(SOURCES
     src/km2/km2.cpp
     src/km3/km3.cpp
     src/cmp.cpp
-    src/exec_cmd.cpp
     )
 set(HEADERS
+    src/to_pdf.h
     src/treegui/kgramtreeview.h
     src/treegui/mainwindow.h
     src/treegui/appcore.h
@@ -49,7 +50,6 @@ set(HEADERS
     src/km2/km2.h
     src/km3/km3.h
     src/cmp.h
-    src/exec_cmd.h
     )
 
 
