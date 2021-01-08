@@ -91,7 +91,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
             std::cout << "sorted: " << t.position << " " << t.name << " " << t.text << "\n";
     }
 
-    for(auto st : sorted_tokens) {
+    for(const auto& st : sorted_tokens) {
         if(st.name == "error") {
             if(__flags.verbose) {
                 std::cout << "[ KLEX ERROR ]\n";
@@ -107,7 +107,8 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
     std::list<wall_e::gram::pattern> gram_list;
     gram_list.push_back(wall_e::gram::pattern::from_str("entry << block"));
 
-//    gram_list.push_back(wall_e::gram::pattern::from_str("block << cmd & SEMICOLON & (0 | block)")); SIMPIFIER ERROR
+    //gram_list.push_back(wall_e::gram::pattern::from_str("block << cmd & SEMICOLON & (0 | block)")); SIMPIFIER ERROR
+
     gram_list.push_back(wall_e::gram::pattern("block")
                         << ((wall_e::gram::rule("cmd") & "SEMICOLON") & (wall_e::gram::rule() | "block")));
 

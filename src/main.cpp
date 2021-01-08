@@ -17,35 +17,7 @@
 #include <sproc/src/environment.h>
 #include <fstream>
 
-void auto_system_example(const std::list<std::pair<int, int>> &rl, const std::string &path) {
-    const auto compile_line = "dot -Tpdf " + path + ".gv -o " + path + ".pdf";
-    std::ofstream stream(path + ".gv", std::ios::out);
-    stream << "digraph G {\n";
-    for(const auto& relation : rl) {
-        stream
-                << "\tv"
-                << relation.second
-                << " -> v"
-                << relation.first
-                << ";\n";
-    }
-    stream << "}\n";
-    stream.close();
-    std::cout << sproc::home.auto_system(compile_line);
-}
-
-
 int main(int argc, char **argv) {
-
-    auto_system_example({
-                            { 0, 1 },
-                            { 0, 2 },
-                            { 0, 3 },
-                            { 2, 3 }
-                        }, "result_file");
-    return 0;
-
-
     wall_e::flag_provider flag_provider(argc, argv);
 
     std::cout << flag_provider.value_flag(std::pair { 'i', "input" }, "input", "def_in") << "\n";
@@ -86,7 +58,7 @@ int main(int argc, char **argv) {
     //std::cout << "r0: " << r0 << " : " << smp::simplify(r0) << '\n';
     //std::cout << "r1: " << r1 << " : " << smp::simplify(r1) << '\n';
 
-    return 0;
+    //return 0;
 
     std::string lastArg;
     std::string outputFilePath;
