@@ -7,11 +7,22 @@
 #include <wall_e/src/utility/asm_tools.h>
 #include <src/km2/km2.h>
 
-
+#include <QQmlListProperty>
 
 KGramTreeView::KGramTreeView(QQuickItem *parent) : QQuickPaintedItem(parent) {
     setAcceptedMouseButtons(Qt::LeftButton);
     connect(this, &KGramTreeView::treeChanged, this, &KGramTreeView::displayTree);
+
+    //using AppendFunction = void (*)(QQmlListProperty<T> *, T *);
+    //
+    //using CountFunction = qsizetype (*)(QQmlListProperty<T> *);
+    //using AtFunction = T *(*)(QQmlListProperty<T> *, qsizetype);
+    //
+    //using ClearFunction = void (*)(QQmlListProperty<T> *);
+    //using ReplaceFunction = void (*)(QQmlListProperty<T> *, qsizetype, T *);
+    //using RemoveLastFunction = void (*)(QQmlListProperty<T> *);
+    //
+    //QQmlListProperty<QObject>()
 }
 
 
@@ -115,8 +126,8 @@ int KGramTreeView::branch_width(const wall_e::variant &branch, bool onlyCells) {
 
 
 void KGramTreeView::mousePressEvent(QMouseEvent *event) {
-    startMouseX = event->x();
-    startMouseY = event->y();
+    startMouseX = event->position().x();
+    startMouseY = event->position().y();
     startTreeX = treeX;
     startTreeY = treeY;
 
@@ -124,8 +135,8 @@ void KGramTreeView::mousePressEvent(QMouseEvent *event) {
 }
 
 void KGramTreeView::mouseMoveEvent(QMouseEvent *event) {
-    treeX = startTreeX + event->x() - startMouseX;
-    treeY = startTreeY + event->y() - startMouseY;
+    treeX = startTreeX + event->position().x() - startMouseX;
+    treeY = startTreeY + event->position().y() - startMouseY;
     update();
     event->accept();
 }

@@ -128,8 +128,8 @@ public: \
     Q_INVOKABLE QQmlListProperty<TYPE> NAME() { \
         typedef std::remove_pointer<decltype (this)>::type THIS_TYPE; \
         typedef std::remove_pointer<decltype (CONTAINER)>::type CONTAINER_TYPE; \
-        auto size = [](QQmlListProperty<TYPE>* list){ return reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER.size(); }; \
-        auto element = [](QQmlListProperty<TYPE>* list, int index) -> TYPE* { auto container = reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER; \
+        auto size = [](QQmlListProperty<TYPE>* list) -> qsizetype { return reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER.size(); }; \
+        auto element = [](QQmlListProperty<TYPE>* list, qsizetype index) -> TYPE* { auto container = reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER; \
             int i = 0; \
             for(auto item : container) { \
                 if(i == index) { \

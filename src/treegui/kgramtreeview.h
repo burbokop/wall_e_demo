@@ -5,7 +5,6 @@
 #include <src/treegui/klibcore/kmacro.h>
 #include <QQuickPaintedItem>
 
-Q_DECLARE_METATYPE(wall_e::variant)
 
 class KGramTreeView : public QQuickPaintedItem {
     Q_OBJECT

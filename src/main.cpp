@@ -12,7 +12,7 @@
 #include <wall_e/src/color.h>
 #include <src/to_pdf.h>
 #include <sproc/src/apt.h>
-
+#include <wall_e/src/utility/smp2.h>
 
 #include <sproc/src/environment.h>
 #include <fstream>
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     const auto r1 = (wall_e::gram::rule("cmd") & "SEMICOLON") & (wall_e::gram::rule() | "block");
 
 
-    //wall_e::write_graph(std::cout, r0.to_graph());
+    wall_e::write_graph(std::cout, r0.to_graph());
 
     std::cout << r0 << "\n";
     wall_e::write_graph(std::cout, r0.to_graph());
@@ -51,14 +51,16 @@ int main(int argc, char **argv) {
     to_pdf(r0.to_relation_list(), "./app_out/r0");
     to_pdf(r1.to_relation_list(), "./app_out/r1");
     to_pdf(wall_e::gram::simplify_rule_default(r0).to_relation_list(), "./app_out/r0_s");
+    to_pdf(smp2::cc(r0).to_relation_list(), "./app_out/r0_s2");
     to_pdf(wall_e::gram::simplify_rule_default(r1).to_relation_list(), "./app_out/r1_s");
+    to_pdf(smp2::cc(r1).to_relation_list(), "./app_out/r1_s2");
 
     std::cout << "\n";
 
     //std::cout << "r0: " << r0 << " : " << smp::simplify(r0) << '\n';
     //std::cout << "r1: " << r1 << " : " << smp::simplify(r1) << '\n';
 
-    //return 0;
+    return 0;
 
     std::string lastArg;
     std::string outputFilePath;
@@ -93,7 +95,6 @@ int main(int argc, char **argv) {
     }
 
 
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     qmlRegisterType<KGramTreeView>("Km2", 1, 0, wall_e::type_name<KGramTreeView>().c_str());
     QCoreApplication::setOrganizationName("bacul14");
     QCoreApplication::setOrganizationDomain("bacul14.kl.ua");

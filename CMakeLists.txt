@@ -17,8 +17,8 @@ if(CMAKE_VERSION VERSION_LESS "3.7.0")
     set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
 
-find_package(Qt5 COMPONENTS Core Quick Qml REQUIRED)
 
+find_package(Qt6 COMPONENTS Core Quick Qml REQUIRED)
 
 
 set(SOURCES
@@ -59,6 +59,7 @@ add_executable(km2ide
     ${HEADERS}
 )
 
+
 add_library(km2ide_resources SHARED resources.qrc)
 
 target_include_directories(km2ide PRIVATE ${CMAKE_CURRENT_LIST_DIR})
@@ -71,6 +72,7 @@ target_link_libraries(km2ide
     km2ide_resources
     wall_e
     sproc
-    Qt5::Qml
-    Qt5::Quick
+    Qt6::Core
+    Qt6::Qml
+    Qt6::Quick
 )

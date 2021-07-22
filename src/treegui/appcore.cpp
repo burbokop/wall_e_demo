@@ -20,7 +20,7 @@ void AppCore::recompile() {
     setGramatic(QString::fromStdString(lastResult.rules));
     setTree(lastResult.tree);
     setAsmCode(QString::fromStdString(lastResult.assembly.code));
-    setErrors(QList<km2_error>::fromStdList(lastResult.errors));
+    setErrors(QList<km2_error>(lastResult.errors.begin(), lastResult.errors.end()));
 
     if(higlighter) {
         higlighter->setErrors(errors());
