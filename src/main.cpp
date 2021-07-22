@@ -31,8 +31,13 @@ int main(int argc, char **argv) {
     wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Conjunction, '&');
     wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Disjunction, '|');
 
-    const auto r0 = wall_e::gram::rule_from_str("cmd & SEMICOLON & (0 | block)");
-    const auto r1 = (wall_e::gram::rule("cmd") & "SEMICOLON") & (wall_e::gram::rule() | "block");
+
+
+
+    std::cout << "before wall_e::gram::rule_from_str\n";
+    const auto r0 = (wall_e::gram::rule("decl_arg") & (wall_e::gram::rule("EP") | (wall_e::gram::rule("COMA") & "decl_arg_list")));
+    std::cout << "after wall_e::gram::rule_from_str\n";
+    const auto r1 = ((wall_e::gram::rule("cmd") & "SEMICOLON") & (wall_e::gram::rule("EB") | "internal_block"));
 
 
     wall_e::write_graph(std::cout, r0.to_graph());
@@ -51,16 +56,16 @@ int main(int argc, char **argv) {
     to_pdf(r0.to_relation_list(), "./app_out/r0");
     to_pdf(r1.to_relation_list(), "./app_out/r1");
     to_pdf(wall_e::gram::simplify_rule_default(r0).to_relation_list(), "./app_out/r0_s");
-    to_pdf(smp2::cc(r0).to_relation_list(), "./app_out/r0_s2");
+    to_pdf(wall_e::smp2::cc(r0).to_relation_list(), "./app_out/r0_s2");
     to_pdf(wall_e::gram::simplify_rule_default(r1).to_relation_list(), "./app_out/r1_s");
-    to_pdf(smp2::cc(r1).to_relation_list(), "./app_out/r1_s2");
+    to_pdf(wall_e::smp2::cc(r1).to_relation_list(), "./app_out/r1_s2");
 
     std::cout << "\n";
 
     //std::cout << "r0: " << r0 << " : " << smp::simplify(r0) << '\n';
     //std::cout << "r1: " << r1 << " : " << smp::simplify(r1) << '\n';
 
-    return 0;
+    //return 0;
 
     std::string lastArg;
     std::string outputFilePath;
