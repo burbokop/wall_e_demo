@@ -15,7 +15,7 @@
 #include <wall_e/src/utility/math_patterns.h>
 #include <wall_e/src/utility/function.h>
 #include <wall_e/src/utility/token_tools.h>
-
+#include <wall_e/src/utility/smp2.h>
 
 struct flags_private {
     bool verbose = false;
@@ -244,7 +244,11 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
         std::cout << "\n -------------- GRAMATIC --------------\n\n";
     }
 
-    auto result = wall_e::gram::exec(gram_list, sorted_tokens, gram_flags);
+    auto result = wall_e::gram::exec(
+                gram_list,
+                sorted_tokens,
+                gram_flags
+                );
 
     wall_e::asm_unit result_asm_unit;
     result_asm_unit += "\t.globl main\n\n\t.text\nmain:\n";
