@@ -19,7 +19,9 @@ endif()
 
 
 find_package(Qt6 COMPONENTS Core Quick Qml REQUIRED)
-
+if (NOT Qt6_FOUND)
+    find_package(Qt5 COMPONENTS Core Quick Qml REQUIRED)
+endif()
 
 set(SOURCES
     src/main.cpp
@@ -72,7 +74,7 @@ target_link_libraries(km2ide
     km2ide_resources
     wall_e
     sproc
-    Qt6::Core
-    Qt6::Qml
-    Qt6::Quick
+    Qt::Core
+    Qt::Qml
+    Qt::Quick
 )
