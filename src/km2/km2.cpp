@@ -79,7 +79,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
     const auto tokens = wall_e::lex::make_tokents(input, km2_lexlist);
 
     if(__flags.verbose) {
-        for(auto t : tokens)
+        for(const auto& t : tokens)
             std::cout << t.position << " " << t.name << " " << t.text << "\n";
     }
 
@@ -87,7 +87,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
 
     if(__flags.verbose) {
         std::cout << std::endl;
-        for(auto t : sorted_tokens)
+        for(const auto& t : sorted_tokens)
             std::cout << "sorted: " << t.position << " " << t.name << " " << t.text << "\n";
     }
 
@@ -107,10 +107,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
     std::list<wall_e::gram::pattern> gram_list;
     gram_list.push_back(wall_e::gram::pattern::from_str("entry << block"));
 
-    //gram_list.push_back(wall_e::gram::pattern::from_str("block << cmd & SEMICOLON & (0 | block)")); SIMPIFIER ERROR
-
-    gram_list.push_back(wall_e::gram::pattern("block")
-                        << ((wall_e::gram::rule("cmd") & "SEMICOLON") & (wall_e::gram::rule() | "block")));
+    gram_list.push_back(wall_e::gram::pattern::from_str("block << cmd & SEMICOLON & (0 | block)"));
 
     gram_list.push_back(wall_e::gram::pattern("internal_block")
                         << ((wall_e::gram::rule("cmd") & "SEMICOLON") & (wall_e::gram::rule("EB") | "internal_block")));
@@ -193,7 +190,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
         }
         wall_e::asm_unit push_asm_unit;
         int stackOffset = 0;
-        for(auto argument : function_args) {
+        for(const auto& argument : function_args) {
             if(wall_e::is_number(argument, "NUMBER")) {
                 const uint64_t number = wall_e::to_double(argument);
                 push_asm_unit += "\tpushq $" + std::to_string(number) + "\n";
@@ -243,6 +240,8 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
     if(__flags.verbose) {
         std::cout << "\n -------------- GRAMATIC --------------\n\n";
     }
+
+    gram_list = wall_e::gram::pattern::simplified(gram_list);
 
     auto result = wall_e::gram::exec(
                 gram_list,
