@@ -5,6 +5,9 @@
 #include <src/treegui/klibcore/kmacro.h>
 #include <QQuickPaintedItem>
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    Q_DECLARE_METATYPE(wall_e::variant)
+#endif
 
 class KGramTreeView : public QQuickPaintedItem {
     Q_OBJECT

@@ -120,36 +120,67 @@ void kAppendToContainer(ContainerType *container, ItemType item) {
     }
 }
 
-#define K_LIST_PROPERTY(TYPE, NAME, CONTAINER) \
-private: \
-    Q_PROPERTY(QQmlListProperty<TYPE> NAME READ NAME NOTIFY NAME ## Changed) \
-public: \
-    Q_SIGNAL void NAME ## Changed(QQmlListProperty<TYPE>); \
-    Q_INVOKABLE QQmlListProperty<TYPE> NAME() { \
-        typedef std::remove_pointer<decltype (this)>::type THIS_TYPE; \
-        typedef std::remove_pointer<decltype (CONTAINER)>::type CONTAINER_TYPE; \
-        auto size = [](QQmlListProperty<TYPE>* list) -> qsizetype { return reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER.size(); }; \
-        auto element = [](QQmlListProperty<TYPE>* list, qsizetype index) -> TYPE* { auto container = reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER; \
-            int i = 0; \
-            for(auto item : container) { \
-                if(i == index) { \
-                    return item; \
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    #define K_LIST_PROPERTY(TYPE, NAME, CONTAINER) \
+    private: \
+        Q_PROPERTY(QQmlListProperty<TYPE> NAME READ NAME NOTIFY NAME ## Changed) \
+    public: \
+        Q_SIGNAL void NAME ## Changed(QQmlListProperty<TYPE>); \
+        Q_INVOKABLE QQmlListProperty<TYPE> NAME() { \
+            typedef std::remove_pointer<decltype (this)>::type THIS_TYPE; \
+            typedef std::remove_pointer<decltype (CONTAINER)>::type CONTAINER_TYPE; \
+            auto size = [](QQmlListProperty<TYPE>* list) -> int { return reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER.size(); }; \
+            auto element = [](QQmlListProperty<TYPE>* list, int index) -> TYPE* { auto container = reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER; \
+                int i = 0; \
+                for(auto item : container) { \
+                    if(i == index) { \
+                        return item; \
+                    } \
+                    i++; \
                 } \
-                i++; \
-            } \
-            return nullptr; \
-        }; \
-        if constexpr(k_has_push_back_method<CONTAINER_TYPE>::value and k_has_clear_method<CONTAINER_TYPE>::value) { \
-            auto append = [](QQmlListProperty<TYPE>* list, TYPE* p) { \
-                kAppendToContainer(&reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER, p); \
+                return nullptr; \
             }; \
-            auto clear = [](QQmlListProperty<TYPE>* list) { reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER.clear(); }; \
-            return QQmlListProperty<TYPE>(this, this, append, size, element, clear); \
-        } else { \
-            return QQmlListProperty<TYPE>(this, this, size, element); \
-        } \
-    }
-
+            if constexpr(k_has_push_back_method<CONTAINER_TYPE>::value and k_has_clear_method<CONTAINER_TYPE>::value) { \
+                auto append = [](QQmlListProperty<TYPE>* list, TYPE* p) { \
+                    kAppendToContainer(&reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER, p); \
+                }; \
+                auto clear = [](QQmlListProperty<TYPE>* list) { reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER.clear(); }; \
+                return QQmlListProperty<TYPE>(this, this, append, size, element, clear); \
+            } else { \
+                return QQmlListProperty<TYPE>(this, this, size, element); \
+            } \
+        }
+#else
+    #define K_LIST_PROPERTY(TYPE, NAME, CONTAINER) \
+    private: \
+        Q_PROPERTY(QQmlListProperty<TYPE> NAME READ NAME NOTIFY NAME ## Changed) \
+    public: \
+        Q_SIGNAL void NAME ## Changed(QQmlListProperty<TYPE>); \
+        Q_INVOKABLE QQmlListProperty<TYPE> NAME() { \
+            typedef std::remove_pointer<decltype (this)>::type THIS_TYPE; \
+            typedef std::remove_pointer<decltype (CONTAINER)>::type CONTAINER_TYPE; \
+            auto size = [](QQmlListProperty<TYPE>* list) -> qsizetype { return reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER.size(); }; \
+            auto element = [](QQmlListProperty<TYPE>* list, qsizetype index) -> TYPE* { auto container = reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER; \
+                int i = 0; \
+                for(auto item : container) { \
+                    if(i == index) { \
+                        return item; \
+                    } \
+                    i++; \
+                } \
+                return nullptr; \
+            }; \
+            if constexpr(k_has_push_back_method<CONTAINER_TYPE>::value and k_has_clear_method<CONTAINER_TYPE>::value) { \
+                auto append = [](QQmlListProperty<TYPE>* list, TYPE* p) { \
+                    kAppendToContainer(&reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER, p); \
+                }; \
+                auto clear = [](QQmlListProperty<TYPE>* list) { reinterpret_cast<THIS_TYPE*>(list->data)->CONTAINER.clear(); }; \
+                return QQmlListProperty<TYPE>(this, this, append, size, element, clear); \
+            } else { \
+                return QQmlListProperty<TYPE>(this, this, size, element); \
+            } \
+        }
+#endif
 
 #define K_READONLY_LIST_PROPERTY(TYPE, NAME, CONTAINER) \
 private: \

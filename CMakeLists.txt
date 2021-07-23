@@ -18,7 +18,8 @@ if(CMAKE_VERSION VERSION_LESS "3.7.0")
 endif()
 
 
-find_package(Qt6 COMPONENTS Core Quick Qml REQUIRED)
+
+find_package(Qt6 COMPONENTS Core Quick Qml)
 if (NOT Qt6_FOUND)
     find_package(Qt5 COMPONENTS Core Quick Qml REQUIRED)
 endif()

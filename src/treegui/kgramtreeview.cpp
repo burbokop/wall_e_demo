@@ -126,8 +126,13 @@ int KGramTreeView::branch_width(const wall_e::variant &branch, bool onlyCells) {
 
 
 void KGramTreeView::mousePressEvent(QMouseEvent *event) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    startMouseX = event->x();
+    startMouseY = event->y();
+#else
     startMouseX = event->position().x();
     startMouseY = event->position().y();
+#endif
     startTreeX = treeX;
     startTreeY = treeY;
 
@@ -135,8 +140,13 @@ void KGramTreeView::mousePressEvent(QMouseEvent *event) {
 }
 
 void KGramTreeView::mouseMoveEvent(QMouseEvent *event) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    treeX = startTreeX + event->x() - startMouseX;
+    treeY = startTreeY + event->y() - startMouseY;
+#else
     treeX = startTreeX + event->position().x() - startMouseX;
     treeY = startTreeY + event->position().y() - startMouseY;
+#endif
     update();
     event->accept();
 }
