@@ -2,7 +2,7 @@
 #define KDELEGATE_H
 
 #include <QQuickItem>
-#include <src/treegui/klibcore/kmacro.h>
+#include <src/gui/klibcore/kmacro.h>
 
 /**
  * @brief The KDelegate class is container for KDelegateChooser cases.

@@ -2,7 +2,7 @@
 #define KGRAMTREEVIEW_H
 
 #include <wall_e/src/variant.h>
-#include <src/treegui/klibcore/kmacro.h>
+#include <src/gui/klibcore/kmacro.h>
 #include <QQuickPaintedItem>
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)

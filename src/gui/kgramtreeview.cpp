@@ -4,7 +4,7 @@
 #include <QPainter>
 #include <wall_e/src/lex.h>
 #include <wall_e/src/gram.h>
-#include <wall_e/src/utility/asm_tools.h>
+#include <src/km2/utility/asm_tools.h>
 #include <src/km2/km2.h>
 
 #include <QQmlListProperty>

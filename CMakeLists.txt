@@ -27,32 +27,34 @@ endif()
 set(SOURCES
     src/main.cpp
     src/to_pdf.cpp
-    src/treegui/kgramtreeview.cpp
-    src/treegui/mainwindow.cpp
-    src/treegui/appcore.cpp
-    src/treegui/klibcore/kdelegate.cpp
-    src/treegui/klibcore/kdelegatechooser.cpp
-    src/treegui/klibcore/klibinfo.cpp
-    src/treegui/asmexecutor.cpp
-    src/treegui/highlighter.cpp
+    src/gui/kgramtreeview.cpp
+    src/gui/mainwindow.cpp
+    src/gui/appcore.cpp
+    src/gui/klibcore/kdelegate.cpp
+    src/gui/klibcore/kdelegatechooser.cpp
+    src/gui/klibcore/klibinfo.cpp
+    src/gui/asmexecutor.cpp
+    src/gui/highlighter.cpp
     src/km2/km2.cpp
-    src/km3/km3.cpp
-    src/cmp.cpp
+    src/km2/utility/math_patterns.cpp
+    src/km2/utility/asm_tools.cpp
+    src/km2/utility/function.cpp
     )
 set(HEADERS
     src/to_pdf.h
-    src/treegui/kgramtreeview.h
-    src/treegui/mainwindow.h
-    src/treegui/appcore.h
-    src/treegui/klibcore/kdelegate.h
-    src/treegui/klibcore/kdelegatechooser.h
-    src/treegui/klibcore/kmacro.h
-    src/treegui/klibcore/klibinfo.h
-    src/treegui/asmexecutor.h
-    src/treegui/highlighter.h
+    src/gui/kgramtreeview.h
+    src/gui/mainwindow.h
+    src/gui/appcore.h
+    src/gui/klibcore/kdelegate.h
+    src/gui/klibcore/kdelegatechooser.h
+    src/gui/klibcore/kmacro.h
+    src/gui/klibcore/klibinfo.h
+    src/gui/asmexecutor.h
+    src/gui/highlighter.h
     src/km2/km2.h
-    src/km3/km3.h
-    src/cmp.h
+    src/km2/utility/math_patterns.h
+    src/km2/utility/asm_tools.h
+    src/km2/utility/function.h
     )
 
 

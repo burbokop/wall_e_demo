@@ -12,10 +12,12 @@
 #include <wall_e/src/gram.h>
 #include <wall_e/src/utility/tree_view_tools.h>
 #include <wall_e/src/lex.h>
-#include <wall_e/src/utility/math_patterns.h>
-#include <wall_e/src/utility/function.h>
+#include <src/km2/utility/math_patterns.h>
+#include <src/km2/utility/function.h>
 #include <wall_e/src/utility/token_tools.h>
-#include <wall_e/src/utility/smp2.h>
+#include <wall_e/src/private/gram_smp.h>
+
+
 
 struct flags_private {
     bool verbose = false;

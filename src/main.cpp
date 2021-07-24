@@ -2,8 +2,8 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
-#include <src/treegui/appcore.h>
-#include <src/treegui/kgramtreeview.h>
+#include <src/gui/appcore.h>
+#include <src/gui/kgramtreeview.h>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -12,7 +12,7 @@
 #include <wall_e/src/color.h>
 #include <src/to_pdf.h>
 #include <sproc/src/apt.h>
-#include <wall_e/src/utility/smp2.h>
+#include <wall_e/src/private/gram_smp.h>
 
 #include <sproc/src/environment.h>
 #include <fstream>
@@ -56,9 +56,9 @@ int main(int argc, char **argv) {
     to_pdf(r0.to_relation_list(), "./app_out/r0");
     to_pdf(r1.to_relation_list(), "./app_out/r1");
     to_pdf(wall_e::gram::simplify_rule_default(r0).to_relation_list(), "./app_out/r0_s");
-    to_pdf(wall_e::smp2::cc(r0).to_relation_list(), "./app_out/r0_s2");
+    to_pdf(wall_e::smp::cc(r0).to_relation_list(), "./app_out/r0_s2");
     to_pdf(wall_e::gram::simplify_rule_default(r1).to_relation_list(), "./app_out/r1_s");
-    to_pdf(wall_e::smp2::cc(r1).to_relation_list(), "./app_out/r1_s2");
+    to_pdf(wall_e::smp::cc(r1).to_relation_list(), "./app_out/r1_s2");
 
     std::cout << "\n";
 
