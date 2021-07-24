@@ -62,6 +62,9 @@ const std::list<wall_e::lex::pattern> km2_lexlist = {
 
 
 km2_compilation_result km2_compile(const std::string &input, const km2_flags &flags) {
+    using namespace wall_e::gram::literals;
+
+
     const auto __flags = __km2_parse_flags(flags);
     std::list<km2_error> errors;
     wall_e::gram::flags_list gram_flags;
@@ -104,25 +107,17 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
     std::list<wall_e::function> functions;
 
 
-    std::list<wall_e::gram::pattern> gram_list;
-    gram_list.push_back(wall_e::gram::pattern::from_str("entry << block"));
+    auto gram_list = "                                                                 \n\
+        entry << block                                                                 \n\
+        block << cmd & SEMICOLON & (0 | block)                                         \n\
+        internal_block << cmd & SEMICOLON & (EB | internal_block)                      \n\
+        cmd << wait | curr_time | function_call | function_declaration | asm_insertion \n\
+        wait << TOK_WAIT & NUMBER                                                      \n\
+        curr_time << TOK_CTIME                                                         \n\
+    "_patterns;
 
-    gram_list.push_back(wall_e::gram::pattern::from_str("block << cmd & SEMICOLON & (0 | block)"));
 
-    gram_list.push_back(wall_e::gram::pattern("internal_block")
-                        << ((wall_e::gram::rule("cmd") & "SEMICOLON") & (wall_e::gram::rule("EB") | "internal_block")));
-
-    gram_list.push_back(wall_e::gram::pattern("cmd")
-                        << (wall_e::gram::rule("wait") | "curr_time" | "function_call" | "function_declaration" | "asm_insertion"));
-
-    gram_list.push_back(wall_e::gram::pattern("wait")
-                        << (wall_e::gram::rule("TOK_WAIT") & "NUMBER"));
-
-    gram_list.push_back(wall_e::gram::pattern("curr_time")
-                        << (wall_e::gram::rule("TOK_CTIME")));
-
-    gram_list.push_back(wall_e::gram::pattern("function_declaration")
-                        << (wall_e::gram::rule("TOK_ID") & "EQUALS" & "OP" & (wall_e::gram::rule("EP") | "decl_arg_list") & "OB" & (wall_e::gram::rule("EB") | "internal_block"))
+    gram_list.push_back("function_declaration << TOK_ID & EQUALS & OP & (EP | decl_arg_list) & OB & (EB | internal_block)"_pattern
                         << [&functions](const wall_e::gram::arg_vector &args) -> wall_e::gram::argument {
         if(args.size() > 0 && args[0].contains_type<wall_e::lex::token>()) {
             wall_e::asm_unit unit;
