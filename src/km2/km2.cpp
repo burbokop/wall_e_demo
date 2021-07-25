@@ -1,3 +1,4 @@
+#include "builder.h"
 #include "km2.h"
 
 #include <regex>
@@ -16,8 +17,13 @@
 #include <src/km2/utility/function.h>
 #include <wall_e/src/utility/token_tools.h>
 #include <wall_e/src/private/gram_smp.h>
+#include <src/km2/tree/base_node.h>
+#include <src/km2/tree/call_node.h>
+#include <src/km2/tree/function_node.h>
+#include <src/km2/tree/internal_block_node.h>
+#include <wall_e/src/color.h>
 
-
+#include <llvm-12/llvm/IR/Value.h>
 
 struct flags_private {
     bool verbose = false;
@@ -108,107 +114,41 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
 
     std::list<wall_e::function> functions;
 
+    km2::module_builder builder;
 
-    auto gram_list = "                                                                 \n\
-        entry << block                                                                 \n\
-        block << cmd & SEMICOLON & (0 | block)                                         \n\
-        internal_block << cmd & SEMICOLON & (EB | internal_block)                      \n\
-        cmd << wait | curr_time | function_call | function_declaration | asm_insertion \n\
-        wait << TOK_WAIT & NUMBER                                                      \n\
-        curr_time << TOK_CTIME                                                         \n\
-    "_patterns;
+    std::list<wall_e::gram::pattern> gram_list;
 
+    gram_list.push_back("entry << block"_pattern
+        << km2::base_node::create);
+
+    gram_list.push_back("block << cmd & SEMICOLON & (0 | block)"_pattern
+        << km2::block_node::create);
+
+    gram_list.push_back("internal_block << cmd & SEMICOLON & (EB | internal_block)"_pattern
+        << km2::internal_block_node::create);
+
+    gram_list.push_back("cmd << function_call | function_declaration"_pattern
+        << km2::cmd_node::create);
 
     gram_list.push_back("function_declaration << TOK_ID & EQUALS & OP & (EP | decl_arg_list) & OB & (EB | internal_block)"_pattern
-                        << [&functions](const wall_e::gram::arg_vector &args) -> wall_e::gram::argument {
-        if(args.size() > 0 && args[0].contains_type<wall_e::lex::token>()) {
-            wall_e::asm_unit unit;
-            const wall_e::function function(args[0].value<wall_e::lex::token>().text, produce_token_pairs(args[3]));
+        << km2::function_node::create);
 
-            functions.push_back(function);
+    gram_list.push_back("decl_arg_list << decl_arg & (EP | (COMA | decl_arg_list))"_pattern);
 
+    gram_list.push_back("decl_arg << TOK_ID & type"_pattern);
 
-            unit += "\tjmp __km2_end_" + function.fullName() + "\n";
-            unit += "__km2_" + function.fullName() + ":\n";
-            unit += "\tpushq %rbp\n";
-            unit += "\tmovq %rsp, %rbp\n";
+    gram_list.push_back("type << TOK_NUMBER | TOK_STRING"_pattern);
 
-            if(args.size() > 5) {
-                unit += produce_asm_unit(args[5]);
-            }
+    gram_list.push_back("function_call << TOK_ID & OP & (EP | arg_list)"_pattern
+        << km2::call_node::create);
 
-            unit += "\tmovq %rbp, %rsp\n";
-            unit += "\tpopq %rbp\n";
-            unit += "\tret\n";
-            unit += "__km2_end_" + function.fullName() + ":\n";
-            return unit;
-        }
-        return args;
-    });
-
-    gram_list.push_back(wall_e::gram::pattern("decl_arg_list")
-                        << (wall_e::gram::rule("decl_arg") & (wall_e::gram::rule("EP") | (wall_e::gram::rule("COMA") & "decl_arg_list"))));
-
-    gram_list.push_back(wall_e::gram::pattern("decl_arg")
-                        << (wall_e::gram::rule("type") & "TOK_ID"));
-
-    gram_list.push_back(wall_e::gram::pattern("type")
-                        << (wall_e::gram::rule("TOK_NUMBER") | "TOK_STRING"));
-
-    gram_list.push_back(wall_e::gram::pattern("function_call")
-                        << (wall_e::gram::rule("TOK_ID") & "OP" & (wall_e::gram::rule("EP") | "arg_list"))
-                        << [&functions, &errors](const wall_e::gram::arg_vector &args) -> wall_e::gram::argument {
-        const auto function_name_token = args[0].value<wall_e::lex::token>();
-        const auto function_original_name = function_name_token.text;
-        const auto constrained_args = args[2].constrain();
-        const auto function_args = remove_tokens(constrained_args, { "EP" });
-        const auto overloads = wall_e::function::find_overloads(function_original_name, functions);
-
-
-        const auto overload = wall_e::function::choose_overload(overloads, function_args, [](const std::string& type, const wall_e::variant& value) -> bool {
-            if(type == "TOK_NUMBER") {
-                return wall_e::is_number(value);
-            } else if(type == "TOK_STRING") {
-                if(value.contains_type<wall_e::lex::token>()) {
-                    return value.value<wall_e::lex::token>().name == "STRING_LITERAL";
-                }
-            }
-            return false;
-        });
-
-
-        if(overload.fullName().size() <= 0) {
-            errors.push_back({
-                                 "function " + function_original_name + " not found",
-                                 function_name_token.position,
-                                 function_name_token.position + function_original_name.size()
-                             });
-            return wall_e::variant();
-        }
-        wall_e::asm_unit push_asm_unit;
-        int stackOffset = 0;
-        for(const auto& argument : function_args) {
-            if(wall_e::is_number(argument, "NUMBER")) {
-                const uint64_t number = wall_e::to_double(argument);
-                push_asm_unit += "\tpushq $" + std::to_string(number) + "\n";
-                stackOffset++;
-            }
-        }
-
-        return push_asm_unit
-                + wall_e::asm_unit { "\tcall __km2_" + overload.fullName() + "\n" }
-                + wall_e::asm_unit { "\tadd $" + std::to_string(stackOffset * 8) + ", %rsp\n" };
-    });
-
-
-    gram_list.push_back(wall_e::gram::pattern("arg_list")
-                        << (wall_e::gram::rule("arg") & (wall_e::gram::rule("EP") | (wall_e::gram::rule("COMA") & "arg_list"))));
+    gram_list.push_back("arg_list << arg & (EP | (COMA & arg_list))"_pattern);
 
     gram_list.push_back(wall_e::gram::pattern("arg")
                         << (wall_e::gram::rule("TOK_ID") | "STRING_LITERAL" | wall_e::math_patterns::add_to(&gram_list, "math")));
 
-    gram_list.push_back(wall_e::gram::pattern("asm_insertion")
-                        << (wall_e::gram::rule("TOK_ASM") & "OP" & "STRING_LITERAL" & "EP")
+    /*
+    gram_list.push_back("asm_insertion << TOK_ASM & OP & STRING_LITERAL & EP"_pattern
                         << [](const wall_e::gram::arg_vector &args) -> wall_e::gram::argument {
         if(args.size() > 2 && args[2].contains_type<wall_e::lex::token>()) {
             const auto token = args[2].value<wall_e::lex::token>();
@@ -230,8 +170,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
         }
         return wall_e::gram::pattern::default_processor(args);
     });
-
-
+    */
 
 
     if(__flags.verbose) {
@@ -245,6 +184,16 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
                 sorted_tokens,
                 gram_flags
                 );
+
+    std::cout << "result:" << result << std::endl;
+
+
+    if(result.contains_type<km2::base_node*>()) {
+        if(const auto node = result.value<km2::base_node*>()) {
+            std::cout << "node:"<< std::endl;
+            node->print(1, std::cout);
+        }
+    }
 
     wall_e::asm_unit result_asm_unit;
     result_asm_unit += "\t.globl main\n\n\t.text\nmain:\n";
@@ -269,6 +218,9 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
     } else if(__flags.verbose) {
         std::cout << "error: output file not open\n";
     }
+
+
+    builder.runJit();
 
     return { result, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result_asm_unit, errors };
 }

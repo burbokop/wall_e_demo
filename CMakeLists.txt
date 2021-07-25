@@ -39,7 +39,16 @@ set(SOURCES
     src/km2/utility/math_patterns.cpp
     src/km2/utility/asm_tools.cpp
     src/km2/utility/function.cpp
-    )
+    src/km2/builder.cpp
+    src/km2/tree/base_node.cpp
+    src/km2/tree/function_node.cpp
+    src/km2/tree/node.cpp
+    src/km2/tree/call_node.cpp
+    src/km2/tree/asm_node.cpp
+    src/km2/tree/block_node.cpp
+    src/km2/tree/cmd_node.cpp
+    src/km2/tree/internal_block_node.cpp
+)
 set(HEADERS
     src/to_pdf.h
     src/gui/kgramtreeview.h
@@ -55,7 +64,17 @@ set(HEADERS
     src/km2/utility/math_patterns.h
     src/km2/utility/asm_tools.h
     src/km2/utility/function.h
+    src/km2/builder.h
+    src/km2/tree/base_node.h
+    src/km2/tree/function_node.h
+    src/km2/tree/node.h
+    src/km2/tree/call_node.h
+    src/km2/tree/asm_node.h
+    src/km2/tree/block_node.h
+    src/km2/tree/cmd_node.h
+    src/km2/tree/internal_block_node.h
     )
+
 
 
 
@@ -73,10 +92,43 @@ target_include_directories(km2ide PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 include(${CMAKE_CURRENT_LIST_DIR}/wall_e/wall_e.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/sproc/sproc.cmake)
 
+find_package(LLVM REQUIRED)
+
+include_directories(${LLVM_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
+
+#set(LLVM_VERSION 12)
+
+#target_include_directories(km2ide PRIVATE "/usr/include/llvm-${LLVM_VERSION}")
+#target_include_directories(km2ide PRIVATE "/usr/include/llvm-c-${LLVM_VERSION}")
+
+#set(LLVM_LIBS
+#    LLVMX86AsmParser   # MC, MCParser, Support, X86Desc, X86Info
+#    LLVMX86Desc        # MC, Support, X86AsmPrinter, X86Info
+#    #LLVMX86AsmPrinter  # MC, Support, X86Utils
+#    LLVMX86Info        # MC, Support, Target
+#    #LLVMX86Utils       # Core, Support
+#    LLVMipo
+#    LLVMScalarOpts
+#    LLVMInstCombine
+#    LLVMTransformUtils
+#    #LLVMipa
+#    LLVMAnalysis
+#    LLVMTarget
+#    LLVMOption         # Support
+#    LLVMMCParser       # MC, Support
+#    LLVMMC             # Object, Support
+#    LLVMObject         # BitReader, Core, Support
+#    LLVMBitReader      # Core, Support
+#    LLVMCore           # Support
+#    LLVMSupport
+#    )
+
 target_link_libraries(km2ide
     km2ide_resources
     wall_e
     sproc
+    LLVM-${LLVM_VERSION_MAJOR}
     Qt::Core
     Qt::Qml
     Qt::Quick

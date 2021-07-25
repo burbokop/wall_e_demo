@@ -16,6 +16,7 @@
 
 #include <sproc/src/environment.h>
 #include <fstream>
+#include <src/km2/builder.h>
 
 int main(int argc, char **argv) {
     wall_e::flag_provider flag_provider(argc, argv);
