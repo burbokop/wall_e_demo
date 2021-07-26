@@ -12,13 +12,60 @@
 #include <wall_e/src/color.h>
 #include <src/to_pdf.h>
 #include <sproc/src/apt.h>
-#include <wall_e/src/private/gram_smp.h>
+#include <wall_e/src/gram.h>
 
 #include <sproc/src/environment.h>
 #include <fstream>
 #include <src/km2/builder.h>
+#include <type_traits>
+#include <src/km2/tree/block_node.h>
+#include <src/km2/tree/call_node.h>
+
+
+
+struct Vehicle {};
+struct Aircraft : Vehicle { typedef Vehicle super_type; };
+struct Helicopter : Aircraft { typedef Aircraft super_type; };
+
 
 int main(int argc, char **argv) {
+
+
+    //km2::module_builder b;
+    //b.aaa();
+    //b.print();
+    //b.runJit();
+    //
+    //return 0;
+
+    /*
+
+    MODULE:
+    ; ModuleID = 'Module'
+    source_filename = "Module"
+
+    @.fmt = constant [17 x i8] c"Hello World: %d\0A\00"
+
+    define i32 @sum(i32 %0, i32 %1) {
+    entry:
+      %sum2 = add i32 2, %0
+      %result = add i32 %sum2, %1
+      ret i32 %result
+    }
+
+    define i32 @main() {
+    entry:
+      %0 = call i32 @sum(i32 10, i32 20)
+      %1 = call i32 (i8*, ...) @printf([17 x i8]* @.fmt, i32 %0)
+      ret i32 %0
+    }
+
+    declare i32 @printf(i8*, ...)
+
+    */
+
+
+
     wall_e::flag_provider flag_provider(argc, argv);
 
     std::cout << flag_provider.value_flag(std::pair { 'i', "input" }, "input", "def_in") << "\n";

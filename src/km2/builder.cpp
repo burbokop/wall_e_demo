@@ -40,24 +40,44 @@ llvm::ConstantInt *km2::module_builder::uintptr(uintptr_t value) {
     return llvm::ConstantInt::getSigned(m_builder->getIntPtrTy(m_module->getDataLayout()), value);
 }
 
+llvm::ConstantInt *km2::module_builder::uint(uint64_t value, size_t size) {
+    return llvm::ConstantInt::getSigned(m_builder->getIntNTy(size), value);
+}
+
+llvm::Constant *km2::module_builder::float64(double value) {
+    return llvm::ConstantFP::get(llvm::Type::getDoubleTy(*m_context.get()), value);
+}
+
+llvm::Value *km2::module_builder::arg(const std::string &name) const {
+    if(m_stack.size() > 0) {
+        const auto args = m_stack.top().args;
+        const auto it = args.find(name);
+        if (it != args.end()) {
+            return it->second;
+        }
+    }
+    return nullptr;
+}
+
 llvm::FunctionType *km2::module_builder::func(llvm::Type* returnType, llvm::ArrayRef<llvm::Type*> argTypes) {
     return llvm::FunctionType::get(returnType, argTypes, false);
 }
 
-llvm::Value *km2::module_builder::format(const std::string &name, const std::string &text) {
-    const auto format_str = llvm::ConstantDataArray::getString(*m_context.get(), text, true);
+llvm::Value *km2::module_builder::string_const_ptr(const std::string &name, const std::string &text) {
+    const auto str = llvm::ConstantDataArray::getString(*m_context.get(), text, true);
 
-    const auto global_format_str = new llvm::GlobalVariable(
+    const auto global_str = new llvm::GlobalVariable(
                 *m_module.get(),
-                format_str->getType(),
+                str->getType(),
                 true,
                 llvm::GlobalValue::ExternalLinkage,
-                format_str,
+                str,
                 name
                 );
 
-    return m_builder->CreateGEP(global_format_str, uintptr(0));
+    return m_builder->CreateGEP(global_str, uintptr(0));
 }
+
 
 llvm::Type *km2::module_builder::type(const std::string &name) {
     std::regex reg("^u([0-9]+)$");
@@ -68,21 +88,62 @@ llvm::Type *km2::module_builder::type(const std::string &name) {
             try {
                 return llvm::Type::getIntNTy(*m_context.get(), std::stoi(base));
             }  catch (std::exception e) {
-
+                return nullptr;
             }
         }
-    }
+    } else if(name == "string") {
+        return llvm::PointerType::get(llvm::Type::getInt8Ty(*m_context.get()), 0);
+    } else if(name == "")
     return nullptr;
 }
 
 llvm::Value *km2::module_builder::value(const wall_e::lex::token &token) {
-
+    return nullptr;
 }
 
-llvm::BasicBlock *km2::module_builder::beginBlock(const std::string &name, llvm::Function *func) {
+llvm::BasicBlock *km2::module_builder::beginBlock(
+        const std::string &name,
+        llvm::Function *func,
+        const std::vector<std::string> &argNames
+        ) {
     llvm::BasicBlock *entryBasicBlock = llvm::BasicBlock::Create(*m_context.get(), name, func);
-    m_builder->SetInsertPoint(entryBasicBlock);
+
+    std::map<std::string, llvm::Value*> args;
+    if(func) {
+        int i = 0;
+        for(auto it = func->arg_begin(); it != func->arg_end() && i < argNames.size(); ++it) {
+            std::cout << "func: " << func->getName().str() << ", arg: " << argNames[i] << "\n";
+            args[argNames[i]] = &(*it);
+            ++i;
+        }
+    }
+
+    m_stack.push(ctx { entryBasicBlock, args });
     return entryBasicBlock;
+}
+
+void km2::module_builder::endBlock() {
+    if(m_stack.size() > 0) {
+        m_stack.pop();
+    }
+}
+
+void km2::module_builder::setupInsertPoint() {
+    if(m_stack.size() > 0) {
+        m_builder->SetInsertPoint(m_stack.top().block);
+    }
+}
+
+llvm::Function *km2::module_builder::beginEntry(const std::string &name) {
+    const auto result = llvm::Function::Create(
+                llvm::FunctionType::get(llvm::Type::getInt32Ty(*m_context.get()), {}, false),
+                llvm::Function::ExternalLinkage,
+                name,
+                m_module.get()
+                );
+    beginBlock(name + "_block", result);
+    m_entryPoint = result;
+    return result;
 }
 
 int km2::module_builder::gen() {
@@ -185,7 +246,7 @@ int km2::module_builder::aaa() {
                     )
                 );
 
-    const auto format_str_ptr = format(".fmt", "Hello World: %d\n");
+    const auto format_str_ptr = string_const_ptr(".fmt", "Hello World: %d\n");
 
     m_builder->CreateCall(printf_func, {
                               format_str_ptr,
@@ -203,12 +264,12 @@ int km2::module_builder::aaa() {
     return 0;
 }
 
-llvm::Function *km2::module_builder::proto(llvm::Type* resultType, std::vector<llvm::Type*> argTypes, const std::string& name) {
+llvm::Function *km2::module_builder::proto(llvm::Type* resultType, std::vector<llvm::Type*> argTypes, const std::string& name, bool isVarArg) {
     return llvm::Function::Create(
                 llvm::FunctionType::get(
                     resultType,
                     argTypes,
-                    false
+                    isVarArg
                     ),
                 llvm::Function::ExternalLinkage,
                 name,
@@ -237,14 +298,20 @@ int km2::module_builder::runJit() {
     llvm::InitializeNativeTargetAsmPrinter();
 
     std::unique_ptr<llvm::RTDyldMemoryManager> MemMgr(new llvm::SectionMemoryManager());
+    std::cout << "AAA0" << std::endl;
 
     llvm::EngineBuilder factory(std::move(m_module));
     factory.setEngineKind(llvm::EngineKind::JIT);
     factory.setTargetOptions(Opts);
+    std::cout << "AAA1" << std::endl;
     factory.setMCJITMemoryManager(std::move(MemMgr));
     auto executionEngine = std::unique_ptr<llvm::ExecutionEngine>(factory.create());
     //m_module.get()->setDataLayout(executionEngine->getDataLayout());
+    std::cout << "AAA2" << std::endl;
     executionEngine->finalizeObject();
+
+
+    std::cout << "AAA3" << std::endl;
 
     if(m_entryPoint) {
         auto* ep = executionEngine->getPointerToFunction(m_entryPoint);
@@ -254,6 +321,8 @@ int km2::module_builder::runJit() {
         auto r = entryPoint();
         std::cout << "jit result: " << r << std::endl;
         return r;
+    } else {
+        std::cout << "jit entry point not set" << std::endl;
     }
     return -2;
 }
@@ -274,3 +343,10 @@ llvm::Module* km2::module_builder::module() const {
 llvm::IRBuilder<>* km2::module_builder::builder() const {
     return m_builder.get();
 }
+
+
+
+
+
+
+

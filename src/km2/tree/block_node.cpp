@@ -10,7 +10,6 @@ wall_e::gram::argument km2::block_node::create(const wall_e::gram::arg_vector &a
     std::cout << "km2::block_node::create" << std::endl;
     if (args.size() > 0) {
         const auto cmd = args[0].value_default<cmd_node*>(nullptr);
-
         if (args.size() > 2) {
             const auto next_block = args[2].value_default<block_node*>(nullptr);
             return new block_node(cmd, next_block);
@@ -23,7 +22,14 @@ wall_e::gram::argument km2::block_node::create(const wall_e::gram::arg_vector &a
 
 
 llvm::Value *km2::block_node::generate_llvm(module_builder *builder) {
-
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    if(m_cmd) {
+        m_cmd->generate_llvm(builder);
+    }
+    if(m_next_node) {
+        m_next_node->generate_llvm(builder);
+    }
+    return nullptr;
 }
 
 
@@ -32,11 +38,11 @@ void km2::block_node::print(size_t level, std::ostream &stream) {
     if(m_cmd) {
         m_cmd->print(level + 1, stream);
     } else {
-        stream << std::string(level, ' ') + "cmd not exist" << std::endl;
+        stream << std::string(level + 1, ' ') + "cmd not exist" << std::endl;
     }
     if(m_next_node) {
-        m_cmd->print(level + 1, stream);
+        m_next_node->print(level + 1, stream);
     } else {
-        stream << std::string(level, ' ') + "next node not exist" << std::endl;
+        stream << std::string(level + 1, ' ') + "next node not exist" << std::endl;
     }
 }

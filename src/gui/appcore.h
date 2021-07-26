@@ -9,7 +9,7 @@
 #include "highlighter.h"
 #include <QQuickTextDocument>
 
-Q_DECLARE_METATYPE(km2_error)
+Q_DECLARE_METATYPE(km2::error)
 
 class AppCore : public QObject {
     Q_OBJECT
@@ -18,10 +18,10 @@ class AppCore : public QObject {
     K_READONLY_PROPERTY(QString, gramatic, gramatic, setGramatic, gramaticChanged, QString())
     K_READONLY_PROPERTY(QString, asmCode, asmCode, setAsmCode, asmCodeChanged, QString())
     K_READONLY_PROPERTY(wall_e::variant, tree, tree, setTree, treeChanged, wall_e::variant())
-    K_META_TYPE(km2_error)
+    K_META_TYPE(km2::error)
 
     Highlighter *higlighter = nullptr;
-    K_READONLY_PROPERTY(QList<km2_error>, errors, errors, setErrors, errorsChanged, QList<km2_error>());
+    K_READONLY_PROPERTY(QList<km2::error>, errors, errors, setErrors, errorsChanged, QList<km2::error>());
 public:
     enum Mode { ModeTokens, ModeGramatic, ModeTree, ModeAsm, ModeExec };
 private:

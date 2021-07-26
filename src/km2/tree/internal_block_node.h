@@ -4,14 +4,15 @@
 
 
 #include "cmd_node.h"
-#include "node.h"
 
 namespace km2 {
 
-class internal_block_node : public km2::node {
+class internal_block_node : public km2::abstract_value_node {
     cmd_node* m_cmd;
     internal_block_node *m_next_node;
 public:
+    typedef abstract_value_node super_type;
+
     internal_block_node(cmd_node* cmd, internal_block_node *next_node = nullptr);
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);

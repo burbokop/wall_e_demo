@@ -40,14 +40,22 @@ set(SOURCES
     src/km2/utility/asm_tools.cpp
     src/km2/utility/function.cpp
     src/km2/builder.cpp
+    src/km2/error.cpp
+
+    src/km2/tree/abstract/abstract_type_node.cpp
+    src/km2/tree/abstract/abstract_value_node.cpp
+    src/km2/tree/abstract/abstract_node.cpp
     src/km2/tree/base_node.cpp
     src/km2/tree/function_node.cpp
-    src/km2/tree/node.cpp
     src/km2/tree/call_node.cpp
     src/km2/tree/asm_node.cpp
     src/km2/tree/block_node.cpp
     src/km2/tree/cmd_node.cpp
     src/km2/tree/internal_block_node.cpp
+    src/km2/tree/arg_node.cpp
+    src/km2/tree/proto_node.cpp
+    src/km2/tree/type_node.cpp
+    src/km2/tree/decl_arg_node.cpp
 )
 set(HEADERS
     src/to_pdf.h
@@ -65,14 +73,22 @@ set(HEADERS
     src/km2/utility/asm_tools.h
     src/km2/utility/function.h
     src/km2/builder.h
+    src/km2/error.h
+
+    src/km2/tree/abstract/abstract_node.h
+    src/km2/tree/abstract/abstract_type_node.h
+    src/km2/tree/abstract/abstract_value_node.h
     src/km2/tree/base_node.h
     src/km2/tree/function_node.h
-    src/km2/tree/node.h
     src/km2/tree/call_node.h
     src/km2/tree/asm_node.h
     src/km2/tree/block_node.h
     src/km2/tree/cmd_node.h
     src/km2/tree/internal_block_node.h
+    src/km2/tree/arg_node.h
+    src/km2/tree/proto_node.h
+    src/km2/tree/type_node.h
+    src/km2/tree/decl_arg_node.h    
     )
 
 

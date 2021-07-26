@@ -112,7 +112,7 @@ void Highlighter::highlightBlock(const QString &text) {
         if(begin != currentBlock().end()) {
             const auto fragmentStartPos = begin.fragment().position();
 
-            qDebug() << "error" << QString::fromStdString(err.message) << err.start << err.end << text;
+            qDebug() << "error" << QString::fromStdString(err.message()) << err.start() << err.end() << text;
             QTextCharFormat f;
 
 
@@ -120,7 +120,7 @@ void Highlighter::highlightBlock(const QString &text) {
             f.setFontUnderline(true);
             f.setUnderlineColor("#ff0000");
             //f.setUnderlineStyle(QTextCharFormat::UnderlineStyle::DotLine);
-            setFormat(err.start - fragmentStartPos, err.end - err.start, f);
+            setFormat(err.start() - fragmentStartPos, err.end() - err.start(), f);
         }
 
     }

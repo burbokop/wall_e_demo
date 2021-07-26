@@ -1,15 +1,17 @@
 #ifndef KM2_CMD_NODE_H
 #define KM2_CMD_NODE_H
 
-#include "node.h"
+#include "abstract/abstract_value_node.h"
 #include <wall_e/src/gram.h>
 
 namespace km2 {
 
-class cmd_node : public km2::node {
-    node* m_node;
+class cmd_node : public km2::abstract_value_node {
+    abstract_value_node* m_node = nullptr;
 public:
-    cmd_node(node *n = nullptr);
+    typedef abstract_value_node super_type;
+
+    cmd_node(abstract_value_node *n = nullptr);
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
 

@@ -1,19 +1,25 @@
-#ifndef KM2_CALL_NODE_H
-#define KM2_CALL_NODE_H
+#ifndef KM2_PROTO_NODE_H
+#define KM2_PROTO_NODE_H
 
 #include "abstract/abstract_value_node.h"
+#include "decl_arg_node.h"
 #include <wall_e/src/gram.h>
+#include <src/km2/tree/abstract/abstract_type_node.h>
+
 
 namespace km2 {
 
-class call_node : public km2::abstract_value_node {
+class proto_node : public km2::abstract_value_node {
     std::string m_name;
-    std::vector<km2::abstract_value_node*> m_args;
+    std::vector<decl_arg_node *> m_args;
+    abstract_type_node* m_result_type_node = nullptr;
 public:
     typedef abstract_value_node super_type;
 
-    call_node(const std::string& name, const std::vector<km2::abstract_value_node*>& args);
+    proto_node(const std::string &name, const std::vector<decl_arg_node*> &args, abstract_type_node* result_type_node);
+
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
+
 
     // node interface
 public:
@@ -23,4 +29,4 @@ public:
 
 } // namespace km2
 
-#endif // KM2_CALL_NODE_H
+#endif // KM2_PROTO_NODE_H

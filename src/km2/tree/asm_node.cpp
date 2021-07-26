@@ -1,5 +1,6 @@
 #include "asm_node.h"
 
+#include <iostream>
 
 km2::asm_node::asm_node(const std::string& text) {
 
@@ -22,7 +23,8 @@ wall_e::gram::argument km2::asm_node::create(const wall_e::gram::arg_vector &arg
 }
 
 llvm::Value *km2::asm_node::generate_llvm(module_builder *builder) {
-
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    return nullptr;
 }
 
 void km2::asm_node::print(size_t level, std::ostream &stream) {

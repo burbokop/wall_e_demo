@@ -14,7 +14,7 @@ QT_END_NAMESPACE
 //! [0]
 class Highlighter : public QSyntaxHighlighter {
     Q_OBJECT
-    K_AUTO_PROPERTY(QList<km2_error>, errors, errors, setErrors, errorsChanged, QList<km2_error>());
+    K_AUTO_PROPERTY(QList<km2::error>, errors, errors, setErrors, errorsChanged, QList<km2::error>());
 public:
     Highlighter(QTextDocument *parent = 0);
 
