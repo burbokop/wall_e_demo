@@ -35,6 +35,7 @@ set(SOURCES
     src/gui/klibcore/klibinfo.cpp
     src/gui/asmexecutor.cpp
     src/gui/highlighter.cpp
+    src/gui/concurentexecutor.cpp
     src/km2/km2.cpp
     src/km2/utility/math_patterns.cpp
     src/km2/utility/function.cpp
@@ -67,6 +68,7 @@ set(HEADERS
     src/gui/klibcore/klibinfo.h
     src/gui/asmexecutor.h
     src/gui/highlighter.h
+    src/gui/concurentexecutor.h
     src/km2/km2.h
     src/km2/utility/math_patterns.h
     src/km2/utility/function.h
@@ -142,6 +144,7 @@ target_link_libraries(km2ide
     km2ide_resources
     wall_e
     sproc
+    pthread
     LLVM-${LLVM_VERSION_MAJOR}
     Qt::Core
     Qt::Qml

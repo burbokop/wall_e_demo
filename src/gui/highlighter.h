@@ -42,6 +42,9 @@ private:
     QTextCharFormat multiLineCommentFormat;
     QTextCharFormat quotationFormat;
     QTextCharFormat functionFormat;
+
+signals:
+    void highlightingCompleated();
 };
 //! [0]
 

@@ -19,6 +19,11 @@ Window {
         function onCodeChanged() {
             codeArea.loadText(appCore.code);
         }
+        function onCompilationCompleated() {
+        }
+        function onPresentationCompleated() {
+            codeArea.updatePresentation()
+        }
     }
     Component.onCompleted: {
         codeArea.loadText(appCore.code);

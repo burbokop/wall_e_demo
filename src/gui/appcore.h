@@ -8,8 +8,10 @@
 #include "asmexecutor.h"
 #include "highlighter.h"
 #include <QQuickTextDocument>
+#include <thread>
 
 Q_DECLARE_METATYPE(km2::error)
+Q_DECLARE_METATYPE(std::thread::id)
 
 class AppCore : public QObject {
     Q_OBJECT
@@ -19,6 +21,11 @@ class AppCore : public QObject {
     K_READONLY_PROPERTY(QString, asmCode, asmCode, setAsmCode, asmCodeChanged, QString())
     K_READONLY_PROPERTY(wall_e::variant, tree, tree, setTree, treeChanged, wall_e::variant())
     K_META_TYPE(km2::error)
+
+    //std::thread *m_compileThread = nullptr;
+
+
+    std::map<std::thread::id, std::thread*> m_threads;
 
     Highlighter *higlighter = nullptr;
     K_READONLY_PROPERTY(QList<km2::error>, errors, errors, setErrors, errorsChanged, QList<km2::error>());
@@ -46,7 +53,8 @@ public slots:
     int errBegin(const km2::error& err) const;
     int errEnd(const km2::error& err) const;
 signals:
-
+    void compilationCompleated(std::thread::id);
+    void presentationCompleated();
 };
 
 #endif // APPCORE_H

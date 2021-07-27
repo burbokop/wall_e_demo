@@ -16,7 +16,11 @@ Flickable {
     function textFragmentForError(err) {
         const b = appCore.errBegin(err)
         const e = appCore.errEnd(err)
-        return area.text.substring(b, e)
+        return area.text.substring(b, e)        
+    }
+
+    function updatePresentation() {
+        area.append("")
     }
 
     property variant textDocument: area.textDocument

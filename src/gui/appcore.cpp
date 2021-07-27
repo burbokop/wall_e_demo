@@ -3,6 +3,7 @@
 #include <src/km2/km2.h>
 #include <QTimer>
 #include <QTextBlock>
+#include <QThread>
 
 void AppCore::recompile() {
     km2::flags flags;
@@ -14,17 +15,35 @@ void AppCore::recompile() {
         flags.push_back(km2::only_tree);
     }
 
-    lastResult = km2::compile(code().toStdString(), flags);
+    const auto compileThread = new std::thread([flags, this](){
+        const auto compileResult = km2::compile(code().toStdString(), flags);
 
-    setTokens(QString::fromStdString(wall_e::lex::to_string(lastResult.tokens)));
-    setGramatic(QString::fromStdString(lastResult.rules));
-    setTree(lastResult.tree);
-    setAsmCode(QString::fromStdString(lastResult.assembly));
-    setErrors(QList<km2::error>(lastResult.errors.begin(), lastResult.errors.end()));
+        lastResult = compileResult;
 
-    if(higlighter) {
-        higlighter->setErrors(errors());
-    }
+        setTokens(QString::fromStdString(wall_e::lex::to_string(lastResult.tokens)));
+        setGramatic(QString::fromStdString(lastResult.rules));
+        setTree(lastResult.tree);
+        setAsmCode(QString::fromStdString(lastResult.assembly));
+        setErrors(QList<km2::error>(lastResult.errors.begin(), lastResult.errors.end()));
+
+        if(higlighter) {
+            higlighter->setErrors(errors());
+        }
+
+        compilationCompleated(std::this_thread::get_id());
+    });
+    m_threads[compileThread->get_id()] = compileThread;
+
+    connect(this, &AppCore::compilationCompleated, this, [this](std::thread::id id){
+        const auto it = m_threads.find(id);
+        if(it != m_threads.end()) {
+            if(it->second) {
+                it->second->join();
+                delete it->second;
+            }
+            m_threads.erase(it);
+        }
+    }, Qt::QueuedConnection);
 }
 
 #define K_TIMER(INTERVAL, OBJECT, FUNCTION) \
@@ -40,6 +59,9 @@ AppCore::AppCore(QObject *parent) : QObject(parent) {
         if(higlighter == nullptr) {
             higlighter = new Highlighter(v->textDocument());
             higlighter->setErrors(errors());
+            connect(higlighter, &Highlighter::highlightingCompleated, this, [this](){
+                emit presentationCompleated();
+            });
         }
     });
     recompile();
@@ -63,6 +85,7 @@ AppCore::AppCore(QObject *parent) : QObject(parent) {
     //    }
     //});
 }
+
 
 bool AppCore::startExecuting() {
     return executor()->start(lastResult.assembly);

@@ -2,16 +2,21 @@
 #include <QDebug>
 #include <QTextDocument>
 #include <QTimer>
+#include <QAbstractTextDocumentLayout>
 //! [0]
 Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent) {
-    connect(this, &Highlighter::errorsChanged, this, [this](){
+    connect(this, &Highlighter::errorsChanged, this, [this, parent](){
+        qDebug() << "UPDATE HIGHLIGHTER";
         rehighlight();
+        highlightingCompleated();
+        qDebug() << "END UPDATING HIGHLIGHTER";
+        //parent->do
     });
 
     parent->setDefaultFont(QFont("Source Code Pro"));
 
     auto defaultTextOption = parent->defaultTextOption();
-    defaultTextOption.setTabStopDistance(parent->defaultFont().weight() * 3);
+    defaultTextOption.setTabStopDistance(parent->defaultFont().pointSize() * 3);
     parent->setDefaultTextOption(defaultTextOption);
 
     addRules(Qt::darkYellow, {
@@ -101,14 +106,11 @@ void Highlighter::highlightBlock(const QString &text) {
         startIndex = text.indexOf(commentStartExpression, startIndex + commentLength);
     }
 
-
-    qDebug() << "text size: " << text.size() << ", text: " << text;
     for(auto err : errors()) {
         const auto begin = currentBlock().begin();
         if(begin != currentBlock().end()) {
             const auto fragmentStartPos = begin.fragment().position();
 
-            qDebug() << "frag:" << fragmentStartPos << "error" << QString::fromStdString(err.message()) << err.segment().begin() << err.segment().end() << text;
 
             if(err.segment().valid_direction()) {
                 const auto relativePos = err.segment().begin() - fragmentStartPos;
@@ -120,6 +122,7 @@ void Highlighter::highlightBlock(const QString &text) {
                     format.setUnderlineColor("#ff888800");
                     format.setForeground(QBrush("#ffff0000"));
 
+                    qDebug() << "SET FORMAT";
                     setFormat(relativePos, errLength, format);
                 }
             }
