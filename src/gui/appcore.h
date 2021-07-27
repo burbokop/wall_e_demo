@@ -26,7 +26,7 @@ public:
     enum Mode { ModeTokens, ModeGramatic, ModeTree, ModeAsm, ModeExec };
 private:
     K_CONST_PROPERTY(AsmExecutor*, executor, new AsmExecutor(this));
-    km2_compilation_result lastResult;
+    km2::compilation_result lastResult;
     Q_ENUM(Mode)
     K_AUTO_PROPERTY(Mode, mode, mode, setMode, modeChanged, ModeTree)
     K_AUTO_PROPERTY(QQuickTextDocument*, codeDocument, codeDocument, setCodeDocument, codeDocumentChanged, nullptr)
@@ -42,7 +42,9 @@ public:
 
 public slots:
     bool startExecuting();
-
+    QString errToString(const km2::error& err) const;
+    int errBegin(const km2::error& err) const;
+    int errEnd(const km2::error& err) const;
 signals:
 
 };

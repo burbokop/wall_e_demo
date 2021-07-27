@@ -1,5 +1,8 @@
 #include "type_node.h"
 
+#include <llvm/IR/Type.h>
+
+#include <src/km2/builder.h>
 
 std::string km2::type_node::type_string(type t) {
     switch (t) {
@@ -38,27 +41,32 @@ wall_e::gram::argument km2::type_node::create(const wall_e::gram::arg_vector &ar
     return new type_node(Undefined);
 }
 
-llvm::Type *km2::type_node::generate_llvm(module_builder *builder) {
+wall_e::either<km2::error, llvm::Type *> km2::type_node::generate_llvm(module_builder *builder) {
     if(m_type == Unsigned || m_type == Signed) {
         if(m_text.size() > 1) {
             try {
-                return llvm::Type::getIntNTy(*builder->context(), std::stoi(m_text.substr(1, m_text.size() - 1)));
+                return wall_e::right<llvm::Type*>(llvm::Type::getIntNTy(*builder->context(), std::stoi(m_text.substr(1, m_text.size() - 1))));
             }  catch (std::exception e) {
-                return nullptr;
+                return wall_e::left(km2::error("can not parse integer type"));
             }
         }
     } else if(m_type == Float) {
-        return llvm::Type::getFloatTy(*builder->context());
+        return wall_e::right<llvm::Type*>(llvm::Type::getFloatTy(*builder->context()));
     } else if(m_type == Double) {
-        return llvm::Type::getDoubleTy(*builder->context());
+        return wall_e::right<llvm::Type*>(llvm::Type::getDoubleTy(*builder->context()));
     } else if(m_type == String) {
-        return llvm::PointerType::get(llvm::Type::getInt8Ty(*builder->context()), 0);
+        return wall_e::right<llvm::Type*>(llvm::PointerType::get(llvm::Type::getInt8Ty(*builder->context()), 0));
     }
-    return nullptr;
+    return wall_e::left(km2::error("unknown type_node type"));
 }
 
 void km2::type_node::print(size_t level, std::ostream &stream) {
     stream << std::string(level, ' ') << "{type_node}:" << std::endl;
     stream << std::string(level + 1, ' ') << "type: " << type_string(m_type) << std::endl;
     stream << std::string(level + 1, ' ') << "text: " << m_text << std::endl;
+}
+
+
+std::list<km2::error> km2::type_node::errors() {
+    return { error("err not implemented", 0, 0) };
 }

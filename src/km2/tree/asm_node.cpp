@@ -22,11 +22,15 @@ wall_e::gram::argument km2::asm_node::create(const wall_e::gram::arg_vector &arg
     return wall_e::gram::pattern::default_processor(args);
 }
 
-llvm::Value *km2::asm_node::generate_llvm(module_builder *builder) {
+wall_e::either<km2::error, llvm::Value *> km2::asm_node::generate_llvm(module_builder *builder) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
-    return nullptr;
+    return wall_e::left(km2::error("asm_node not implemented", 0, 0));
 }
 
 void km2::asm_node::print(size_t level, std::ostream &stream) {
 
+}
+
+std::list<km2::error> km2::asm_node::errors() {
+    return {};
 }

@@ -8,7 +8,7 @@
 //}
 
 void MainWindow::updateTree() {
-    km2_flags flags;
+    km2::flags flags;
   //  if(verboseChackBox->isChecked()) {
   //      flags.push_back(km2_verbose);
   //  }

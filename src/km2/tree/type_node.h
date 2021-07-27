@@ -37,7 +37,11 @@ public:
 
     // abstract_type_node interface
 public:
-    virtual llvm::Type *generate_llvm(module_builder *builder) override;
+    virtual wall_e::either<km2::error, llvm::Type*> generate_llvm(module_builder *builder) override;
+
+    // abstract_node interface
+public:
+    virtual std::list<error> errors() override;
 };
 
 } // namespace km2

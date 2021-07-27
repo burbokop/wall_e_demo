@@ -20,8 +20,12 @@ public:
 
     // node interface
 public:
-    virtual llvm::Value *generate_llvm(module_builder *builder) override;
+    virtual wall_e::either<km2::error, llvm::Value*> generate_llvm(module_builder *builder) override;
     virtual void print(size_t level, std::ostream &stream) override;
+
+    // abstract_node interface
+public:
+    virtual std::list<error> errors() override;
 };
 
 } // namespace km2

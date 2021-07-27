@@ -4,7 +4,6 @@
 #include <QPainter>
 #include <wall_e/src/lex.h>
 #include <wall_e/src/gram.h>
-#include <src/km2/utility/asm_tools.h>
 #include <src/km2/km2.h>
 
 #include <QQmlListProperty>
@@ -12,17 +11,6 @@
 KGramTreeView::KGramTreeView(QQuickItem *parent) : QQuickPaintedItem(parent) {
     setAcceptedMouseButtons(Qt::LeftButton);
     connect(this, &KGramTreeView::treeChanged, this, &KGramTreeView::displayTree);
-
-    //using AppendFunction = void (*)(QQmlListProperty<T> *, T *);
-    //
-    //using CountFunction = qsizetype (*)(QQmlListProperty<T> *);
-    //using AtFunction = T *(*)(QQmlListProperty<T> *, qsizetype);
-    //
-    //using ClearFunction = void (*)(QQmlListProperty<T> *);
-    //using ReplaceFunction = void (*)(QQmlListProperty<T> *, qsizetype, T *);
-    //using RemoveLastFunction = void (*)(QQmlListProperty<T> *);
-    //
-    //QQmlListProperty<QObject>()
 }
 
 
@@ -82,8 +70,8 @@ void KGramTreeView::print_branch(const wall_e::variant &branch, int x, int y, QP
         painter->drawText(cellRect, QString::fromStdString(branch.value<std::string>()), QTextOption(Qt::AlignCenter));
     } else if(branch.contains_type<int>()) {
         painter->drawText(cellRect, QString::number(branch.value<int>()), QTextOption(Qt::AlignCenter));
-    } else if(branch.contains_type<wall_e::asm_unit>()) {
-        painter->drawText(cellRect, QString::fromStdString(branch.value<wall_e::asm_unit>().code), QTextOption(Qt::AlignCenter));
+    } else if(branch.inherited_by<km2::abstract_node*>()) {
+        painter->drawText(cellRect, QString::fromStdString(branch.type()), QTextOption(Qt::AlignCenter));
     } else {
         const auto penBackup = painter->pen();
         painter->setPen(QPen(QColor("#ff8800"), penBackup.width()));
@@ -116,8 +104,8 @@ int KGramTreeView::branch_width(const wall_e::variant &branch, bool onlyCells) {
         return wall_e::type_name<wall_e::gram::recursion_error>().size();
     } else if(branch.contains_type<int>()) {
         return std::to_string(branch.value<int>()).size();
-    } else if(branch.contains_type<wall_e::asm_unit>()) {
-        return string_radius(branch.value<wall_e::asm_unit>().code);
+    } else if(branch.inherited_by<km2::abstract_node*>()) {
+        return string_radius(branch.type());
     } else {
         return 3;
     }

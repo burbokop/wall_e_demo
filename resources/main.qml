@@ -130,6 +130,40 @@ Window {
                     }
                 }
                 Tile {
+                    id: errTile
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 80
+                    clip: true
+
+                    property int currentErr: -1
+                    ListView {
+                        anchors.fill: parent
+                        model: appCore.errors
+                        delegate: Rectangle {
+                            color: (errTile.currentErr == index) ? "#88888888" : "#00000000"
+                            id: errRect
+                            width: parent.width
+                            height: (errTile.currentErr == index) ? 48 : 24
+                            Text {
+                                text: (errTile.currentErr == index)
+                                      ? appCore.errToString(modelData) + "\nat fragment: " +  codeArea.textFragmentForError(modelData)
+                                      : appCore.errToString(modelData)
+                                anchors.verticalCenter: parent.verticalCenter
+                                anchors.left: parent.left
+                                anchors.leftMargin: 4
+                            }
+                            MouseArea {
+                                id: errMouseArea
+                                anchors.fill: parent
+                                onClicked: {
+                                    codeArea.goToPosition(appCore.errBegin(modelData))
+                                    errTile.currentErr = index
+                                }
+                            }
+                        }
+                    }
+                }
+                Tile {
                     internalColor: "#ffffff"
                     Layout.fillWidth: true
                     Layout.fillHeight: true

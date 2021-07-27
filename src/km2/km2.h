@@ -6,27 +6,28 @@
 #include <string>
 #include <wall_e/src/variant.h>
 #include <wall_e/src/lex.h>
-#include <src/km2/utility/asm_tools.h>
 
+#include <src/km2/tree/abstract/abstract_node.h>
 
+namespace km2 {
 
-
-struct km2_compilation_result {
-    wall_e::variant tree;
+struct compilation_result {
+    km2::abstract_node *tree = nullptr;
     std::vector<wall_e::lex::token> tokens;
     std::string rules;
-    wall_e::asm_unit assembly;
+    std::string assembly;
     std::list<km2::error> errors;
 };
 
-enum km2_flag {
-    km2_only_tree,
-    km2_verbose
+enum flag {
+    only_tree,
+    verbose
 };
 
-typedef std::list<km2_flag> km2_flags;
+typedef std::list<flag> flags;
 
-km2_compilation_result km2_compile(const std::string &input, const km2_flags &flags = km2_flags());
+compilation_result compile(const std::string &input, const flags &flags = {});
 
+}
 
 #endif // TEST2_H

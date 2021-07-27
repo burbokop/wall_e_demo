@@ -21,15 +21,18 @@ wall_e::gram::argument km2::internal_block_node::create(const wall_e::gram::arg_
 
 }
 
-llvm::Value *km2::internal_block_node::generate_llvm(module_builder *builder) {
+wall_e::either<km2::error, llvm::Value *> km2::internal_block_node::generate_llvm(module_builder *builder) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     if(m_cmd) {
-        m_cmd->generate_llvm(builder);
+        if(const auto cmd_result = m_cmd->generate_llvm(builder)) {
+        } else {
+            return cmd_result.left();
+        }
     }
     if(m_next_node) {
-        m_next_node->generate_llvm(builder);
+        return m_next_node->generate_llvm(builder);
     }
-    return nullptr;
+    return wall_e::right<llvm::Value *>(nullptr);
 }
 
 void km2::internal_block_node::print(size_t level, std::ostream &stream) {
@@ -44,4 +47,9 @@ void km2::internal_block_node::print(size_t level, std::ostream &stream) {
     } else {
         stream << std::string(level + 1, ' ') + "next node not exist" << std::endl;
     }
+}
+
+
+std::list<km2::error> km2::internal_block_node::errors() {
+    return { error("err not implemented", 0, 0) };
 }

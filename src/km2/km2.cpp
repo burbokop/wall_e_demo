@@ -29,17 +29,17 @@
 
 #include <llvm-12/llvm/IR/Value.h>
 
-struct flags_private {
+struct __km2_flags_private {
     bool verbose = false;
     bool tree_mode = false;
 };
 
-flags_private __km2_parse_flags(const km2_flags &flags) {
-    flags_private result;
+__km2_flags_private __km2_parse_flags(const km2::flags &flags) {
+    __km2_flags_private result;
     for(auto f : flags) {
-        if(f == km2_flag::km2_verbose) {
+        if(f == km2::flag::verbose) {
             result.verbose = true;
-        } else if(f == km2_flag::km2_only_tree) {
+        } else if(f == km2::flag::only_tree) {
             result.tree_mode = true;
         }
     }
@@ -80,12 +80,11 @@ const std::list<wall_e::lex::pattern> km2_lexlist = {
 
 
 
-km2_compilation_result km2_compile(const std::string &input, const km2_flags &flags) {
+km2::compilation_result km2::compile(const std::string &input, const km2::flags &flags) {
     using namespace wall_e::gram::literals;
 
 
     const auto __flags = __km2_parse_flags(flags);
-    std::list<km2::error> errors;
     wall_e::gram::flags_list gram_flags;
     if(__flags.verbose) {
         gram_flags.push_back(wall_e::gram::verbose);
@@ -119,7 +118,7 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
                 std::cout << "[ KLEX ERROR ]\n";
             }
 
-            return { wall_e::variant(), sorted_tokens, std::string(), wall_e::asm_unit(), errors };
+            return { nullptr, sorted_tokens, std::string(), "", {} };
         }
     }
 
@@ -173,54 +172,58 @@ km2_compilation_result km2_compile(const std::string &input, const km2_flags &fl
                 gram_flags
                 );
 
-    std::cout << "result:" << result << std::endl;
+    std::cout << "result: " << result << std::endl;
+    std::cout << "result type: " << result.type() << std::endl;
+    std::cout << "result lineage: " << result.lineage() << std::endl;
+
+    if(__flags.verbose) {
+        std::cout << "\n -------------- GRAM END --------------\n\n";
+    }
 
 
     if(result.contains_type<km2::base_node*>()) {
         if(const auto node = result.value<km2::base_node*>()) {
-            std::cout << "node:"<< std::endl;
-            node->print(1, std::cout);
+            const auto errors = node->errors();
+
+            if(errors.size() > 0) {
+                std::cout << wall_e::color::Red << "FOUND ERRORS OF LEVEL 1: " << errors << wall_e::color::reset() << std::endl;
+            } else {
+                std::cout << wall_e::color::Green << "NO ERRORS OF LEVEL 1" << wall_e::color::reset() << std::endl;
+            }
+
+            std::cout << "AST:" << std::endl;
+            node->print(0, std::cout);
 
 
+            std::cout << "LLVM:"<< std::endl;
             km2::module_builder builder;
-            node->generate_llvm(&builder);
+            const auto gen_result = node->generate_llvm(&builder);
+
+            std::list<km2::error> llvm_errors;
+            if(!gen_result) {
+                llvm_errors.push_back(gen_result.left_value());
+            }
+
+            if(llvm_errors.size() > 0) {
+                std::cout << wall_e::color::Red << "FOUND ERRORS OF LEVEL 2: " << llvm_errors << wall_e::color::reset() << std::endl;
+            } else {
+                std::cout << wall_e::color::Green << "NO ERRORS OF LEVEL 2" << wall_e::color::reset() << std::endl;
+            }
 
             builder.print();
-            builder.runJit();
+
+
+
+
+            return { node, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, llvm_errors };
+
+
+            //builder.runJit();
         }
     }
 
 
-
-
-
-
-    wall_e::asm_unit result_asm_unit;
-    result_asm_unit += "\t.globl main\n\n\t.text\nmain:\n";
-    result_asm_unit += produce_asm_unit(result);
-    result_asm_unit += "\n";
-
-    if(__flags.verbose) {
-        std::cout << "\n -------------- GRAM END --------------\n\n";
-        std::cout << "\n -------------- ASM CODE --------------\n\n";
-        std::cout << result_asm_unit;
-        std::cout << "\n -------------- ASM  END --------------\n\n";
-    }
-
-
-    std::ofstream asm_output;
-
-    asm_output.open("./translation.s", std::ios::out);
-    if(asm_output.is_open()) {
-        asm_output.write(result_asm_unit.code.data(), result_asm_unit.code.size());
-        asm_output.close();
-        system("gcc -no-pie ./translation.s");
-    } else if(__flags.verbose) {
-        std::cout << "error: output file not open\n";
-    }
-
-
-    return { result, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result_asm_unit, errors };
+    return { nullptr, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, {}};
 }
 
 

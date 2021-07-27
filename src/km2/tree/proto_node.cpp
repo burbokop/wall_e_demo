@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include <src/km2/builder.h>
+
 
 km2::proto_node::proto_node(const std::string &name, const std::vector<decl_arg_node *> &args, abstract_type_node *result_type_node) {
     m_name = name;
@@ -33,7 +35,7 @@ wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &a
     return nullptr;
 }
 
-llvm::Value *km2::proto_node::generate_llvm(module_builder *builder) {
+wall_e::either<km2::error, llvm::Value *> km2::proto_node::generate_llvm(module_builder *builder) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     std::vector<llvm::Type*> argTypes;
     bool isVarArg = false;
@@ -44,18 +46,23 @@ llvm::Value *km2::proto_node::generate_llvm(module_builder *builder) {
             }
             isVarArg = true;
         } else {
-            argTypes.push_back(arg->type_node()->generate_llvm(builder));
+            if(const auto type = arg->type_node()->generate_llvm(builder)) {
+                argTypes.push_back(type.right_value());
+            } else {
+                return type.left();
+            }
         }
     }
 
     if(m_result_type_node) {
-        std::cout << "GENERATED 0 " << __PRETTY_FUNCTION__ << std::endl;
         if (const auto rt = m_result_type_node->generate_llvm(builder)) {
-            std::cout << "GENERATED 1 " << __PRETTY_FUNCTION__ << std::endl;
-            return builder->proto(rt, argTypes, m_name, isVarArg);
+            return wall_e::right<llvm::Value *>(builder->proto(rt.right_value(), argTypes, m_name, isVarArg));
+        } else {
+            return rt.left();
         }
+    } else {
+        return wall_e::left(km2::error("result type node missing"));
     }
-    return nullptr;
 }
 
 void km2::proto_node::print(size_t level, std::ostream &stream) {
@@ -73,4 +80,9 @@ void km2::proto_node::print(size_t level, std::ostream &stream) {
     } else {
         stream << std::string(level + 1, ' ') << "result type node missing" << std::endl;
     }
+}
+
+
+std::list<km2::error> km2::proto_node::errors() {
+    return { error("err not implemented", 0, 0) };
 }

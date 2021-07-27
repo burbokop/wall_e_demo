@@ -16,12 +16,12 @@ wall_e::gram::argument km2::cmd_node::create(const wall_e::gram::arg_vector &arg
     return new cmd_node();
 }
 
-llvm::Value *km2::cmd_node::generate_llvm(module_builder *builder) {
+wall_e::either<km2::error, llvm::Value *> km2::cmd_node::generate_llvm(module_builder *builder) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     if(m_node) {
         return m_node->generate_llvm(builder);
     }
-    return nullptr;
+    return wall_e::left(km2::error("cmd node not exist"));
 }
 
 
@@ -32,4 +32,9 @@ void km2::cmd_node::print(size_t level, std::ostream &stream) {
     } else {
         stream << std::string(level + 1, ' ') + "node not exist" << std::endl;
     }
+}
+
+
+std::list<km2::error> km2::cmd_node::errors() {
+    return { error("err not implemented", 0, 0) };
 }

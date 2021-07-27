@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include <src/km2/builder.h>
+
 std::string km2::arg_node::typeString(const type &t) {
     switch (t) {
     case Id: return "Id";
@@ -14,7 +16,8 @@ std::string km2::arg_node::typeString(const type &t) {
     return "Undefined";
 }
 
-km2::arg_node::arg_node(type t, const std::string &text, abstract_value_node *value_node) {
+km2::arg_node::arg_node(const text_segment &segment, type t, const std::string &text, abstract_value_node *value_node)
+    : km2::abstract_value_node(segment) {
     m_type = t;
     m_text = text;
     m_value_node = value_node;
@@ -26,7 +29,7 @@ wall_e::gram::argument km2::arg_node::create(const wall_e::gram::arg_vector &arg
         if(args[0].contains_type<wall_e::lex::token>()) {
             const auto token = args[0].value<wall_e::lex::token>();
             if(token.name == "INT_LITERAL") {
-                return new arg_node(IntLiteral, token.text);
+                return new arg_node(token.position, IntLiteral, token.text);
             } else if(token.name == "FLOAT_LITERAL") {
                 return new arg_node(FloatLiteral, token.text);
             } else if(token.name == "STRING_LITERAL") {
@@ -44,37 +47,43 @@ wall_e::gram::argument km2::arg_node::create(const wall_e::gram::arg_vector &arg
     return new arg_node(Undefined);
 }
 
-llvm::Value *km2::arg_node::generate_llvm(module_builder *builder) {
+wall_e::either<km2::error, llvm::Value *> km2::arg_node::generate_llvm(module_builder *builder) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     if(m_type == IntLiteral) {
         try {
-            return builder->uintptr(std::stoi(m_text));
+            return wall_e::right<llvm::Value *>(builder->uintptr(std::stoi(m_text)));
         }  catch (std::exception e) {
-            std::cerr << m_text << " is not number\n";
+            return wall_e::left(km2::error(m_text + " is not a integer"));
         }
     } else if(m_type == FloatLiteral) {
         try {
-            return builder->float64(std::stod(m_text));
+            return wall_e::right<llvm::Value *>(builder->float64(std::stod(m_text)));
         }  catch (std::exception e) {
-            std::cerr << m_text << " is not float point number\n";
+            return wall_e::left(km2::error(m_text + " is not a floating point number"));
         }
     } else if(m_type == StringLiteral) {
         builder->setupInsertPoint();
-        return builder->string_const_ptr(
+        return wall_e::right<llvm::Value *>(builder->string_const_ptr(
                     "arg_" + std::to_string(reinterpret_cast<uintptr_t>(this)),
                     m_text
-                    );
+                    ));
     } else if(m_type == Id) {
         builder->setupInsertPoint();
-        return builder->arg(m_text);
+        if(const auto a = builder->arg(m_text)) {
+            return wall_e::right<llvm::Value *>(a);
+        } else {
+            return wall_e::left(km2::error("variable " + m_text + " not found in current context"));
+        }
     } else if(m_type == ValueNode) {
         if(m_value_node) {
             builder->setupInsertPoint();
             return m_value_node->generate_llvm(builder);
+        } else {
+            return wall_e::left(km2::error("empty value node"));
         }
     }
 
-    return nullptr;
+    return wall_e::left(km2::error("unknown arg type"));
 }
 
 void km2::arg_node::print(size_t level, std::ostream &stream) {

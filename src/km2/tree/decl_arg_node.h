@@ -18,13 +18,17 @@ public:
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
 
+    bool is_variadic() const;
+    abstract_type_node *type_node() const;
+    const std::string &name() const;
 
     // abstract_node interface
 public:
     virtual void print(size_t level, std::ostream &stream) override;
-    bool is_variadic() const;
-    abstract_type_node *type_node() const;
-    const std::string &name() const;
+
+    // abstract_node interface
+public:
+    virtual std::list<error> errors() override;
 };
 
 } // namespace km2

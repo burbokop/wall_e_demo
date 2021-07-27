@@ -4,6 +4,7 @@
 
 #include <wall_e/src/utility/token_tools.h>
 #include <iostream>
+#include <src/km2/builder.h>
 
 wall_e::gram::argument km2::function_node::create(const wall_e::gram::arg_vector &args) {
     std::cout << "km2::function_node::create: " << args << std::endl;
@@ -18,7 +19,7 @@ wall_e::gram::argument km2::function_node::create(const wall_e::gram::arg_vector
         }
 
         return new function_node(
-                args[0].value<wall_e::lex::token>().text,
+                    args[0].value<wall_e::lex::token>().text,
                 da_nodes,
                 args[5].default_cast<abstract_value_node*>()
                 );
@@ -33,26 +34,33 @@ km2::function_node::function_node(const std::string &name, const std::vector<dec
 }
 
 
-llvm::Value *km2::function_node::generate_llvm(module_builder *builder) {    
+wall_e::either<km2::error, llvm::Value *> km2::function_node::generate_llvm(module_builder *builder) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     std::vector<llvm::Type*> argTypes;
     std::vector<std::string> argNames;
     for(const auto& arg : m_args) {
-        argTypes.push_back(arg->type_node()->generate_llvm(builder));
-        argNames.push_back(arg->name());
+        if(const auto type = arg->type_node()->generate_llvm(builder)) {
+
+            argTypes.push_back(type.right().value());
+            argNames.push_back(arg->name());
+        } else {
+            return type.left();
+        }
     }
     const auto proto = builder->proto(llvm::Type::getVoidTy(*builder->context()), argTypes, m_name);
     const auto block = builder->beginBlock(m_name + "_block", proto, argNames);
 
     if (m_body) {
-        const auto body = m_body->generate_llvm(builder);
-    }
+        if(const auto body = m_body->generate_llvm(builder)) {
 
-    //llvm::ConstantFP::get(llvm::Type::getDoubleTy())
+        } else  {
+            return body.left();
+        }
+    }
 
     builder->builder()->CreateRetVoid();
     builder->endBlock();
-    return proto;
+    return wall_e::right<llvm::Value *>(proto);
 }
 
 void km2::function_node::print(size_t level, std::ostream &stream) {

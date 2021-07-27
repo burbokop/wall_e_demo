@@ -51,3 +51,8 @@ void km2::decl_arg_node::print(size_t level, std::ostream &stream) {
         stream << std::string(level + 1, ' ') << "not variadic & type missing" << std::endl;
     }
 }
+
+
+std::list<km2::error> km2::decl_arg_node::errors() {
+    return {};
+}

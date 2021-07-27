@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#include <src/km2/builder.h>
+
 
 km2::base_node::base_node(block_node *block_node) {
     m_block_node = block_node;
@@ -18,7 +20,7 @@ wall_e::gram::argument km2::base_node::create(const wall_e::gram::arg_vector &ar
     return new base_node(nullptr);
 }
 
-llvm::Value *km2::base_node::generate_llvm(module_builder *builder) {    
+wall_e::either<km2::error, llvm::Value *> km2::base_node::generate_llvm(module_builder *builder) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     if(m_block_node) {
         const auto entry = builder->beginEntry("main");
@@ -27,7 +29,7 @@ llvm::Value *km2::base_node::generate_llvm(module_builder *builder) {
         builder->endBlock();
         return result;
     }
-    return nullptr;
+    return wall_e::right<llvm::Value *>(nullptr);
 }
 
 void km2::base_node::print(size_t level, std::ostream &stream) {

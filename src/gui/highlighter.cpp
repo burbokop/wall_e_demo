@@ -8,25 +8,11 @@ Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent) {
 
     addRules(Qt::darkYellow, {
                  "asm",
-                 "number",
+                 "f32",
+                 "f64",
+                 "u[0-9]+",
+                 "i[0-9]+",
                  "string"
-             });
-
-
-    addRules(Qt::darkCyan, {
-                 "%[re][abcd]x",
-                 "%[re][ds]i",
-                 "%[re][bs]p",
-                 "%[abcd][hlx]",
-                 "%xmm[0-9]+"
-             });
-
-    addRules(Qt::GlobalColor::magenta, {
-                 "mov",
-                 "xor",
-                 "push",
-                 "pop",
-                 "call"
              });
 
     addRules(Qt::GlobalColor::darkMagenta, {
@@ -42,16 +28,16 @@ Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent) {
     highlightingRules.append(rule);
 
     multiLineCommentFormat.setForeground(Qt::red);
-//! [3]
+    //! [3]
 
-//! [4]
+    //! [4]
     quotationFormat.setForeground(Qt::darkGreen);
-    rule.pattern = QRegularExpression("\".*\"");
+    rule.pattern = QRegularExpression("'.*'");
     rule.format = quotationFormat;
     highlightingRules.append(rule);
-//! [4]
+    //! [4]
 
-//! [5]
+    //! [5]
     //functionFormat.setForeground(Qt::blue);
     //rule.pattern = QRegularExpression("[A-Za-z0-9_]+\\(");
     //rule.format = functionFormat;
@@ -101,27 +87,34 @@ void Highlighter::highlightBlock(const QString &text) {
             commentLength = text.length() - startIndex;
         } else {
             commentLength = endIndex - startIndex
-                            + match.capturedLength();
+                    + match.capturedLength();
         }
         setFormat(startIndex, commentLength, multiLineCommentFormat);
         startIndex = text.indexOf(commentStartExpression, startIndex + commentLength);
     }
 
+
+    qDebug() << "text size: " << text.size() << ", text: " << text;
     for(auto err : errors()) {
         const auto begin = currentBlock().begin();
         if(begin != currentBlock().end()) {
             const auto fragmentStartPos = begin.fragment().position();
 
-            qDebug() << "error" << QString::fromStdString(err.message()) << err.start() << err.end() << text;
-            QTextCharFormat f;
+            qDebug() << "frag:" << fragmentStartPos << "error" << QString::fromStdString(err.message()) << err.start() << err.end() << text;
 
+            if(err.valid_direction()) {
+                const auto relativePos = err.start() - fragmentStartPos;
+                const auto errLength = err.length();
+                if(relativePos >= 0 && relativePos + errLength < text.size()) {
+                    QTextCharFormat format;
+                    format.setFontUnderline(true);
+                    format.setUnderlineStyle(QTextCharFormat::UnderlineStyle::SingleUnderline);
+                    format.setUnderlineColor("#ff888800");
+                    format.setForeground(QBrush("#ffff9900"));
 
-            //f.setBackground(QBrush("#ff0000"));
-            f.setFontUnderline(true);
-            f.setUnderlineColor("#ff0000");
-            //f.setUnderlineStyle(QTextCharFormat::UnderlineStyle::DotLine);
-            setFormat(err.start() - fragmentStartPos, err.end() - err.start(), f);
+                    setFormat(relativePos, errLength, format);
+                }
+            }
         }
-
     }
 }

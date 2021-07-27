@@ -37,7 +37,6 @@ set(SOURCES
     src/gui/highlighter.cpp
     src/km2/km2.cpp
     src/km2/utility/math_patterns.cpp
-    src/km2/utility/asm_tools.cpp
     src/km2/utility/function.cpp
     src/km2/builder.cpp
     src/km2/error.cpp
@@ -70,7 +69,6 @@ set(HEADERS
     src/gui/highlighter.h
     src/km2/km2.h
     src/km2/utility/math_patterns.h
-    src/km2/utility/asm_tools.h
     src/km2/utility/function.h
     src/km2/builder.h
     src/km2/error.h

@@ -79,28 +79,6 @@ llvm::Value *km2::module_builder::string_const_ptr(const std::string &name, cons
 }
 
 
-llvm::Type *km2::module_builder::type(const std::string &name) {
-    std::regex reg("^u([0-9]+)$");
-    std::smatch matches;
-    if(std::regex_search(name, matches, reg)) {
-        if (matches.size() > 1) {
-            const auto base = matches[1];
-            try {
-                return llvm::Type::getIntNTy(*m_context.get(), std::stoi(base));
-            }  catch (std::exception e) {
-                return nullptr;
-            }
-        }
-    } else if(name == "string") {
-        return llvm::PointerType::get(llvm::Type::getInt8Ty(*m_context.get()), 0);
-    } else if(name == "")
-    return nullptr;
-}
-
-llvm::Value *km2::module_builder::value(const wall_e::lex::token &token) {
-    return nullptr;
-}
-
 llvm::BasicBlock *km2::module_builder::beginBlock(
         const std::string &name,
         llvm::Function *func,
@@ -288,7 +266,7 @@ llvm::CallInst *km2::module_builder::inline_asm(const std::string& text) {
 }
 
 void km2::module_builder::print() {
-    llvm::outs() << llvm::raw_ostream::CYAN << "\nMODULE:\n" << llvm::raw_ostream::GREEN << *m_module.get() << llvm::raw_ostream::RESET;
+    llvm::outs() << llvm::raw_ostream::CYAN << "\nMODULE:\n" << llvm::raw_ostream::YELLOW << *m_module.get() << llvm::raw_ostream::RESET;
 }
 
 int km2::module_builder::runJit() {

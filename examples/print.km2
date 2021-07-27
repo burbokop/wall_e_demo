@@ -1,14 +1,10 @@
-print = (number num) {
-	asm('
-		.data
-	__km2_format: .asciz "gogadoda %d \n"
-		.text
-		mov 16(%rbp), %rsi
-		mov $__km2_format, %rdi
-		xor %rax, %rax
-		call printf
-	');
+printf = (format string, args ...) u32;
+
+pow = (a f64, b f64) f64;
+
+print = (num f64) {
+	printf('gogadoda: %s\n', pow(num, 2.));
 };
 
 
-print(444);
+print(444.);

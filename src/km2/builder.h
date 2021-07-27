@@ -34,10 +34,6 @@ public:
     llvm::FunctionType *func(llvm::Type* returnType, llvm::ArrayRef<llvm::Type*> argTypes);
     llvm::Value *string_const_ptr(const std::string &name, const std::string& text);
 
-    llvm::Type *type(const std::string& name);
-
-    llvm::Value *value(const wall_e::lex::token& token);
-
     llvm::BasicBlock *beginBlock(const std::string& name, llvm::Function *func = nullptr, const std::vector<std::string>& argNames = {});
 
     void endBlock();

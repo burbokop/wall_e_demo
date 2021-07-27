@@ -26,14 +26,14 @@ private:
     abstract_value_node* m_value_node = nullptr;
 public:
 
-    arg_node(type t, const std::string& text = {}, abstract_value_node* value_node = nullptr);
+    arg_node(const text_segment& segment, type t, const std::string& text = {}, abstract_value_node* value_node = nullptr);
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
 
 
     // node interface
 public:
-    virtual llvm::Value *generate_llvm(module_builder *builder) override;
+    virtual wall_e::either<km2::error, llvm::Value*> generate_llvm(module_builder *builder) override;
     virtual void print(size_t level, std::ostream &stream) override;    
     virtual std::list<error> errors() override;
 };

@@ -5,21 +5,21 @@
 #include <QTextBlock>
 
 void AppCore::recompile() {
-    km2_flags flags;
+    km2::flags flags;
     if(verbose()) {
-        flags.push_back(km2_verbose);
+        flags.push_back(km2::verbose);
     }
 
     if(onlyTree()) {
-        flags.push_back(km2_only_tree);
+        flags.push_back(km2::only_tree);
     }
 
-    lastResult = km2_compile(code().toStdString(), flags);
+    lastResult = km2::compile(code().toStdString(), flags);
 
     setTokens(QString::fromStdString(wall_e::lex::to_string(lastResult.tokens)));
     setGramatic(QString::fromStdString(lastResult.rules));
     setTree(lastResult.tree);
-    setAsmCode(QString::fromStdString(lastResult.assembly.code));
+    setAsmCode(QString::fromStdString(lastResult.assembly));
     setErrors(QList<km2::error>(lastResult.errors.begin(), lastResult.errors.end()));
 
     if(higlighter) {
@@ -65,6 +65,17 @@ AppCore::AppCore(QObject *parent) : QObject(parent) {
 }
 
 bool AppCore::startExecuting() {
-    return executor()->start(lastResult.assembly.code);
+    return executor()->start(lastResult.assembly);
 }
 
+QString AppCore::errToString(const km2::error &err) const {
+    return QString::fromStdString(err.message());
+}
+
+int AppCore::errBegin(const km2::error &err) const {
+    return err.segment().begin();
+}
+
+int AppCore::errEnd(const km2::error &err) const {
+    return err.segment().end();
+}
