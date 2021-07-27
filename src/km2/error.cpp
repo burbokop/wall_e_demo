@@ -5,13 +5,13 @@
 
 std::string km2::error::message() const { return m_message; }
 
-km2::text_segment km2::error::segment() const { return m_segment; }
+wall_e::text_segment km2::error::segment() const { return m_segment; }
 
 km2::error::error() {}
 
 km2::error::error(const std::string &message) { m_message = message; }
 
-km2::error::error(const std::string &message, const text_segment &segment) {
+km2::error::error(const std::string &message, const wall_e::text_segment &segment) {
     m_message = message;
     m_segment = segment;
 }

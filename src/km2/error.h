@@ -1,23 +1,23 @@
 #ifndef KM2_ERROR_H
 #define KM2_ERROR_H
 
-#include "text_segment.h"
+#include <wall_e/src/text_segment.h>
 
 namespace km2 {
 
 class error {
     std::string m_message;
-    text_segment m_segment;
+    wall_e::text_segment m_segment;
 public:
     error();
     error(const std::string& message);
     error(
             const std::string& message,
-            const text_segment& segment
+            const wall_e::text_segment& segment
             );
 
     std::string message() const;
-    text_segment segment() const;
+    wall_e::text_segment segment() const;
 };
 
 } // namespace km2

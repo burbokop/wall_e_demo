@@ -84,5 +84,5 @@ void km2::proto_node::print(size_t level, std::ostream &stream) {
 
 
 std::list<km2::error> km2::proto_node::errors() {
-    return { error("err not implemented", 0, 0) };
+    return { error("err not implemented") };
 }

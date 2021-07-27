@@ -13,7 +13,7 @@ class module_builder;
 class abstract_type_node : public abstract_node {
 public:
     typedef abstract_node super_type;
-    abstract_type_node(const text_segment& segment = {});
+    abstract_type_node(const wall_e::text_segment& segment = {});
 
     virtual wall_e::either<km2::error, llvm::Type*> generate_llvm(module_builder *builder) = 0;
 };

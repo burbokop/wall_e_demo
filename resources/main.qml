@@ -115,6 +115,7 @@ Window {
                 width: 300
                 Layout.fillHeight: true
                 Tile {
+                    internalColor: "#ffffff"
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     CodeArea {
@@ -130,6 +131,7 @@ Window {
                     }
                 }
                 Tile {
+                    internalColor: "#ffffff"
                     id: errTile
                     Layout.fillWidth: true
                     Layout.preferredHeight: 80

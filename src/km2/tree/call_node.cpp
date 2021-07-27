@@ -50,26 +50,32 @@ wall_e::either<km2::error, llvm::Value *> km2::call_node::generate_llvm(module_b
     const auto proto = builder->module()->getFunction(m_name);
     if (!proto) {
         std::cerr << "function: " << m_name << " not declared" << std::endl;
-        return wall_e::left(km2::error("function '" + m_name + "' not defined", m_name_start_position, m_name_end_position));
+        return wall_e::left(km2::error("function '" + m_name + "' not defined", { m_name_start_position, m_name_end_position }));
     }
 
     std::vector<llvm::Value*> args;
+    std::vector<wall_e::text_segment> arg_segments;
     args.reserve(m_args.size());
     for(const auto& arg : m_args) {
         if (arg) {
             if(const auto arg_value = arg->generate_llvm(builder)) {
                 args.push_back(arg_value.right_value());
+                arg_segments.push_back(arg->segment());
             } else {
                 return arg_value.left();
             }
         } else {
             args.push_back(nullptr);
+            arg_segments.push_back({});
         }
     }
 
     for(size_t i = 0, s = proto->arg_size(); i < s; ++i) {
         const auto func_type = proto->getArg(i)->getType();
         const auto arg_type = args[i]->getType();
+        const auto arg_segment = arg_segments[i];
+
+
         if(func_type->getTypeID() != arg_type->getTypeID()) {
             llvm::errs() << "arg " << i << " type not match: func: " << m_name << " expected type: " << *func_type << ", actual: " << *arg_type << "\n";
 
@@ -81,11 +87,7 @@ wall_e::either<km2::error, llvm::Value *> km2::call_node::generate_llvm(module_b
                     << "' of func '" << m_name
                     << "'";
 
-            return wall_e::left(km2::error(
-                                    err_message,
-                                    m_name_start_position,
-                                    m_name_end_position
-                                    ));
+            return wall_e::left(km2::error(err_message, arg_segment));
         }
     }
 

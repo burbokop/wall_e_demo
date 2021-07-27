@@ -25,6 +25,15 @@ Flickable {
 
     readonly property string text: area.text
 
+    //Timer {
+    //    interval: 500
+    //    running: true
+    //    repeat: true
+    //    onTriggered: {
+    //        area.update()
+    //    }
+    //}
+
     TextArea.flickable: TextArea {
         //textFormat: TextEdit.RichText
         id: area

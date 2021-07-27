@@ -1,10 +1,18 @@
 #include "highlighter.h"
 #include <QDebug>
+#include <QTextDocument>
+#include <QTimer>
 //! [0]
 Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent) {
     connect(this, &Highlighter::errorsChanged, this, [this](){
         rehighlight();
     });
+
+    parent->setDefaultFont(QFont("Source Code Pro"));
+
+    auto defaultTextOption = parent->defaultTextOption();
+    defaultTextOption.setTabStopDistance(parent->defaultFont().weight() * 3);
+    parent->setDefaultTextOption(defaultTextOption);
 
     addRules(Qt::darkYellow, {
                  "asm",
@@ -100,17 +108,17 @@ void Highlighter::highlightBlock(const QString &text) {
         if(begin != currentBlock().end()) {
             const auto fragmentStartPos = begin.fragment().position();
 
-            qDebug() << "frag:" << fragmentStartPos << "error" << QString::fromStdString(err.message()) << err.start() << err.end() << text;
+            qDebug() << "frag:" << fragmentStartPos << "error" << QString::fromStdString(err.message()) << err.segment().begin() << err.segment().end() << text;
 
-            if(err.valid_direction()) {
-                const auto relativePos = err.start() - fragmentStartPos;
-                const auto errLength = err.length();
+            if(err.segment().valid_direction()) {
+                const auto relativePos = err.segment().begin() - fragmentStartPos;
+                const auto errLength = err.segment().length();
                 if(relativePos >= 0 && relativePos + errLength < text.size()) {
                     QTextCharFormat format;
                     format.setFontUnderline(true);
                     format.setUnderlineStyle(QTextCharFormat::UnderlineStyle::SingleUnderline);
                     format.setUnderlineColor("#ff888800");
-                    format.setForeground(QBrush("#ffff9900"));
+                    format.setForeground(QBrush("#ffff0000"));
 
                     setFormat(relativePos, errLength, format);
                 }

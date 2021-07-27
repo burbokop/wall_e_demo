@@ -24,7 +24,7 @@ wall_e::gram::argument km2::asm_node::create(const wall_e::gram::arg_vector &arg
 
 wall_e::either<km2::error, llvm::Value *> km2::asm_node::generate_llvm(module_builder *builder) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
-    return wall_e::left(km2::error("asm_node not implemented", 0, 0));
+    return wall_e::left(km2::error("asm_node not implemented"));
 }
 
 void km2::asm_node::print(size_t level, std::ostream &stream) {
