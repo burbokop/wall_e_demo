@@ -12,6 +12,7 @@
 namespace km2 {
 
 struct compilation_result {
+    wall_e::variant token_tree;
     km2::abstract_node *tree = nullptr;
     std::vector<wall_e::lex::token> tokens;
     std::string rules;

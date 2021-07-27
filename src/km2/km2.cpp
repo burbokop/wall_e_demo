@@ -160,6 +160,21 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
     gram_list.push_back("arg << function_call | TOK_ID | STRING_LITERAL | FLOAT_LITERAL | INT_LITERAL"_pattern
         << km2::arg_node::create);
 
+
+    //gram_list.push_back("expression << plus_munus"_pattern);
+    //gram_list.push_back("plus_munus << arg & (TOK_PLUS | TOK_MINUS) & arg"_pattern);
+
+    //gram_list.push_back("expression << plus_munus | term"_pattern);
+    //
+    //gram_list.push_back("plus_munus << term & (TOK_PLUS | TOK_MINUS) & expression"_pattern);
+    //
+    //gram_list.push_back("term << mul_div | arg");
+    //
+    //gram_list.push_back("mul_div << arg & (TOK_DIV | TOK_MUL) & term");
+
+
+
+
     if(__flags.verbose) {
         std::cout << "\n -------------- GRAMATIC --------------\n\n";
     }
@@ -215,7 +230,7 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
 
 
 
-            return { node, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, llvm_errors };
+            return { result, node, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, llvm_errors };
 
 
             //builder.runJit();
@@ -223,7 +238,7 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
     }
 
 
-    return { nullptr, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, {}};
+    return { result, nullptr, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, {}};
 }
 
 

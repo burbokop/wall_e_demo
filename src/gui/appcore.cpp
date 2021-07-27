@@ -22,7 +22,7 @@ void AppCore::recompile() {
 
         setTokens(QString::fromStdString(wall_e::lex::to_string(lastResult.tokens)));
         setGramatic(QString::fromStdString(lastResult.rules));
-        setTree(lastResult.tree);
+        setTree(lastResult.token_tree);
         setAsmCode(QString::fromStdString(lastResult.assembly));
         setErrors(QList<km2::error>(lastResult.errors.begin(), lastResult.errors.end()));
 
