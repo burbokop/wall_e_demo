@@ -9,25 +9,25 @@
 wall_e::gram::argument km2::function_node::create(const wall_e::gram::arg_vector &args) {
     std::cout << "km2::function_node::create: " << args << std::endl;
     if(args.size() > 5 && args[0].contains_type<wall_e::lex::token>()) {
-        std::vector<decl_arg_node*> da_nodes;
+        std::vector<std::shared_ptr<decl_arg_node>> da_nodes;
         const auto decl_args = args[3].constrain();
         for(const auto& decl_arg : decl_args) {
-            const auto da_node = decl_arg.option_cast<km2::decl_arg_node*>();
+            const auto da_node = decl_arg.option_cast<std::shared_ptr<km2::decl_arg_node>>();
             if(da_node.has_value()) {
                 da_nodes.push_back(da_node.value());
             }
         }
 
-        return new function_node(
-                    args[0].value<wall_e::lex::token>().text,
+        return std::make_shared<function_node>(
+                args[0].value<wall_e::lex::token>().text,
                 da_nodes,
-                args[5].default_cast<abstract_value_node*>()
+                args[5].default_cast<std::shared_ptr<abstract_value_node>>()
                 );
     }
     return nullptr;
 }
 
-km2::function_node::function_node(const std::string &name, const std::vector<decl_arg_node *> &args, abstract_value_node *body) {
+km2::function_node::function_node(const std::string &name, const std::vector<std::shared_ptr<decl_arg_node> > &args, std::shared_ptr<abstract_value_node> body) {
     m_name = name;
     m_args = args;
     m_body = body;

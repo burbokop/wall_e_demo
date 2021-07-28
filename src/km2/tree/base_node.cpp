@@ -6,18 +6,18 @@
 #include <src/km2/builder.h>
 
 
-km2::base_node::base_node(block_node *block_node) {
+km2::base_node::base_node(std::shared_ptr<km2::block_node> block_node) {
     m_block_node = block_node;
 }
 
 wall_e::gram::argument km2::base_node::create(const wall_e::gram::arg_vector &args) {
     std::cout << "km2::base_node::create: " << args << std::endl;
     if (args.size() > 0) {
-        if(args[0].contains_type<block_node*>()) {
-            return new base_node(args[0].value<block_node*>());
+        if(args[0].contains_type<std::shared_ptr<block_node>>()) {
+            return std::make_shared<base_node>(args[0].value<std::shared_ptr<block_node>>());
         }
     }
-    return new base_node(nullptr);
+    return std::make_shared<base_node>();
 }
 
 wall_e::either<km2::error, llvm::Value *> km2::base_node::generate_llvm(module_builder *builder) {

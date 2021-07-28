@@ -1,19 +1,27 @@
 #include "call_node.h"
 #include "cmd_node.h"
+#include "proto_node.h"
 
 #include <iostream>
 
-km2::cmd_node::cmd_node(abstract_value_node *n) {
-    m_node = n;
+km2::cmd_node::cmd_node(std::shared_ptr<abstract_value_node> node) {
+    m_node = node;
 }
 
 wall_e::gram::argument km2::cmd_node::create(const wall_e::gram::arg_vector &args) {
+    std::cout << "km2::cmd_node::create: " << args << std::endl;
     if(args.size() > 0) {
-        if(args[0].inherited_by<km2::abstract_value_node*>()) {
-            return new cmd_node(args[0].cast<km2::abstract_value_node*>());
+        const auto node = args[0].option_cast<std::shared_ptr<abstract_value_node>>();
+
+
+        std::cout << "node: " << node << "\n";
+        std::cout << "opt: " << args[0].option<std::shared_ptr<proto_node>>() << "\n";
+        std::cout << "lineage: " << args[0].lineage() << "\n";
+        if(node.has_value()) {
+            return std::make_shared<cmd_node>(node.value());
         }
     }
-    return new cmd_node();
+    return std::make_shared<cmd_node>();
 }
 
 wall_e::either<km2::error, llvm::Value *> km2::cmd_node::generate_llvm(module_builder *builder) {

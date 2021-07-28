@@ -8,14 +8,12 @@
 
 km2::call_node::call_node(
         const std::string &name,
-        const std::vector<abstract_value_node *> &args,
-        std::string::size_type name_start_position,
-        std::string::size_type name_end_position
+        const std::vector<std::shared_ptr<km2::abstract_value_node>>& args,
+        const wall_e::text_segment& name_segment
         ) {
     m_name = name;
     m_args = args;
-    m_name_start_position = name_start_position;
-    m_name_end_position = name_end_position;
+    m_name_segment = name_segment;
 }
 
 wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &args) {
@@ -26,19 +24,18 @@ wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &ar
         const auto constrained_args = args[2].constrain();
         const auto function_args = wall_e::remove_tokens(constrained_args, { "EP" });
 
-        std::vector<km2::abstract_value_node*> funcArgs;
+        std::vector<std::shared_ptr<abstract_value_node>> funcArgs;
         funcArgs.reserve(function_args.size());
         for(const auto& arg : function_args) {
             if (arg.value_default<wall_e::lex::token>().name != "COMA") {
-                funcArgs.push_back(arg.default_cast<km2::abstract_value_node*>());
+                funcArgs.push_back(arg.default_cast<std::shared_ptr<abstract_value_node>>());
             }
         }
 
-        return new call_node(
+        return std::make_shared<call_node>(
                     function_name_token.text,
                     funcArgs,
-                    function_name_token.position,
-                    function_name_end_token.position
+                    function_name_token.segment()
                     );
     }
     return nullptr;
@@ -50,7 +47,7 @@ wall_e::either<km2::error, llvm::Value *> km2::call_node::generate_llvm(module_b
     const auto proto = builder->module()->getFunction(m_name);
     if (!proto) {
         std::cerr << "function: " << m_name << " not declared" << std::endl;
-        return wall_e::left(km2::error("function '" + m_name + "' not defined", { m_name_start_position, m_name_end_position }));
+        return wall_e::left(km2::error("function '" + m_name + "' not defined", m_name_segment));
     }
 
     std::vector<llvm::Value*> args;

@@ -16,7 +16,12 @@ std::string km2::arg_node::typeString(const type &t) {
     return "Undefined";
 }
 
-km2::arg_node::arg_node(const wall_e::text_segment &segment, type t, const std::string &text, abstract_value_node *value_node)
+km2::arg_node::arg_node(
+        const wall_e::text_segment& segment,
+        type t,
+        const std::string& text,
+        std::shared_ptr<abstract_value_node> value_node
+        )
     : km2::abstract_value_node(segment) {
     m_type = t;
     m_text = text;
@@ -29,22 +34,22 @@ wall_e::gram::argument km2::arg_node::create(const wall_e::gram::arg_vector &arg
         if(args[0].contains_type<wall_e::lex::token>()) {
             const auto token = args[0].value<wall_e::lex::token>();
             if(token.name == "INT_LITERAL") {
-                return new arg_node(token.segment(), IntLiteral, token.text);
+                return std::make_shared<arg_node>(token.segment(), IntLiteral, token.text);
             } else if(token.name == "FLOAT_LITERAL") {
-                return new arg_node(token.segment(), FloatLiteral, token.text);
+                return std::make_shared<arg_node>(token.segment(), FloatLiteral, token.text);
             } else if(token.name == "STRING_LITERAL") {
-                return new arg_node(token.segment(), StringLiteral, wall_e::lex::parse_string_literal(token.text, true));
+                return std::make_shared<arg_node>(token.segment(), StringLiteral, wall_e::lex::parse_string_literal(token.text, true));
             } else if(token.name == "TOK_ID") {
-                return new arg_node(token.segment(), Id, token.text);
+                return std::make_shared<arg_node>(token.segment(), Id, token.text);
             }
         } else {
-            const auto node = args[0].option_cast<km2::abstract_value_node*>();
-            if (node.has_value()) {
-                return new arg_node(node.value()->segment(), ValueNode, {}, node.value());
+            const auto node = args[0].option_cast<std::shared_ptr<abstract_value_node>>();
+            if (node.has_value() && node.value()) {
+                return std::make_shared<arg_node>(node.value()->segment(), ValueNode, std::string(), node.value());
             }
         }
     }
-    return new arg_node({}, Undefined);
+    return std::make_shared<arg_node>(wall_e::text_segment(), Undefined);
 }
 
 wall_e::either<km2::error, llvm::Value *> km2::arg_node::generate_llvm(module_builder *builder) {

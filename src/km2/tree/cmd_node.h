@@ -7,11 +7,11 @@
 namespace km2 {
 
 class cmd_node : public km2::abstract_value_node {
-    abstract_value_node* m_node = nullptr;
+    std::shared_ptr<abstract_value_node> m_node;
 public:
     typedef abstract_value_node super_type;
 
-    cmd_node(abstract_value_node *n = nullptr);
+    cmd_node(std::shared_ptr<abstract_value_node> node = nullptr);
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
 

@@ -196,8 +196,8 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
     }
 
 
-    if(result.contains_type<km2::base_node*>()) {
-        if(const auto node = result.value<km2::base_node*>()) {
+    if(result.contains_type<std::shared_ptr<km2::base_node>>()) {
+        if(const auto node = result.value<std::shared_ptr<km2::base_node>>()) {
             const auto errors = node->errors();
 
             if(errors.size() > 0) {

@@ -8,12 +8,12 @@
 namespace km2 {
 
 class internal_block_node : public km2::abstract_value_node {
-    cmd_node* m_cmd;
-    internal_block_node *m_next_node;
+    std::shared_ptr<cmd_node> m_cmd;
+    std::shared_ptr<internal_block_node> m_next_node;
 public:
     typedef abstract_value_node super_type;
 
-    internal_block_node(cmd_node* cmd, internal_block_node *next_node = nullptr);
+    internal_block_node(std::shared_ptr<cmd_node> cmd, std::shared_ptr<internal_block_node> next_node = nullptr);
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
 

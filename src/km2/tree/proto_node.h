@@ -11,12 +11,16 @@ namespace km2 {
 
 class proto_node : public km2::abstract_value_node {
     std::string m_name;
-    std::vector<decl_arg_node *> m_args;
-    abstract_type_node* m_result_type_node = nullptr;
+    std::vector<std::shared_ptr<decl_arg_node>> m_args;
+    std::shared_ptr<abstract_type_node> m_result_type_node;
 public:
     typedef abstract_value_node super_type;
 
-    proto_node(const std::string &name, const std::vector<decl_arg_node*> &args, abstract_type_node* result_type_node);
+    proto_node(
+            const std::string &name,
+            const std::vector<std::shared_ptr<decl_arg_node>> &args,
+            std::shared_ptr<abstract_type_node> result_type_node
+            );
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
 

@@ -8,11 +8,11 @@
 
 namespace km2 {
 class base_node : public abstract_value_node {
-    block_node *m_block_node = nullptr;
+    std::shared_ptr<block_node> m_block_node;
 public:
     typedef abstract_value_node super_type;
 
-    base_node(block_node *block_node = nullptr);
+    base_node(std::shared_ptr<block_node> block_node = nullptr);
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
 

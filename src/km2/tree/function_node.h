@@ -13,12 +13,12 @@ namespace km2 {
 
 class function_node : public abstract_value_node {
     std::string m_name;
-    std::vector<decl_arg_node*> m_args;
-    abstract_value_node *m_body;
+    std::vector<std::shared_ptr<decl_arg_node>> m_args;
+    std::shared_ptr<abstract_value_node> m_body;
 public:
     typedef abstract_value_node super_type;
 
-    function_node(const std::string &name, const std::vector<decl_arg_node*> &args, abstract_value_node *body);
+    function_node(const std::string &name, const std::vector<std::shared_ptr<decl_arg_node>> &args, std::shared_ptr<abstract_value_node> body);
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
 

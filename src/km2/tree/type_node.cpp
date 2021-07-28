@@ -26,19 +26,19 @@ wall_e::gram::argument km2::type_node::create(const wall_e::gram::arg_vector &ar
         const auto token = args[0].option<wall_e::lex::token>();
         if(token.has_value()) {
             if(token.value().name == "TOK_UNSIGNED") {
-                return new type_node(Unsigned, token.value().text);
+                return std::make_shared<type_node>(Unsigned, token.value().text);
             } else if(token.value().name == "TOK_SIGNED") {
-                return new type_node(Signed, token.value().text);
+                return std::make_shared<type_node>(Signed, token.value().text);
             } else if(token.value().name == "TOK_FLOAT") {
-                return new type_node(Float, token.value().text);
+                return std::make_shared<type_node>(Float, token.value().text);
             } else if(token.value().name == "TOK_DOUBLE") {
-                return new type_node(Double, token.value().text);
+                return std::make_shared<type_node>(Double, token.value().text);
             } else if(token.value().name == "TOK_STRING") {
-                return new type_node(String, token.value().text);
+                return std::make_shared<type_node>(String, token.value().text);
             }
         }
     }
-    return new type_node(Undefined);
+    return std::make_shared<type_node>(Undefined);
 }
 
 wall_e::either<km2::error, llvm::Type *> km2::type_node::generate_llvm(module_builder *builder) {

@@ -8,17 +8,15 @@ namespace km2 {
 
 class call_node : public km2::abstract_value_node {
     std::string m_name;
-    std::vector<km2::abstract_value_node*> m_args;
-    std::string::size_type m_name_start_position;
-    std::string::size_type m_name_end_position;
+    std::vector<std::shared_ptr<km2::abstract_value_node>> m_args;
+    wall_e::text_segment m_name_segment;
 public:
     typedef abstract_value_node super_type;
 
     call_node(
             const std::string& name,
-            const std::vector<km2::abstract_value_node*>& args,
-            std::string::size_type name_start_position,
-            std::string::size_type name_end_position
+            const std::vector<std::shared_ptr<km2::abstract_value_node>>& args,
+            const wall_e::text_segment& name_segment
             );
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);

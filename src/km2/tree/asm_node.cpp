@@ -15,7 +15,7 @@ wall_e::gram::argument km2::asm_node::create(const wall_e::gram::arg_vector &arg
             text.erase(text.end() - 1, text.end());
             text = wall_e::lex::trim(text, '\t');
             text = wall_e::lex::trim(text);
-            return new asm_node(text);
+            return std::make_shared<asm_node>(text);
         }
         return {};
     }
