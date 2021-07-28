@@ -20,6 +20,8 @@ class KGramTreeView : public QQuickPaintedItem {
     int startMouseY = 0;
     int startTreeX = 0;
     int startTreeY = 0;
+    int currentMouseX = 0;
+    int currentMouseY = 0;
     int treeX = 100;
     int treeY = 100;
     static int string_radius(const std::string &string);

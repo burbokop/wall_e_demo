@@ -24,9 +24,15 @@ void KGramTreeView::paint(QPainter *painter) {
     painter->setPen(QPen(QColor("#000000"), 4));
     painter->setRenderHint(QPainter::Antialiasing);
 
-    painter->translate(treeX, treeY);
+
+    auto ox = painter->window().width() / 2;
+    auto oy = painter->window().height() / 2;
+    //auto ox = currentMouseX;
+    //auto oy = currentMouseY;
+
+    painter->translate(ox, oy);
     painter->scale(scaleMultiplier, scaleMultiplier);
-    painter->translate(-treeX, -treeY);
+    painter->translate(-ox, -oy);
 
     painter->drawRect(treeX - 5, treeY - 5, 10, 10);
     print_branch(m_var, treeX, treeY, painter);
@@ -129,11 +135,11 @@ void KGramTreeView::mousePressEvent(QMouseEvent *event) {
 
 void KGramTreeView::mouseMoveEvent(QMouseEvent *event) {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    treeX = startTreeX + event->x() - startMouseX;
-    treeY = startTreeY + event->y() - startMouseY;
+    treeX = startTreeX + (event->x() - startMouseX) / scaleMultiplier;
+    treeY = startTreeY + (event->y() - startMouseY) / scaleMultiplier;
 #else
-    treeX = startTreeX + event->position().x() - startMouseX;
-    treeY = startTreeY + event->position().y() - startMouseY;
+    treeX = startTreeX + (event->position().x() - startMouseX) / scaleMultiplier;
+    treeY = startTreeY + (event->position().y() - startMouseY) / scaleMultiplier;
 #endif
     update();
     event->accept();
@@ -142,6 +148,9 @@ void KGramTreeView::mouseMoveEvent(QMouseEvent *event) {
 
 void KGramTreeView::wheelEvent(QWheelEvent *event) {
     QPoint numDegrees = event->angleDelta() / 8;
+
+    currentMouseX = event->position().x();
+    currentMouseY = event->position().y();
 
     if (!numDegrees.isNull()) {
         QPoint numSteps = numDegrees / 15;

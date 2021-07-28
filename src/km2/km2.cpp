@@ -115,10 +115,10 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
     for(const auto& st : sorted_tokens) {
         if(st.name == "error") {
             if(__flags.verbose) {
-                std::cout << "[ KLEX ERROR ]\n";
+                std::cout << "[ LEX ERROR ]\n";
             }
 
-            return { nullptr, sorted_tokens, std::string(), "", {} };
+            return { {}, nullptr, sorted_tokens, std::string(), "", {} };
         }
     }
 

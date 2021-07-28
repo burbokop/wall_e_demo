@@ -23,10 +23,10 @@ public:
 private:
     type m_type;
     std::string m_text;
-    abstract_value_node* m_value_node = nullptr;
+    std::shared_ptr<abstract_value_node> m_value_node;
 public:
 
-    arg_node(const wall_e::text_segment& segment, type t, const std::string& text = {}, abstract_value_node* value_node = nullptr);
+    arg_node(const wall_e::text_segment& segment, type t, const std::string& text = {}, std::shared_ptr<abstract_value_node> value_node = nullptr);
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
 

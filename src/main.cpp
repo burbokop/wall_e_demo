@@ -23,12 +23,21 @@
 
 
 
-struct Vehicle {};
+struct Vehicle {
+public:
+    std::string m_id;
+};
 struct Aircraft : Vehicle { typedef Vehicle super_type; };
-struct Helicopter : Aircraft { typedef Aircraft super_type; };
+struct Helicopter : Aircraft {
+    typedef Aircraft super_type;
+    Helicopter(std::string id) {
+        m_id = id;
+    }
+};
 
 
 int main(int argc, char **argv) {
+
 
 
     //km2::module_builder b;
