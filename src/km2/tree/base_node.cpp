@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include <src/km2/builder.h>
+#include <src/km2/module.h>
 
 
 km2::base_node::base_node(std::shared_ptr<km2::block_node> block_node) {
@@ -20,14 +20,14 @@ wall_e::gram::argument km2::base_node::create(const wall_e::gram::arg_vector &ar
     return std::make_shared<base_node>();
 }
 
-wall_e::either<km2::error, llvm::Value *> km2::base_node::generate_llvm(module_builder *builder) {
+wall_e::either<km2::error, llvm::Value *> km2::base_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     if(m_block_node) {
-        const auto entry = builder->beginEntry("main");
-        const auto result = m_block_node->generate_llvm(builder);
-        builder->builder()->CreateRet(builder->uint32(0));
-        builder->endBlock();
-        return result;
+        const auto entry = module->beginEntry("main");
+        const auto result = m_block_node->generate_llvm(module);
+        module->builder()->CreateRet(module->uint32(0));
+        module->endBlock();
+        return wall_e::right<llvm::Value *>(entry);
     }
     return wall_e::right<llvm::Value *>(nullptr);
 }

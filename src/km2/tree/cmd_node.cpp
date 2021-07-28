@@ -24,10 +24,10 @@ wall_e::gram::argument km2::cmd_node::create(const wall_e::gram::arg_vector &arg
     return std::make_shared<cmd_node>();
 }
 
-wall_e::either<km2::error, llvm::Value *> km2::cmd_node::generate_llvm(module_builder *builder) {
+wall_e::either<km2::error, llvm::Value *> km2::cmd_node::generate_llvm(const std::shared_ptr<module> &module) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     if(m_node) {
-        return m_node->generate_llvm(builder);
+        return m_node->generate_llvm(module);
     }
     return wall_e::left(km2::error("cmd node not exist"));
 }

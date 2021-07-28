@@ -1,4 +1,4 @@
-#include "builder.h"
+#include "module.h"
 #include "km2.h"
 
 #include <regex>
@@ -118,7 +118,7 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
                 std::cout << "[ LEX ERROR ]\n";
             }
 
-            return { {}, nullptr, sorted_tokens, std::string(), "", {} };
+            return { {}, nullptr, sorted_tokens, std::string(), {}, {} };
         }
     }
 
@@ -211,13 +211,28 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
 
 
             std::cout << "LLVM:"<< std::endl;
-            km2::module_builder builder;
-            const auto gen_result = node->generate_llvm(&builder);
-
+            const auto module = std::make_shared<km2::module>();
             std::list<km2::error> llvm_errors;
-            if(!gen_result) {
+            if(const auto gen_result = node->generate_llvm(module)) {
+                llvm::Value* llvm_value = gen_result.right_value();
+
+                module->print();
+                //module->runJit(f);
+
+                return {
+                    .token_tree = result,
+                    .root_node = node,
+                    .tokens = sorted_tokens,
+                    .rules = wall_e::gram::pattern::to_string(gram_list),
+                    .mod = module,
+                    .llvm_value = llvm_value,
+                    .errors = llvm_errors
+                };
+            } else {
                 llvm_errors.push_back(gen_result.left_value());
             }
+
+
 
             if(llvm_errors.size() > 0) {
                 std::cout << wall_e::color::Red << "FOUND ERRORS OF LEVEL 2: " << llvm_errors << wall_e::color::reset() << std::endl;
@@ -225,15 +240,11 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
                 std::cout << wall_e::color::Green << "NO ERRORS OF LEVEL 2" << wall_e::color::reset() << std::endl;
             }
 
-            builder.print();
 
 
+            return { result, node, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, {}, llvm_errors };
 
 
-            return { result, node, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, llvm_errors };
-
-
-            //builder.runJit();
         }
     }
 

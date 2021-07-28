@@ -4,7 +4,7 @@
 
 #include <wall_e/src/utility/token_tools.h>
 #include <iostream>
-#include <src/km2/builder.h>
+#include <src/km2/module.h>
 
 wall_e::gram::argument km2::function_node::create(const wall_e::gram::arg_vector &args) {
     std::cout << "km2::function_node::create: " << args << std::endl;
@@ -34,12 +34,12 @@ km2::function_node::function_node(const std::string &name, const std::vector<std
 }
 
 
-wall_e::either<km2::error, llvm::Value *> km2::function_node::generate_llvm(module_builder *builder) {
+wall_e::either<km2::error, llvm::Value *> km2::function_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     std::vector<llvm::Type*> argTypes;
     std::vector<std::string> argNames;
     for(const auto& arg : m_args) {
-        if(const auto type = arg->type_node()->generate_llvm(builder)) {
+        if(const auto type = arg->type_node()->generate_llvm(module)) {
 
             argTypes.push_back(type.right().value());
             argNames.push_back(arg->name());
@@ -47,19 +47,19 @@ wall_e::either<km2::error, llvm::Value *> km2::function_node::generate_llvm(modu
             return type.left();
         }
     }
-    const auto proto = builder->proto(llvm::Type::getVoidTy(*builder->context()), argTypes, m_name);
-    const auto block = builder->beginBlock(m_name + "_block", proto, argNames);
+    const auto proto = module->proto(llvm::Type::getVoidTy(*module->context()), argTypes, m_name);
+    const auto block = module->beginBlock(m_name + "_block", proto, argNames);
 
     if (m_body) {
-        if(const auto body = m_body->generate_llvm(builder)) {
+        if(const auto body = m_body->generate_llvm(module)) {
 
         } else  {
             return body.left();
         }
     }
 
-    builder->builder()->CreateRetVoid();
-    builder->endBlock();
+    module->builder()->CreateRetVoid();
+    module->endBlock();
     return wall_e::right<llvm::Value *>(proto);
 }
 

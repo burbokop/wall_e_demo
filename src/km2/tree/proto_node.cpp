@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-#include <src/km2/builder.h>
+#include <src/km2/module.h>
 
 
 km2::proto_node::proto_node(const std::string &name, const std::vector<std::shared_ptr<decl_arg_node> > &args, std::shared_ptr<abstract_type_node> result_type_node) {
@@ -35,7 +35,7 @@ wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &a
     return nullptr;
 }
 
-wall_e::either<km2::error, llvm::Value *> km2::proto_node::generate_llvm(module_builder *builder) {
+wall_e::either<km2::error, llvm::Value *> km2::proto_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     std::vector<llvm::Type*> argTypes;
     bool isVarArg = false;
@@ -46,7 +46,7 @@ wall_e::either<km2::error, llvm::Value *> km2::proto_node::generate_llvm(module_
             }
             isVarArg = true;
         } else {
-            if(const auto type = arg->type_node()->generate_llvm(builder)) {
+            if(const auto type = arg->type_node()->generate_llvm(module)) {
                 argTypes.push_back(type.right_value());
             } else {
                 return type.left();
@@ -55,8 +55,8 @@ wall_e::either<km2::error, llvm::Value *> km2::proto_node::generate_llvm(module_
     }
 
     if(m_result_type_node) {
-        if (const auto rt = m_result_type_node->generate_llvm(builder)) {
-            return wall_e::right<llvm::Value *>(builder->proto(rt.right_value(), argTypes, m_name, isVarArg));
+        if (const auto rt = m_result_type_node->generate_llvm(module)) {
+            return wall_e::right<llvm::Value *>(module->proto(rt.right_value(), argTypes, m_name, isVarArg));
         } else {
             return rt.left();
         }

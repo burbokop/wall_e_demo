@@ -2,7 +2,7 @@
 
 #include <llvm/IR/Type.h>
 
-#include <src/km2/builder.h>
+#include <src/km2/module.h>
 
 std::string km2::type_node::type_string(type t) {
     switch (t) {
@@ -41,21 +41,21 @@ wall_e::gram::argument km2::type_node::create(const wall_e::gram::arg_vector &ar
     return std::make_shared<type_node>(Undefined);
 }
 
-wall_e::either<km2::error, llvm::Type *> km2::type_node::generate_llvm(module_builder *builder) {
+wall_e::either<km2::error, llvm::Type *> km2::type_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
     if(m_type == Unsigned || m_type == Signed) {
         if(m_text.size() > 1) {
             try {
-                return wall_e::right<llvm::Type*>(llvm::Type::getIntNTy(*builder->context(), std::stoi(m_text.substr(1, m_text.size() - 1))));
+                return wall_e::right<llvm::Type*>(llvm::Type::getIntNTy(*module->context(), std::stoi(m_text.substr(1, m_text.size() - 1))));
             }  catch (std::exception e) {
                 return wall_e::left(km2::error("can not parse integer type"));
             }
         }
     } else if(m_type == Float) {
-        return wall_e::right<llvm::Type*>(llvm::Type::getFloatTy(*builder->context()));
+        return wall_e::right<llvm::Type*>(llvm::Type::getFloatTy(*module->context()));
     } else if(m_type == Double) {
-        return wall_e::right<llvm::Type*>(llvm::Type::getDoubleTy(*builder->context()));
+        return wall_e::right<llvm::Type*>(llvm::Type::getDoubleTy(*module->context()));
     } else if(m_type == String) {
-        return wall_e::right<llvm::Type*>(llvm::PointerType::get(llvm::Type::getInt8Ty(*builder->context()), 0));
+        return wall_e::right<llvm::Type*>(llvm::PointerType::get(llvm::Type::getInt8Ty(*module->context()), 0));
     }
     return wall_e::left(km2::error("unknown type_node type"));
 }

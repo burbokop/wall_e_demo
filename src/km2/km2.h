@@ -9,14 +9,21 @@
 
 #include <src/km2/tree/abstract/abstract_node.h>
 
+namespace llvm {
+class Value;
+}
+
 namespace km2 {
+class module;
+
 
 struct compilation_result {
     wall_e::variant token_tree;
     std::shared_ptr<km2::abstract_node> root_node;
     std::vector<wall_e::lex::token> tokens;
     std::string rules;
-    std::string assembly;
+    std::shared_ptr<module> mod;
+    llvm::Value* llvm_value;
     std::list<km2::error> errors;
 };
 

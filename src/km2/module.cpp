@@ -1,4 +1,4 @@
-#include "builder.h"
+#include "module.h"
 
 #include <llvm/IR/DiagnosticPrinter.h>
 #include "llvm/IR/LegacyPassManager.h"
@@ -21,34 +21,34 @@
 
 #include <wall_e/src/lex.h>
 
-km2::module_builder::module_builder() {
+km2::module::module() {
     m_context = std::make_unique<llvm::LLVMContext>();
     m_builder = std::unique_ptr<llvm::IRBuilder<>>(new llvm::IRBuilder<>(*m_context));
     m_module = std::make_unique<llvm::Module>("Module", *m_context);
 
 }
 
-llvm::Value *km2::module_builder::execute(const std::function<llvm::Value *(llvm::LLVMContext *, llvm::IRBuilder<> *, llvm::Module *)> &func) {
+llvm::Value *km2::module::execute(const std::function<llvm::Value *(llvm::LLVMContext *, llvm::IRBuilder<> *, llvm::Module *)> &func) {
     return func(m_context.get(), m_builder.get(), m_module.get());
 }
 
-llvm::ConstantInt *km2::module_builder::uint32(uint32_t value) {
+llvm::ConstantInt *km2::module::uint32(uint32_t value) {
     return llvm::ConstantInt::getSigned((llvm::Type::getInt32Ty(*m_context)), value);
 }
 
-llvm::ConstantInt *km2::module_builder::uintptr(uintptr_t value) {
+llvm::ConstantInt *km2::module::uintptr(uintptr_t value) {
     return llvm::ConstantInt::getSigned(m_builder->getIntPtrTy(m_module->getDataLayout()), value);
 }
 
-llvm::ConstantInt *km2::module_builder::uint(uint64_t value, size_t size) {
+llvm::ConstantInt *km2::module::uint(uint64_t value, size_t size) {
     return llvm::ConstantInt::getSigned(m_builder->getIntNTy(size), value);
 }
 
-llvm::Constant *km2::module_builder::float64(double value) {
+llvm::Constant *km2::module::float64(double value) {
     return llvm::ConstantFP::get(llvm::Type::getDoubleTy(*m_context.get()), value);
 }
 
-llvm::Value *km2::module_builder::arg(const std::string &name) const {
+llvm::Value *km2::module::arg(const std::string &name) const {
     if(m_stack.size() > 0) {
         const auto args = m_stack.top().args;
         const auto it = args.find(name);
@@ -59,11 +59,11 @@ llvm::Value *km2::module_builder::arg(const std::string &name) const {
     return nullptr;
 }
 
-llvm::FunctionType *km2::module_builder::func(llvm::Type* returnType, llvm::ArrayRef<llvm::Type*> argTypes) {
+llvm::FunctionType *km2::module::func(llvm::Type* returnType, llvm::ArrayRef<llvm::Type*> argTypes) {
     return llvm::FunctionType::get(returnType, argTypes, false);
 }
 
-llvm::Value *km2::module_builder::string_const_ptr(const std::string &name, const std::string &text) {
+llvm::Value *km2::module::string_const_ptr(const std::string &name, const std::string &text) {
     const auto str = llvm::ConstantDataArray::getString(*m_context.get(), text, true);
 
     const auto global_str = new llvm::GlobalVariable(
@@ -79,7 +79,7 @@ llvm::Value *km2::module_builder::string_const_ptr(const std::string &name, cons
 }
 
 
-llvm::BasicBlock *km2::module_builder::beginBlock(
+llvm::BasicBlock *km2::module::beginBlock(
         const std::string &name,
         llvm::Function *func,
         const std::vector<std::string> &argNames
@@ -100,19 +100,19 @@ llvm::BasicBlock *km2::module_builder::beginBlock(
     return entryBasicBlock;
 }
 
-void km2::module_builder::endBlock() {
+void km2::module::endBlock() {
     if(m_stack.size() > 0) {
         m_stack.pop();
     }
 }
 
-void km2::module_builder::setupInsertPoint() {
+void km2::module::setupInsertPoint() {
     if(m_stack.size() > 0) {
         m_builder->SetInsertPoint(m_stack.top().block);
     }
 }
 
-llvm::Function *km2::module_builder::beginEntry(const std::string &name) {
+llvm::Function *km2::module::beginEntry(const std::string &name) {
     const auto result = llvm::Function::Create(
                 llvm::FunctionType::get(llvm::Type::getInt32Ty(*m_context.get()), {}, false),
                 llvm::Function::ExternalLinkage,
@@ -120,11 +120,10 @@ llvm::Function *km2::module_builder::beginEntry(const std::string &name) {
                 m_module.get()
                 );
     beginBlock(name + "_block", result);
-    m_entryPoint = result;
     return result;
 }
 
-int km2::module_builder::gen() {
+int km2::module::gen() {
     auto someVal = uint32(42);
 
     std::string debug;
@@ -149,7 +148,7 @@ int km2::module_builder::gen() {
     return 0;
 }
 
-llvm::Function *km2::module_builder::createSumFunction() {
+llvm::Function *km2::module::createSumFunction() {
     /* Builds the following function:
 
         int sum(int a, int b) {
@@ -196,11 +195,11 @@ llvm::Function *km2::module_builder::createSumFunction() {
     return fooFunc;
 }
 
-int km2::module_builder::aaa() {
+int km2::module::aaa() {
     auto sumFunc = createSumFunction();
 
 
-    m_entryPoint = llvm::Function::Create(
+    const auto m_entryPoint = llvm::Function::Create(
                 llvm::FunctionType::get(llvm::Type::getInt32Ty(*m_context.get()), {}, false),
                 llvm::Function::ExternalLinkage,
                 "main",
@@ -242,7 +241,7 @@ int km2::module_builder::aaa() {
     return 0;
 }
 
-llvm::Function *km2::module_builder::proto(llvm::Type* resultType, std::vector<llvm::Type*> argTypes, const std::string& name, bool isVarArg) {
+llvm::Function *km2::module::proto(llvm::Type* resultType, std::vector<llvm::Type*> argTypes, const std::string& name, bool isVarArg) {
     return llvm::Function::Create(
                 llvm::FunctionType::get(
                     resultType,
@@ -255,7 +254,7 @@ llvm::Function *km2::module_builder::proto(llvm::Type* resultType, std::vector<l
                 );
 }
 
-llvm::CallInst *km2::module_builder::inline_asm(const std::string& text) {
+llvm::CallInst *km2::module::inline_asm(const std::string& text) {
 
     llvm::InlineAsm *IA = llvm::InlineAsm::get(nullptr, text, "", true, false);
 
@@ -265,60 +264,70 @@ llvm::CallInst *km2::module_builder::inline_asm(const std::string& text) {
     return result;
 }
 
-void km2::module_builder::print() {
+void km2::module::print() {
     llvm::outs() << llvm::raw_ostream::CYAN << "\nMODULE:\n" << llvm::raw_ostream::YELLOW << *m_module.get() << llvm::raw_ostream::RESET;
 }
 
-int km2::module_builder::runJit() {
+std::string km2::module::llvmAssembly() const {
+    std::string result;
+    llvm::raw_string_ostream stream(result);
+    stream << *m_module.get();
+    return result;
+}
+
+wall_e::either<std::string, int> km2::module::runJit(llvm::Function *entry_point) {
     std::cout << "\nRUN JIT\n";
+
+    llvm::outs() << "Blocks:\n";
+    for(const auto &f : m_module->functions()) {
+        //llvm::outs() << "\t" << "func:" << "\n";
+        for(const auto& b : f.getBasicBlockList()) {
+            llvm::outs() << "\t" << b.getName() << "\n";
+            //for (auto it = b.begin()) {
+            //
+            //}
+        }
+    }
+
     llvm::TargetOptions Opts;
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmPrinter();
 
     std::unique_ptr<llvm::RTDyldMemoryManager> MemMgr(new llvm::SectionMemoryManager());
-    std::cout << "AAA0" << std::endl;
-
     llvm::EngineBuilder factory(std::move(m_module));
     factory.setEngineKind(llvm::EngineKind::JIT);
     factory.setTargetOptions(Opts);
-    std::cout << "AAA1" << std::endl;
     factory.setMCJITMemoryManager(std::move(MemMgr));
     auto executionEngine = std::unique_ptr<llvm::ExecutionEngine>(factory.create());
-    //m_module.get()->setDataLayout(executionEngine->getDataLayout());
-    std::cout << "AAA2" << std::endl;
     executionEngine->finalizeObject();
-
-
-    std::cout << "AAA3" << std::endl;
-
-    if(m_entryPoint) {
-        auto* ep = executionEngine->getPointerToFunction(m_entryPoint);
+    if(entry_point) {
+        auto* ep = executionEngine->getPointerToFunction(entry_point);
         std::function<int()> entryPoint = (int(*)())ep;
 
         std::cout << "jit begin" << std::endl;
-        auto r = entryPoint();
-        std::cout << "jit result: " << r << std::endl;
-        return r;
+        auto result = entryPoint();
+        std::cout << "jit result: " << result << std::endl;
+        return wall_e::right(result);
     } else {
         std::cout << "jit entry point not set" << std::endl;
     }
-    return -2;
+    return wall_e::left<std::string>("entry point not specified");
 }
 
 
-llvm::LLVMContext* km2::module_builder::context() const {
+llvm::LLVMContext* km2::module::context() const {
     return m_context.get();
 }
 
 
 
-llvm::Module* km2::module_builder::module() const {
+llvm::Module* km2::module::llvmModule() const {
     return m_module.get();
 }
 
 
 
-llvm::IRBuilder<>* km2::module_builder::builder() const {
+llvm::IRBuilder<>* km2::module::builder() const {
     return m_builder.get();
 }
 

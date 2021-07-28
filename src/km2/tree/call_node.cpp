@@ -2,7 +2,7 @@
 
 #include <wall_e/src/utility/token_tools.h>
 #include <iostream>
-#include <src/km2/builder.h>
+#include <src/km2/module.h>
 
 
 
@@ -42,11 +42,10 @@ wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &ar
 }
 
 
-wall_e::either<km2::error, llvm::Value *> km2::call_node::generate_llvm(module_builder *builder) {
+wall_e::either<km2::error, llvm::Value *> km2::call_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
     std::cout << __PRETTY_FUNCTION__ << "name: " << m_name << std::endl;
-    const auto proto = builder->module()->getFunction(m_name);
+    const auto proto = module->llvmModule()->getFunction(m_name);
     if (!proto) {
-        std::cerr << "function: " << m_name << " not declared" << std::endl;
         return wall_e::left(km2::error("function '" + m_name + "' not defined", m_name_segment));
     }
 
@@ -55,7 +54,7 @@ wall_e::either<km2::error, llvm::Value *> km2::call_node::generate_llvm(module_b
     args.reserve(m_args.size());
     for(const auto& arg : m_args) {
         if (arg) {
-            if(const auto arg_value = arg->generate_llvm(builder)) {
+            if(const auto arg_value = arg->generate_llvm(module)) {
                 args.push_back(arg_value.right_value());
                 arg_segments.push_back(arg->segment());
             } else {
@@ -88,9 +87,9 @@ wall_e::either<km2::error, llvm::Value *> km2::call_node::generate_llvm(module_b
         }
     }
 
-    builder->setupInsertPoint();
+    module->setupInsertPoint();
 
-    return wall_e::right<llvm::Value *>(builder->builder()->CreateCall(proto, args));
+    return wall_e::right<llvm::Value *>(module->builder()->CreateCall(proto, args));
 }
 
 

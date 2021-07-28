@@ -21,16 +21,16 @@ wall_e::gram::argument km2::block_node::create(const wall_e::gram::arg_vector &a
 }
 
 
-wall_e::either<km2::error, llvm::Value *> km2::block_node::generate_llvm(module_builder *builder) {
+wall_e::either<km2::error, llvm::Value *> km2::block_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     if(m_cmd) {
-        if(const auto cmd_result = m_cmd->generate_llvm(builder)) {
+        if(const auto cmd_result = m_cmd->generate_llvm(module)) {
         } else {
             return cmd_result.left();
         }
     }
     if(m_next_node) {
-        return m_next_node->generate_llvm(builder);
+        return m_next_node->generate_llvm(module);
     }
     return wall_e::right<llvm::Value *>(nullptr);
 }

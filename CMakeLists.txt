@@ -35,11 +35,13 @@ set(SOURCES
     src/gui/klibcore/klibinfo.cpp
     src/gui/asmexecutor.cpp
     src/gui/highlighter.cpp
+    src/gui/abstractthread.cpp
     src/gui/concurentexecutor.cpp
+    src/gui/jitexecutor.cpp
     src/km2/km2.cpp
     src/km2/utility/math_patterns.cpp
     src/km2/utility/function.cpp
-    src/km2/builder.cpp
+    src/km2/module.cpp
     src/km2/error.cpp
 
     src/km2/tree/abstract/abstract_type_node.cpp
@@ -68,11 +70,13 @@ set(HEADERS
     src/gui/klibcore/klibinfo.h
     src/gui/asmexecutor.h
     src/gui/highlighter.h
+    src/gui/abstractthread.h
     src/gui/concurentexecutor.h
+    src/gui/jitexecutor.h
     src/km2/km2.h
     src/km2/utility/math_patterns.h
     src/km2/utility/function.h
-    src/km2/builder.h
+    src/km2/module.h
     src/km2/error.h
 
     src/km2/tree/abstract/abstract_node.h

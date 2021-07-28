@@ -16,7 +16,7 @@
 
 #include <sproc/src/environment.h>
 #include <fstream>
-#include <src/km2/builder.h>
+#include <src/km2/module.h>
 #include <type_traits>
 #include <src/km2/tree/block_node.h>
 #include <src/km2/tree/call_node.h>

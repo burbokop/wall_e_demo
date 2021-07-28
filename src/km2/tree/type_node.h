@@ -37,7 +37,7 @@ public:
 
     // abstract_type_node interface
 public:
-    virtual wall_e::either<km2::error, llvm::Type*> generate_llvm(module_builder *builder) override;
+    virtual wall_e::either<km2::error, llvm::Type*> generate_llvm(const std::shared_ptr<module> &module) override;
 
     // abstract_node interface
 public:

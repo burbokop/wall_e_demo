@@ -4,6 +4,7 @@
 #include <QTimer>
 #include <QTextBlock>
 #include <QThread>
+#include <src/km2/module.h>
 
 void AppCore::recompile() {
     km2::flags flags;
@@ -23,7 +24,9 @@ void AppCore::recompile() {
         setTokens(QString::fromStdString(wall_e::lex::to_string(lastResult.tokens)));
         setGramatic(QString::fromStdString(lastResult.rules));
         setTree(lastResult.token_tree);
-        setAsmCode(QString::fromStdString(lastResult.assembly));
+        if(lastResult.mod) {
+            setAsmCode(QString::fromStdString(lastResult.mod->llvmAssembly()));
+        }
         setErrors(QList<km2::error>(lastResult.errors.begin(), lastResult.errors.end()));
 
         if(higlighter) {
@@ -88,7 +91,7 @@ AppCore::AppCore(QObject *parent) : QObject(parent) {
 
 
 bool AppCore::startExecuting() {
-    return executor()->start(lastResult.assembly);
+    return executor()->start(lastResult.mod, lastResult.llvm_value);
 }
 
 QString AppCore::errToString(const km2::error &err) const {

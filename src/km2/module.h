@@ -1,17 +1,19 @@
-#ifndef BUILDER_H
-#define BUILDER_H
+#ifndef MODULE_H
+#define MODULE_H
+
+
 
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/IRBuilder.h>
+#include <wall_e/src/either.h>
 #include <wall_e/src/lex.h>
 
 namespace km2 {
 
-class module_builder {
+class module {
     std::unique_ptr<llvm::LLVMContext> m_context;
     std::unique_ptr<llvm::IRBuilder<>> m_builder;
     std::unique_ptr<llvm::Module> m_module;
-    llvm::Function* m_entryPoint = nullptr;
 
     struct ctx {
         llvm::BasicBlock* block = nullptr;
@@ -19,7 +21,7 @@ class module_builder {
     };
     std::stack<ctx> m_stack;
 public:
-    module_builder();
+    module();
 
     llvm::Value* execute(const std::function<llvm::Value*(llvm::LLVMContext*, llvm::IRBuilder<>*, llvm::Module*)>& func);
 
@@ -49,13 +51,16 @@ public:
     llvm::CallInst *inline_asm(const std::string &text);
 
     void print();
-    int runJit();
 
-    llvm::LLVMContext* context() const;
-    llvm::Module*module() const;
-    llvm::IRBuilder<>*builder() const;
+    std::string llvmAssembly() const;
+
+    wall_e::either<std::string, int> runJit(llvm::Function* entry_point);
+
+    llvm::LLVMContext *context() const;
+    llvm::Module* llvmModule() const;
+    llvm::IRBuilder<> *builder() const;
 };
 
 }
 
-#endif // BUILDER_H
+#endif // MODULE_H

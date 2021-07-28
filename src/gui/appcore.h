@@ -7,6 +7,7 @@
 #include "klibcore/kmacro.h"
 #include "asmexecutor.h"
 #include "highlighter.h"
+#include "jitexecutor.h"
 #include <QQuickTextDocument>
 #include <thread>
 
@@ -32,7 +33,7 @@ class AppCore : public QObject {
 public:
     enum Mode { ModeTokens, ModeGramatic, ModeTree, ModeAsm, ModeExec };
 private:
-    K_CONST_PROPERTY(AsmExecutor*, executor, new AsmExecutor(this));
+    K_CONST_PROPERTY(JitExecutor*, executor, new JitExecutor(this));
     km2::compilation_result lastResult;
     Q_ENUM(Mode)
     K_AUTO_PROPERTY(Mode, mode, mode, setMode, modeChanged, ModeTree)

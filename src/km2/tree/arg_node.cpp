@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include <src/km2/builder.h>
+#include <src/km2/module.h>
 
 std::string km2::arg_node::typeString(const type &t) {
     switch (t) {
@@ -52,37 +52,37 @@ wall_e::gram::argument km2::arg_node::create(const wall_e::gram::arg_vector &arg
     return std::make_shared<arg_node>(wall_e::text_segment(), Undefined);
 }
 
-wall_e::either<km2::error, llvm::Value *> km2::arg_node::generate_llvm(module_builder *builder) {
+wall_e::either<km2::error, llvm::Value *> km2::arg_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     if(m_type == IntLiteral) {
         try {
-            return wall_e::right<llvm::Value *>(builder->uintptr(std::stoi(m_text)));
+            return wall_e::right<llvm::Value *>(module->uintptr(std::stoi(m_text)));
         }  catch (std::exception e) {
             return wall_e::left(km2::error(m_text + " is not a integer"));
         }
     } else if(m_type == FloatLiteral) {
         try {
-            return wall_e::right<llvm::Value *>(builder->float64(std::stod(m_text)));
+            return wall_e::right<llvm::Value *>(module->float64(std::stod(m_text)));
         }  catch (std::exception e) {
             return wall_e::left(km2::error(m_text + " is not a floating point number"));
         }
     } else if(m_type == StringLiteral) {
-        builder->setupInsertPoint();
-        return wall_e::right<llvm::Value *>(builder->string_const_ptr(
+        module->setupInsertPoint();
+        return wall_e::right<llvm::Value *>(module->string_const_ptr(
                     "arg_" + std::to_string(reinterpret_cast<uintptr_t>(this)),
                     m_text
                     ));
     } else if(m_type == Id) {
-        builder->setupInsertPoint();
-        if(const auto a = builder->arg(m_text)) {
+        module->setupInsertPoint();
+        if(const auto a = module->arg(m_text)) {
             return wall_e::right<llvm::Value *>(a);
         } else {
             return wall_e::left(km2::error("variable " + m_text + " not found in current context", segment()));
         }
     } else if(m_type == ValueNode) {
         if(m_value_node) {
-            builder->setupInsertPoint();
-            return m_value_node->generate_llvm(builder);
+            module->setupInsertPoint();
+            return m_value_node->generate_llvm(module);
         } else {
             return wall_e::left(km2::error("empty value node"));
         }
