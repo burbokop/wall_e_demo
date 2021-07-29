@@ -24,7 +24,10 @@ wall_e::either<km2::error, llvm::Value *> km2::base_node::generate_llvm(const st
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     if(m_block_node) {
         const auto entry = module->beginEntry("main");
-        const auto result = m_block_node->generate_llvm(module);
+        if(const auto result = m_block_node->generate_llvm(module)) {
+        } else {
+            return result.left();
+        }
         module->builder()->CreateRet(module->uint32(0));
         module->endBlock();
         return wall_e::right<llvm::Value *>(entry);

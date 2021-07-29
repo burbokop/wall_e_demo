@@ -68,25 +68,6 @@ AppCore::AppCore(QObject *parent) : QObject(parent) {
         }
     });
     recompile();
-
-    //K_TIMER(1000, this, [this](){
-    //    if(codeDocument()) {
-    //        if(fff) {
-    //
-    //            //codeDocument()->textDocument()->setHtml("<p style='color: #ff00ff;' >");
-    //        } else {
-    //            //codeDocument()->textDocument()->setHtml("<p style='color: #ffff00;' >");
-    //        }
-    //        codeDocument()->textDocument()->
-    //        auto it = codeDocument()->textDocument()->begin();
-    //        if(it != codeDocument()->textDocument()->end()) {
-    //            auto o = new QTextBlockUserData();
-    //            it.setUserData(o);
-    //            it.setRevision(343);
-    //        }
-    //        fff = !fff;
-    //    }
-    //});
 }
 
 

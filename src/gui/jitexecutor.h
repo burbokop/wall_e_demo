@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QTimer>
 #include "klibcore/kmacro.h"
-#include "abstractthread.h"
 #include <sproc/src/fork.h>
 
 namespace km2 {

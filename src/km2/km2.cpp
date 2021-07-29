@@ -211,13 +211,11 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
 
 
             std::cout << "LLVM:"<< std::endl;
-            const auto module = std::make_shared<km2::module>();
-            std::list<km2::error> llvm_errors;
+            const auto module = std::make_shared<km2::module>();            
             if(const auto gen_result = node->generate_llvm(module)) {
                 llvm::Value* llvm_value = gen_result.right_value();
 
                 module->print();
-                //module->runJit(f);
 
                 return {
                     .token_tree = result,
@@ -226,28 +224,14 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
                     .rules = wall_e::gram::pattern::to_string(gram_list),
                     .mod = module,
                     .llvm_value = llvm_value,
-                    .errors = llvm_errors
+                    .errors = {}
                 };
             } else {
-                llvm_errors.push_back(gen_result.left_value());
-            }
-
-
-
-            if(llvm_errors.size() > 0) {
-                std::cout << wall_e::color::Red << "FOUND ERRORS OF LEVEL 2: " << llvm_errors << wall_e::color::reset() << std::endl;
-            } else {
-                std::cout << wall_e::color::Green << "NO ERRORS OF LEVEL 2" << wall_e::color::reset() << std::endl;
-            }
-
-
-
-            return { result, node, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, {}, llvm_errors };
-
-
+                std::cout << wall_e::color::Red << "FOUND ERRORS OF LEVEL 2: " << gen_result.left_value() << wall_e::color::reset() << std::endl;
+                return { result, node, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, {}, { gen_result.left_value() } };
+            }          
         }
     }
-
 
     return { result, nullptr, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, {}};
 }

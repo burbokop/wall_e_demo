@@ -73,8 +73,6 @@ wall_e::either<km2::error, llvm::Value *> km2::call_node::generate_llvm(const st
 
 
         if(func_type->getTypeID() != arg_type->getTypeID()) {
-            llvm::errs() << "arg " << i << " type not match: func: " << m_name << " expected type: " << *func_type << ", actual: " << *arg_type << "\n";
-
             std::string err_message;
             llvm::raw_string_ostream err_message_stream(err_message);
             err_message_stream
