@@ -276,18 +276,18 @@ std::string km2::module::llvmAssembly() const {
 }
 
 wall_e::either<std::string, int> km2::module::runJit(llvm::Function *entry_point) {
-    std::cout << "\nRUN JIT\n";
-
-    llvm::outs() << "Blocks:\n";
-    for(const auto &f : m_module->functions()) {
-        //llvm::outs() << "\t" << "func:" << "\n";
-        for(const auto& b : f.getBasicBlockList()) {
-            llvm::outs() << "\t" << b.getName() << "\n";
-            //for (auto it = b.begin()) {
-            //
-            //}
-        }
-    }
+    //std::cout << "\nRUN JIT\n";
+    //
+    //llvm::outs() << "Blocks:\n";
+    //for(const auto &f : m_module->functions()) {
+    //    //llvm::outs() << "\t" << "func:" << "\n";
+    //    for(const auto& b : f.getBasicBlockList()) {
+    //        llvm::outs() << "\t" << b.getName() << "\n";
+    //        //for (auto it = b.begin()) {
+    //        //
+    //        //}
+    //    }
+    //}
 
     llvm::TargetOptions Opts;
     llvm::InitializeNativeTarget();
@@ -304,9 +304,9 @@ wall_e::either<std::string, int> km2::module::runJit(llvm::Function *entry_point
         auto* ep = executionEngine->getPointerToFunction(entry_point);
         std::function<int()> entryPoint = (int(*)())ep;
 
-        std::cout << "jit begin" << std::endl;
+        //std::cout << "jit begin" << std::endl;
         auto result = entryPoint();
-        std::cout << "jit result: " << result << std::endl;
+        //std::cout << "jit result: " << result << std::endl;
         return wall_e::right(result);
     } else {
         std::cout << "jit entry point not set" << std::endl;
