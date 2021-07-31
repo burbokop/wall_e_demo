@@ -79,8 +79,24 @@ const std::list<wall_e::lex::pattern> km2_lexlist = {
 };
 
 
+void aaa(std::string && a) {
+    a.resize(10);
+    std::cout << __PRETTY_FUNCTION__ << ": " << a << "\n";
+}
+
+void aaa(const std::string &a) {
+    auto copy = a;
+    copy.resize(10);
+    std::cout << __PRETTY_FUNCTION__ << ": " << a << "\n";
+}
 
 km2::compilation_result km2::compile(const std::string &input, const km2::flags &flags) {
+
+    std::string a = "const&";
+
+    aaa(a);
+    aaa("tmp");
+
     using namespace wall_e::gram::literals;
 
 
