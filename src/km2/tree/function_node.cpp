@@ -21,7 +21,7 @@ wall_e::gram::argument km2::function_node::create(const wall_e::gram::arg_vector
         return std::make_shared<function_node>(
                 args[0].value<wall_e::lex::token>().text,
                 da_nodes,
-                args[5].default_cast<std::shared_ptr<abstract_value_node>>()
+                args[5].cast_or<std::shared_ptr<abstract_value_node>>()
                 );
     }
     return nullptr;

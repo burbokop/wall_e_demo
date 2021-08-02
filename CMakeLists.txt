@@ -56,6 +56,7 @@ set(SOURCES
     src/km2/tree/proto_node.cpp
     src/km2/tree/type_node.cpp
     src/km2/tree/decl_arg_node.cpp
+    src/km2/tree/const_node.cpp
 )
 set(HEADERS
     src/to_pdf.h
@@ -89,6 +90,7 @@ set(HEADERS
     src/km2/tree/proto_node.h
     src/km2/tree/type_node.h
     src/km2/tree/decl_arg_node.h    
+    src/km2/tree/const_node.h
     )
 
 

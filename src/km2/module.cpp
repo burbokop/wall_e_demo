@@ -48,9 +48,22 @@ llvm::Constant *km2::module::float64(double value) {
     return llvm::ConstantFP::get(llvm::Type::getDoubleTy(*m_context.get()), value);
 }
 
+km2::module::ArgSettingStatus km2::module::setArg(const std::string &name, llvm::Value *value) {
+    if(m_stack.size() > 0) {
+        auto& args = m_stack.top().args;
+        const auto it = args.find(name);
+        if (it == args.end()) {
+            args[name] = value;
+            return ArgSettingSuccess;
+        }
+        return ArgSettingDublicates;
+    }
+    return ArgSettingEmptyStack;
+}
+
 llvm::Value *km2::module::arg(const std::string &name) const {
     if(m_stack.size() > 0) {
-        const auto args = m_stack.top().args;
+        const auto& args = m_stack.top().args;
         const auto it = args.find(name);
         if (it != args.end()) {
             return it->second;

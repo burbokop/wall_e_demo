@@ -21,6 +21,12 @@ class module {
     };
     std::stack<ctx> m_stack;
 public:
+    enum ArgSettingStatus {
+        ArgSettingSuccess,
+        ArgSettingDublicates,
+        ArgSettingEmptyStack
+    };
+
     module();
 
     llvm::Value* execute(const std::function<llvm::Value*(llvm::LLVMContext*, llvm::IRBuilder<>*, llvm::Module*)>& func);
@@ -30,6 +36,8 @@ public:
     llvm::ConstantInt *uint(uint64_t value, size_t size);
 
     llvm::Constant *float64(double value);
+
+    ArgSettingStatus setArg(const std::string& name, llvm::Value* value);
 
     llvm::Value* arg(const std::string& name) const;
 

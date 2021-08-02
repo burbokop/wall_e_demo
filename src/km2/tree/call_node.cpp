@@ -27,8 +27,8 @@ wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &ar
         std::vector<std::shared_ptr<abstract_value_node>> funcArgs;
         funcArgs.reserve(function_args.size());
         for(const auto& arg : function_args) {
-            if (arg.value_default<wall_e::lex::token>().name != "COMA") {
-                funcArgs.push_back(arg.default_cast<std::shared_ptr<abstract_value_node>>());
+            if (arg.value_or<wall_e::lex::token>().name != "COMA") {
+                funcArgs.push_back(arg.cast_or<std::shared_ptr<abstract_value_node>>());
             }
         }
 

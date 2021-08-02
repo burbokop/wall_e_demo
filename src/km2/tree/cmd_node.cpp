@@ -11,13 +11,10 @@ km2::cmd_node::cmd_node(std::shared_ptr<abstract_value_node> node) {
 wall_e::gram::argument km2::cmd_node::create(const wall_e::gram::arg_vector &args) {
     std::cout << "km2::cmd_node::create: " << args << std::endl;
     if(args.size() > 0) {
+        std::cout << "km2::cmd_node::create 1: " << args[0] << std::endl;
         const auto node = args[0].option_cast<std::shared_ptr<abstract_value_node>>();
-
-
-        std::cout << "node: " << node << "\n";
-        std::cout << "opt: " << args[0].option<std::shared_ptr<proto_node>>() << "\n";
-        std::cout << "lineage: " << args[0].lineage() << "\n";
         if(node.has_value()) {
+            std::cout << "km2::cmd_node::create 2: " << node.value() << std::endl;
             return std::make_shared<cmd_node>(node.value());
         }
     }

@@ -25,6 +25,7 @@
 #include <src/km2/tree/proto_node.h>
 #include <src/km2/tree/type_node.h>
 #include <src/km2/tree/decl_arg_node.h>
+#include <src/km2/tree/const_node.h>
 #include <wall_e/src/color.h>
 
 #include <llvm-12/llvm/IR/Value.h>
@@ -51,7 +52,7 @@ const std::list<wall_e::lex::pattern> km2_lexlist = {
     { std::regex("asm"), "TOK_ASM" },
     { std::regex("number"), "TOK_NUMBER" },
     { std::regex("string"), "TOK_STRING" },
-    { std::regex("current_time[(][)]"), "TOK_CTIME" },
+    { std::regex("const"), "TOK_CONST" },
     { std::regex("u[0-9]+"), "TOK_UNSIGNED" },
     { std::regex("i[0-9]+"), "TOK_SIGNED" },
     { std::regex("f32"), "TOK_FLOAT" },
@@ -151,8 +152,11 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
     gram_list.push_back("internal_block << cmd & SEMICOLON & (EB | internal_block)"_pattern
         << km2::internal_block_node::create);
 
-    gram_list.push_back("cmd << function_call | function_declaration | proto_declaration"_pattern
+    gram_list.push_back("cmd << function_call | function_declaration | proto_declaration | const"_pattern
         << km2::cmd_node::create);
+
+    gram_list.push_back("const << TOK_CONST & TOK_ID & EQUALS & arg"_pattern
+        << km2::const_node::create);
 
     gram_list.push_back("function_declaration << TOK_ID & EQUALS & OP & (EP | decl_arg_list) & OB & (EB | internal_block)"_pattern
         << km2::function_node::create);
@@ -173,7 +177,7 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
 
     gram_list.push_back("arg_list << arg & (EP | (COMA & arg_list))"_pattern);
 
-    gram_list.push_back("arg << function_call | TOK_ID | STRING_LITERAL | FLOAT_LITERAL | INT_LITERAL"_pattern
+    gram_list.push_back("arg << function_call | const | TOK_ID | STRING_LITERAL | FLOAT_LITERAL | INT_LITERAL"_pattern
         << km2::arg_node::create);
 
 

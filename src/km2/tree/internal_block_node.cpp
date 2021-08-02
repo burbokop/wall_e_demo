@@ -9,9 +9,9 @@ km2::internal_block_node::internal_block_node(std::shared_ptr<cmd_node> cmd, std
 wall_e::gram::argument km2::internal_block_node::create(const wall_e::gram::arg_vector &args) {
     std::cout << "km2::internal_block_node::create" << std::endl;
     if (args.size() > 0) {
-        const auto cmd = args[0].value_default<std::shared_ptr<cmd_node>>(nullptr);
+        const auto cmd = args[0].value_or<std::shared_ptr<cmd_node>>(nullptr);
         if (args.size() > 2) {
-            const auto next_block = args[2].value_default<std::shared_ptr<internal_block_node>>(nullptr);
+            const auto next_block = args[2].value_or<std::shared_ptr<internal_block_node>>(nullptr);
             return std::make_shared<internal_block_node>(cmd, next_block);
         } else {
             return std::make_shared<internal_block_node>(cmd, nullptr);

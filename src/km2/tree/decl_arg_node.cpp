@@ -23,10 +23,10 @@ wall_e::gram::argument km2::decl_arg_node::create(const wall_e::gram::arg_vector
     if(args.size() > 1) {
         if(args[0].contains_type<wall_e::lex::token>()) {
             const auto id = args[0].value<wall_e::lex::token>().text;
-            if(args[1].value_default<wall_e::lex::token>().name == "THREE_DOT") {
+            if(args[1].value_or<wall_e::lex::token>().name == "THREE_DOT") {
                 return std::make_shared<decl_arg_node>(id, nullptr, true);
             } else {
-                return std::make_shared<decl_arg_node>(id, args[1].default_cast<std::shared_ptr<abstract_type_node>>(), false);
+                return std::make_shared<decl_arg_node>(id, args[1].cast_or<std::shared_ptr<abstract_type_node>>(), false);
             }
         }
     }

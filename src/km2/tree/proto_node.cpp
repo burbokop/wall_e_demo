@@ -29,7 +29,7 @@ wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &a
         return std::make_shared<proto_node>(
                 args[0].value<wall_e::lex::token>().text,
                 da_nodes,
-                args[4].default_cast<std::shared_ptr<abstract_type_node>>()
+                args[4].cast_or<std::shared_ptr<abstract_type_node>>()
                 );
     }
     return nullptr;
