@@ -65,7 +65,9 @@ public:
     wall_e::either<std::string, int> runJit(llvm::Function* entry_point);
 
 
-    wall_e::either<std::string, int> compile();
+    wall_e::either<std::string, int> compile(const std::string &output_path);
+
+    wall_e::either<std::string, int> make_executable(const std::string &output_path);
 
 
     llvm::LLVMContext *context() const;

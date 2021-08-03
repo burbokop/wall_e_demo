@@ -236,7 +236,7 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
                 llvm::Value* llvm_value = gen_result.right_value();
 
                 module->print();
-                if(const auto err = module->compile().left()) {
+                if(const auto err = module->make_executable("app_out/module").left()) {
                     std::cout << "Compile error: " << err.value() << std::endl;
                 }
 

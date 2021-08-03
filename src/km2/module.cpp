@@ -38,6 +38,8 @@
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
 
+#include <sproc/src/fork.h>
+
 #include <wall_e/src/lex.h>
 
 km2::module::module() {
@@ -346,9 +348,9 @@ wall_e::either<std::string, int> km2::module::runJit(llvm::Function *entry_point
     return wall_e::left<std::string>("entry point not specified");
 }
 
-wall_e::either<std::string, int> km2::module::compile() {
-    auto TargetTriple = llvm::sys::getDefaultTargetTriple();
-    llvm::outs() << "TargetTriple: " << TargetTriple << "\n";
+wall_e::either<std::string, int> km2::module::compile(const std::string &output_path) {
+    auto target_triple = llvm::sys::getDefaultTargetTriple();
+    llvm::outs() << "TargetTriple: " << target_triple << "\n";
 
     llvm::InitializeAllTargetInfos();
     llvm::InitializeAllTargets();
@@ -356,32 +358,31 @@ wall_e::either<std::string, int> km2::module::compile() {
     llvm::InitializeAllAsmParsers();
     llvm::InitializeAllAsmPrinters();
 
-    std::string Error;
-    auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
+    std::string error;
+    auto target = llvm::TargetRegistry::lookupTarget(target_triple, error);
 
-    if (!Target) {
-        return wall_e::left(Error);
+    if (!target) {
+        return wall_e::left(error);
     }
 
-    llvm::outs() << "Target: " << Target << "\n";
+    llvm::outs() << "target: " << target << "\n";
 
-    auto CPU = "generic";
-    auto Features = "";
+    auto cpu = "generic";
+    auto features = "";
 
     llvm::TargetOptions opt;
-    auto RM = llvm::Optional<llvm::Reloc::Model>();
-    auto TargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
-    llvm::outs() << "RM: " << RM << "\n";
-    llvm::outs() << "TargetMachine: " << TargetMachine << "\n";
+    auto reloc_model = llvm::Optional<llvm::Reloc::Model>();
+    auto target_machine = target->createTargetMachine(target_triple, cpu, features, opt, reloc_model);
+    llvm::outs() << "reloc_model: " << reloc_model << "\n";
+    llvm::outs() << "target_machine: " << target_machine << "\n";
 
 
-    m_module->setDataLayout(TargetMachine->createDataLayout());
-    m_module->setTargetTriple(TargetTriple);
+    m_module->setDataLayout(target_machine->createDataLayout());
+    m_module->setTargetTriple(target_triple);
 
 
-    auto Filename = "output.o";
     std::error_code EC;
-    llvm::raw_fd_ostream dest(Filename, EC, llvm::sys::fs::OF_None);
+    llvm::raw_fd_ostream dest(output_path, EC, llvm::sys::fs::OF_None);
 
     if (EC) {
         return wall_e::left("Could not open file: " + EC.message());
@@ -390,7 +391,7 @@ wall_e::either<std::string, int> km2::module::compile() {
     llvm::legacy::PassManager pass;
     auto FileType = llvm::CGFT_ObjectFile;
 
-    if (TargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
+    if (target_machine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
         return wall_e::left(std::string("TargetMachine can't emit a file of this type"));
     }
 
@@ -400,26 +401,29 @@ wall_e::either<std::string, int> km2::module::compile() {
     return wall_e::right(0);
 }
 
+wall_e::either<std::string, int> km2::module::make_executable(const std::string &output_path) {
+    const auto object_path = output_path + ".o";
+    if(const auto err = compile(object_path).left()) {
+        return err;
+    }
+
+    const auto link_result = sproc::system("g++ " + object_path + " -o " + output_path);
+    if(link_result.ext_code != 0) {
+        return wall_e::left(link_result.err);
+    }
+
+    return wall_e::right(0);
+}
+
 
 llvm::LLVMContext* km2::module::context() const {
     return m_context.get();
 }
 
-
-
 llvm::Module* km2::module::llvmModule() const {
     return m_module.get();
 }
 
-
-
 llvm::IRBuilder<>* km2::module::builder() const {
     return m_builder.get();
 }
-
-
-
-
-
-
-
