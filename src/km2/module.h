@@ -64,6 +64,10 @@ public:
 
     wall_e::either<std::string, int> runJit(llvm::Function* entry_point);
 
+
+    wall_e::either<std::string, int> compile();
+
+
     llvm::LLVMContext *context() const;
     llvm::Module* llvmModule() const;
     llvm::IRBuilder<> *builder() const;

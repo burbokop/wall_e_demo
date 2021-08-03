@@ -23,6 +23,7 @@ Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent) {
                  "asm",
                  "f32",
                  "f64",
+                 "const",
                  "u[0-9]+",
                  "i[0-9]+",
                  "string"

@@ -18,6 +18,25 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/IR/InlineAsm.h"
 
+#include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/Optional.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/Verifier.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/Host.h"
+//#include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/TargetRegistry.h"
+#include "llvm/Support/TargetSelect.h"
 
 #include <wall_e/src/lex.h>
 
@@ -325,6 +344,60 @@ wall_e::either<std::string, int> km2::module::runJit(llvm::Function *entry_point
         std::cout << "jit entry point not set" << std::endl;
     }
     return wall_e::left<std::string>("entry point not specified");
+}
+
+wall_e::either<std::string, int> km2::module::compile() {
+    auto TargetTriple = llvm::sys::getDefaultTargetTriple();
+    llvm::outs() << "TargetTriple: " << TargetTriple << "\n";
+
+    llvm::InitializeAllTargetInfos();
+    llvm::InitializeAllTargets();
+    llvm::InitializeAllTargetMCs();
+    llvm::InitializeAllAsmParsers();
+    llvm::InitializeAllAsmPrinters();
+
+    std::string Error;
+    auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
+
+    if (!Target) {
+        return wall_e::left(Error);
+    }
+
+    llvm::outs() << "Target: " << Target << "\n";
+
+    auto CPU = "generic";
+    auto Features = "";
+
+    llvm::TargetOptions opt;
+    auto RM = llvm::Optional<llvm::Reloc::Model>();
+    auto TargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
+    llvm::outs() << "RM: " << RM << "\n";
+    llvm::outs() << "TargetMachine: " << TargetMachine << "\n";
+
+
+    m_module->setDataLayout(TargetMachine->createDataLayout());
+    m_module->setTargetTriple(TargetTriple);
+
+
+    auto Filename = "output.o";
+    std::error_code EC;
+    llvm::raw_fd_ostream dest(Filename, EC, llvm::sys::fs::OF_None);
+
+    if (EC) {
+        return wall_e::left("Could not open file: " + EC.message());
+    }
+
+    llvm::legacy::PassManager pass;
+    auto FileType = llvm::CGFT_ObjectFile;
+
+    if (TargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
+        return wall_e::left(std::string("TargetMachine can't emit a file of this type"));
+    }
+
+    pass.run(*m_module);
+    dest.flush();
+
+    return wall_e::right(0);
 }
 
 
