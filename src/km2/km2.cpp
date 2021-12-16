@@ -17,7 +17,7 @@
 #include <src/km2/utility/function.h>
 #include <wall_e/src/utility/token_tools.h>
 #include <wall_e/src/private/gram_smp.h>
-#include <src/km2/tree/base_node.h>
+#include <src/km2/tree/namespace_node.h>
 #include <src/km2/tree/call_node.h>
 #include <src/km2/tree/function_node.h>
 #include <src/km2/tree/internal_block_node.h>
@@ -53,6 +53,7 @@ const std::list<wall_e::lex::pattern> km2_lexlist = {
     { std::regex("number"), "TOK_NUMBER" },
     { std::regex("string"), "TOK_STRING" },
     { std::regex("const"), "TOK_CONST" },
+    { std::regex("(namespace|nspace)"), "TOK_NAMESPACE" },
     { std::regex("u[0-9]+"), "TOK_UNSIGNED" },
     { std::regex("i[0-9]+"), "TOK_SIGNED" },
     { std::regex("f32"), "TOK_FLOAT" },
@@ -143,17 +144,17 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
 
     std::list<wall_e::gram::pattern> gram_list;
 
-    gram_list.push_back("entry << block"_pattern
-        << km2::base_node::create);
+    gram_list.push_back("namespace << TOK_NAMESPACE & (TOK_ID & OB | OB) & (EB | block)"_pattern
+        << km2::namespace_node::create("TOK_ID"));
 
-    gram_list.push_back("block << cmd & SEMICOLON & (0 | block)"_pattern
+    gram_list.push_back("block << (namespace | stmt) & SEMICOLON & (EB | block)"_pattern
         << km2::block_node::create);
 
-    gram_list.push_back("internal_block << cmd & SEMICOLON & (EB | internal_block)"_pattern
+    gram_list.push_back("internal_block << (namespace | stmt) & SEMICOLON & (EB | internal_block)"_pattern
         << km2::internal_block_node::create);
 
-    gram_list.push_back("cmd << function_call | function_declaration | proto_declaration | const"_pattern
-        << km2::cmd_node::create);
+    gram_list.push_back("stmt << function_call | function_declaration | proto_declaration | const"_pattern
+        << km2::stmt_node::create);
 
     gram_list.push_back("const << TOK_CONST & TOK_ID & EQUALS & arg"_pattern
         << km2::const_node::create);
@@ -216,8 +217,8 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
     }
 
 
-    if(result.contains_type<std::shared_ptr<km2::base_node>>()) {
-        if(const auto node = result.value<std::shared_ptr<km2::base_node>>()) {
+    if(result.contains_type<std::shared_ptr<km2::namespace_node>>()) {
+        if(const auto node = result.value<std::shared_ptr<km2::namespace_node>>()) {
             const auto errors = node->errors();
 
             if(errors.size() > 0) {

@@ -7,9 +7,18 @@
 
 
 #include <src/km2/module.h>
+#include <wall_e/src/color.h>
 
 JitExecutor::JitExecutor(QObject *parent) : QObject(parent) {
     timer = new QTimer(this);
+
+    connect(this, &JitExecutor::message, this, [](QString msg, bool isError){
+        const auto ec = QString::fromStdString(wall_e::color::Red.f());
+        if(isError) {
+            qDebug() << "jit:" << (isError ? ec : "") << msg << QString::fromStdString(wall_e::color::reset());
+        }
+    });
+
     connect(timer, &QTimer::timeout, this, [this](){
         if(process) {
             const auto result = process.result();

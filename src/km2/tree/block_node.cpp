@@ -1,15 +1,14 @@
 #include "block_node.h"
 #include  <iostream>
 
-km2::block_node::block_node(std::shared_ptr<cmd_node> cmd, std::shared_ptr<block_node> next_node) {
-    m_cmd = cmd;
-    m_next_node = next_node;
-}
+km2::block_node::block_node(const std::shared_ptr<stmt_node> &stmt, const std::shared_ptr<block_node> &next_node)
+    : m_stmt(stmt),
+      m_next_node(next_node) {}
 
 wall_e::gram::argument km2::block_node::create(const wall_e::gram::arg_vector &args) {
     std::cout << "km2::block_node::create" << std::endl;
     if (args.size() > 0) {
-        const auto cmd = args[0].value_or<std::shared_ptr<cmd_node>>(nullptr);
+        const auto cmd = args[0].value_or<std::shared_ptr<stmt_node>>(nullptr);
         if (args.size() > 2) {
             const auto next_block = args[2].value_or<std::shared_ptr<block_node>>(nullptr);
             return std::make_shared<block_node>(cmd, next_block);
@@ -23,8 +22,8 @@ wall_e::gram::argument km2::block_node::create(const wall_e::gram::arg_vector &a
 
 wall_e::either<km2::error, llvm::Value *> km2::block_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
-    if(m_cmd) {
-        if(const auto cmd_result = m_cmd->generate_llvm(module)) {
+    if(m_stmt) {
+        if(const auto cmd_result = m_stmt->generate_llvm(module)) {
         } else {
             return cmd_result.left();
         }
@@ -38,8 +37,8 @@ wall_e::either<km2::error, llvm::Value *> km2::block_node::generate_llvm(const s
 
 void km2::block_node::print(size_t level, std::ostream &stream) {
     stream << std::string(level, ' ') << "{block_node}:" << std::endl;
-    if(m_cmd) {
-        m_cmd->print(level + 1, stream);
+    if(m_stmt) {
+        m_stmt->print(level + 1, stream);
     } else {
         stream << std::string(level + 1, ' ') + "cmd not exist" << std::endl;
     }

@@ -13,10 +13,33 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+set(LLVM_LINK_COMPONENTS support)
+
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
     set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
 
+
+set(COMPONENT_LIST mcparser bitreader support mc option)
+
+set(CLANG_LIBRARY_LIST
+    clangFrontend
+    clangSerialization
+    clangDriver
+    clangParse
+    clangRewriteFrontend
+    clangStaticAnalyzerFrontend
+    clangSema
+    clangAnalysis
+    clangEdit
+    clangAST
+    clangLex
+    clangBasic
+    clangTooling
+    clangRewrite
+    clangASTMatchers
+    clangToolingCore
+    )
 
 
 find_package(Qt6 COMPONENTS Core Quick Qml)
@@ -36,6 +59,11 @@ set(SOURCES
     src/gui/asmexecutor.cpp
     src/gui/highlighter.cpp
     src/gui/jitexecutor.cpp
+    src/cpp/cpp_parser.cpp
+    src/cpp/cpp_consumer.cpp
+    src/cpp/cpp_parse_action.cpp
+    src/cpp/cpp_visitor.cpp
+    src/cpp/cpp_base_node.cpp
     src/km2/km2.cpp
     src/km2/utility/math_patterns.cpp
     src/km2/utility/function.cpp
@@ -45,12 +73,12 @@ set(SOURCES
     src/km2/tree/abstract/abstract_type_node.cpp
     src/km2/tree/abstract/abstract_value_node.cpp
     src/km2/tree/abstract/abstract_node.cpp
-    src/km2/tree/base_node.cpp
+    src/km2/tree/namespace_node.cpp
     src/km2/tree/function_node.cpp
     src/km2/tree/call_node.cpp
     src/km2/tree/asm_node.cpp
     src/km2/tree/block_node.cpp
-    src/km2/tree/cmd_node.cpp
+    src/km2/tree/stmt_node.cpp
     src/km2/tree/internal_block_node.cpp
     src/km2/tree/arg_node.cpp
     src/km2/tree/proto_node.cpp
@@ -70,6 +98,11 @@ set(HEADERS
     src/gui/asmexecutor.h
     src/gui/highlighter.h
     src/gui/jitexecutor.h
+    src/cpp/cpp_parser.h
+    src/cpp/cpp_consumer.h
+    src/cpp/cpp_parse_action.h
+    src/cpp/cpp_visitor.h
+    src/cpp/cpp_base_node.h
     src/km2/km2.h
     src/km2/utility/math_patterns.h
     src/km2/utility/function.h
@@ -79,12 +112,12 @@ set(HEADERS
     src/km2/tree/abstract/abstract_node.h
     src/km2/tree/abstract/abstract_type_node.h
     src/km2/tree/abstract/abstract_value_node.h
-    src/km2/tree/base_node.h
+    src/km2/tree/namespace_node.h
     src/km2/tree/function_node.h
     src/km2/tree/call_node.h
     src/km2/tree/asm_node.h
     src/km2/tree/block_node.h
-    src/km2/tree/cmd_node.h
+    src/km2/tree/stmt_node.h
     src/km2/tree/internal_block_node.h
     src/km2/tree/arg_node.h
     src/km2/tree/proto_node.h
@@ -111,8 +144,13 @@ include(${CMAKE_CURRENT_LIST_DIR}/wall_e/wall_e.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/sproc/sproc.cmake)
 
 find_package(LLVM REQUIRED)
-
+find_package(Clang REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})
+
+#clang
+include_directories(${LLVM_BUILD_MAIN_SRC_DIR}/tools/clang/include)
+include_directories(${LLVM_BUILD_BINARY_DIR}/tools/clang/include)
+
 add_definitions(${LLVM_DEFINITIONS})
 
 #set(LLVM_VERSION 12)
@@ -141,14 +179,27 @@ add_definitions(${LLVM_DEFINITIONS})
 #    LLVMCore           # Support
 #    LLVMSupport
 #    )
-
+link_directories(${LLVM_LIBRARY_DIRS})
 target_link_libraries(km2ide
+    PRIVATE
     km2ide_resources
     wall_e
     sproc
     pthread
     LLVM-${LLVM_VERSION_MAJOR}
+    ${CLANG_LIBRARY_LIST}
     Qt::Core
     Qt::Qml
     Qt::Quick
+    #clangTooling
+    #clangBasic
+    #clangASTMatchers
 )
+
+
+#target_link_libraries(km2ide
+#  PRIVATE
+#  clangTooling
+#  clangBasic
+#  clangASTMatchers
+#  )

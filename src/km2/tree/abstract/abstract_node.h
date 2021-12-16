@@ -3,12 +3,16 @@
 
 #include <src/km2/error.h>
 #include <list>
+#include <functional>
+#include <wall_e/src/private/gram_private.h>
 
 namespace km2 {
 
 class abstract_node {
     wall_e::text_segment m_segment;
 public:
+    typedef std::function<wall_e::gram::argument(const wall_e::gram::arg_vector &)> factory;
+
     abstract_node(const wall_e::text_segment& segment = {});
     wall_e::text_segment segment() const;
 

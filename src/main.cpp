@@ -20,9 +20,7 @@
 #include <type_traits>
 #include <src/km2/tree/block_node.h>
 #include <src/km2/tree/call_node.h>
-
-
-
+#include <src/cpp/cpp_parser.h>
 
 
 
@@ -38,10 +36,17 @@ struct Helicopter : Aircraft {
     }
 };
 
+
+
+
+
+
 int main(int argc, char **argv) {
 
-
     using namespace std::chrono_literals;
+
+    cpp_parser ppp(argc, argv);
+    //return ppp.parse();
 
     //km2::module_builder b;
     //b.aaa();
@@ -79,6 +84,9 @@ int main(int argc, char **argv) {
 
 
     wall_e::flag_provider flag_provider(argc, argv);
+
+    std::cout << flag_provider << "\n";
+
 
     std::cout << flag_provider.value_flag(std::pair { 'i', "input" }, "input", "def_in") << "\n";
     std::cout << flag_provider.value_flag('o', "output", "def_out") << "\n";
@@ -121,7 +129,9 @@ int main(int argc, char **argv) {
     to_pdf(wall_e::smp::cc(r1).to_relation_list(), "./app_out/r1_s2");
 
     std::cout << "\n";
+    std::cout << "____\n";
 
+    // /home/borys/projects/cpp/example.cpp --
     //std::cout << "r0: " << r0 << " : " << smp::simplify(r0) << '\n';
     //std::cout << "r1: " << r1 << " : " << smp::simplify(r1) << '\n';
 
@@ -159,6 +169,7 @@ int main(int argc, char **argv) {
         inpf.close();
     }
 
+    std::cout << "++++\n";
 
     qmlRegisterType<KGramTreeView>("Km2", 1, 0, wall_e::type_name<KGramTreeView>().c_str());
     QCoreApplication::setOrganizationName("bacul14");

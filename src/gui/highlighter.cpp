@@ -26,7 +26,9 @@ Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent) {
                  "const",
                  "u[0-9]+",
                  "i[0-9]+",
-                 "string"
+                 "string",
+                 "namespace",
+                 "nspace"
              });
 
     addRules(Qt::GlobalColor::darkMagenta, {

@@ -3,17 +3,17 @@
 
 
 
-#include "cmd_node.h"
+#include "stmt_node.h"
 
 namespace km2 {
 
 class internal_block_node : public km2::abstract_value_node {
-    std::shared_ptr<cmd_node> m_cmd;
+    std::shared_ptr<stmt_node> m_stmt;
     std::shared_ptr<internal_block_node> m_next_node;
 public:
     typedef abstract_value_node super_type;
 
-    internal_block_node(std::shared_ptr<cmd_node> cmd, std::shared_ptr<internal_block_node> next_node = nullptr);
+    internal_block_node(std::shared_ptr<stmt_node> stmt, std::shared_ptr<internal_block_node> next_node = nullptr);
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
 
