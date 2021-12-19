@@ -1,14 +1,22 @@
 #ifndef CPP_PARSER_H
 #define CPP_PARSER_H
 
+#include "clang_namespace_node.h"
+
+
 
 class cpp_parser {
     int m_argc = 0;
     char **m_argv = nullptr;
 public:
+    struct result {
+        const clang_namespace_node node;
+        const int status;
+    };
+
     cpp_parser(int argc, char **argv);
 
-    int parse();
+    result parse(const std::string &code, const std::string& file_name);
 };
 
 #endif // CPP_PARSER_H

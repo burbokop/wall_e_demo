@@ -63,7 +63,14 @@ set(SOURCES
     src/cpp/cpp_consumer.cpp
     src/cpp/cpp_parse_action.cpp
     src/cpp/cpp_visitor.cpp
-    src/cpp/cpp_base_node.cpp
+    src/cpp/clang_namespace_node.cpp
+    src/cpp/clang_block_node.cpp
+    src/cpp/clang_function_node.cpp
+    src/cpp/clang_decl_arg_node.cpp
+    src/cpp/clang_type_node.cpp
+    src/cpp/buffered_reverse_range.cpp
+    src/cpp/tools.cpp
+    src/cpp/abstract_clang_node.cpp
     src/km2/km2.cpp
     src/km2/utility/math_patterns.cpp
     src/km2/utility/function.cpp
@@ -102,7 +109,14 @@ set(HEADERS
     src/cpp/cpp_consumer.h
     src/cpp/cpp_parse_action.h
     src/cpp/cpp_visitor.h
-    src/cpp/cpp_base_node.h
+    src/cpp/clang_namespace_node.h
+    src/cpp/clang_block_node.h
+    src/cpp/clang_function_node.h
+    src/cpp/clang_decl_arg_node.h
+    src/cpp/clang_type_node.h
+    src/cpp/buffered_reverse_range.h
+    src/cpp/tools.h
+    src/cpp/abstract_clang_node.h
     src/km2/km2.h
     src/km2/utility/math_patterns.h
     src/km2/utility/function.h

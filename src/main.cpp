@@ -46,7 +46,36 @@ int main(int argc, char **argv) {
     using namespace std::chrono_literals;
 
     cpp_parser ppp(argc, argv);
-    //return ppp.parse();
+
+    const auto cppcode = "\
+    namespace ooo {           \n\
+            int foo(int a) {      \n\
+            return a;         \n\
+}                     \n\
+            int main() {          \n\
+            return foo(2);    \n\
+}                     \n\
+}                     \n\
+            ";
+
+    std::cout << "SOURCE CODE" << std::endl << cppcode << std::endl << "SOURCE CODE END" << std::endl;
+
+    const auto& clang_result = ppp.parse(cppcode, "input.cc");
+
+    std::cout << "CLNG RESULT" << std::endl;
+    if(clang_result.node) {
+
+        if(const auto& km2_node = clang_result.node.km2_node()) {
+            km2_node->print(0, std::cout);
+        } else {
+            std::cout << "empty km2 root node" << std::endl;
+        }
+    } else {
+        std::cout << "empty clang root node" << std::endl;
+    }
+    std::cout << "SOURCE CODE END" << std::endl;
+
+    return clang_result.status;
 
     //km2::module_builder b;
     //b.aaa();

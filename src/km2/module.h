@@ -15,6 +15,8 @@ class module {
     std::unique_ptr<llvm::IRBuilder<>> m_builder;
     std::unique_ptr<llvm::Module> m_module;
 
+    std::string m_current_namespace;
+
     struct ctx {
         llvm::BasicBlock* block = nullptr;
         std::map<std::string, llvm::Value*> args;
@@ -73,6 +75,8 @@ public:
     llvm::LLVMContext *context() const;
     llvm::Module* llvmModule() const;
     llvm::IRBuilder<> *builder() const;
+    std::string current_namespace() const;
+    void set_current_namespace(const std::string &nspace);
 };
 
 }

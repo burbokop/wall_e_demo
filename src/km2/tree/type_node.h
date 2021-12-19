@@ -23,10 +23,12 @@ public:
 
 private:
     type m_type = Undefined;
-    std::string m_text;
+    std::optional<uint16_t> m_bits;
 public:
+    static std::optional<uint16_t> parse_integer_type(const std::string& str);
 
-    type_node(type t, const std::string &text = {});
+
+    type_node(type t, const std::optional<uint16_t>& bits);
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
 

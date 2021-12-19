@@ -1,60 +1,25 @@
-#include "cpp_base_node.h"
+#include "clang_namespace_node.h"
 #include "cpp_consumer.h"
 
 #include <llvm/AsmParser/Parser.h>
 #include <iostream>
 #include <clang/AST/ASTContext.h>
 
-cpp_consumer::cpp_consumer(clang::CompilerInstance *compiler_instance)
-    : m_visitor(compiler_instance->getSourceManager()) {}
+cpp_consumer::cpp_consumer(clang::CompilerInstance *compiler_instance, const std::string &file, std::map<std::string, clang_namespace_node> *nodes)
+    : m_compiler_instance(compiler_instance),
+      m_file(file),
+      m_nodes(nodes) {}
 
 void cpp_consumer::HandleTranslationUnit(clang::ASTContext &context) {
-    /* we can use ASTContext to get the TranslationUnitDecl, which is
-             a single Decl that collectively represents the entire source file */
+    std::cout << "CLANG COMPILATION" << std::endl;
+    if(!m_nodes)
+        return;
 
-    //clang::PrettyStackTraceDecl()
-
-    //context.getType
-
-    //context.getTranslationUnitDecl();
-
-
-
-    //m_visitor.TraverseDecl(context.getTranslationUnitDecl());
-
-    //m_visitor
-
-
-    std::cout << "context1: " << &context << "ctx2: " << &(context.getTranslationUnitDecl()->getASTContext()) << std::endl;
-
-
-    cpp_base_node node(context.getTranslationUnitDecl());
-
-    const auto& rn = m_visitor.result_node();
-
-    std::cout << "VIVITOR TREE" << std::endl;
-    if(rn) {
-        rn->print(0, std::cout);
-    } else {
-        std::cout << "nullptr" << std::endl;
+    for(const auto& d : context.getTranslationUnitDecl()->decls()) {
+        if((m_nodes->operator[](m_file) = dynamic_cast<clang::NamespaceDecl*>(d))) {
+            std::cout << "\tconsumer success: " << m_file << " : " << m_nodes->operator[](m_file).origin << std::endl;
+            break;
+        }
     }
-    std::cout << "VIVITOR TREE END" << std::endl;
-
-    //const auto& decl = context.getTranslationUnitDecl();
-
-    //decl->
-
-    //llvm::outs() << decl;
-
-    //clang::FullSourceLoc functionDeclFullLocation = context.getFullLoc(func.getLocStart());
-    //    if (functionDeclFullLocation.isValid())
-    //        llvm::outs() << "Found FunctionDecl at "
-    //        << functionDeclFullLocation.getManager().getFilename(functionDeclFullLocation) << ":"
-    //        << functionDeclFullLocation.getSpellingLineNumber() << ":"
-    //        << functionDeclFullLocation.getSpellingColumnNumber() << "\n";
-
-
-    //llvm::outs() << context;
-
-    //std::cout << Context.Comments.empty() << std::endl;
+    std::cout << "CLANG COMPILATION END" << std::endl;
 }

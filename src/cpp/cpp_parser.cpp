@@ -4,18 +4,18 @@
 
 #include "clang/Tooling/CommonOptionsParser.h"
 #include "clang/Driver/Options.h"
-#include "clang/AST/AST.h"
-#include "clang/AST/ASTContext.h"
+//#include "clang/AST/AST.h"
+//#include "clang/AST/ASTContext.h"
 #include "clang/AST/ASTConsumer.h"
-#include "clang/AST/RecursiveASTVisitor.h"
-#include "clang/Frontend/ASTConsumers.h"
-#include "clang/Frontend/FrontendActions.h"
-#include "clang/Frontend/CompilerInstance.h"
+//#include "clang/AST/RecursiveASTVisitor.h"
+//#include "clang/Frontend/ASTConsumers.h"
+//#include "clang/Frontend/FrontendActions.h"
+//#include "clang/Frontend/CompilerInstance.h"
 #include "clang/Tooling/CommonOptionsParser.h"
 #include "clang/Tooling/Tooling.h"
-#include "clang/Rewrite/Core/Rewriter.h"
+//#include "clang/Rewrite/Core/Rewriter.h"
 
-
+#include <iostream>
 
 cpp_parser::cpp_parser(int argc, char **argv)
     : m_argc(argc),
@@ -23,22 +23,13 @@ cpp_parser::cpp_parser(int argc, char **argv)
 
 }
 
-int cpp_parser::parse() {
-    llvm::cl::OptionCategory myToolCategory("my-tool options");
-    clang::tooling::CommonOptionsParser op(m_argc, const_cast<const char**>(m_argv), myToolCategory);
+cpp_parser::result cpp_parser::parse(const std::string& code, const std::string &file_name) {
+    std::map<std::string, clang_namespace_node> result;
+    const int status = clang::tooling::runToolOnCode(std::make_unique<cpp_parse_action>(&result), code, file_name);
 
+    for(const auto& m : result) {
+        std::cout << "file: " << m.first << " : " << m.second.origin << std::endl;
+    }
 
-
-    clang::tooling::ClangTool tool(op.getCompilations(), op.getSourcePathList());
-
-    const auto& factory = clang::tooling::newFrontendActionFactory<cpp_parse_action>();
-
-    // run the Clang Tool, creating a new FrontendAction (explained below)
-    int result = tool.run(factory.get());
-
-    //errs() << "\nFound " << numFunctions << " functions.\n\n";
-    // print out the rewritten source code ("rewriter" is a global var.)
-    //rewriter.getEditBuffer(rewriter.getSourceMgr().getMainFileID()).write(errs());
-    return result;
-
+    return cpp_parser::result { result[file_name], status };
 }

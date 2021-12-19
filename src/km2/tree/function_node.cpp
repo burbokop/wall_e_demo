@@ -66,7 +66,15 @@ wall_e::either<km2::error, llvm::Value *> km2::function_node::generate_llvm(cons
 void km2::function_node::print(size_t level, std::ostream &stream) {
     stream << std::string(level, ' ') << "{function_node}:" << std::endl;
     stream << std::string(level + 1, ' ') << "name: " << m_name << std::endl;
-    stream << std::string(level + 1, ' ') << "args: " << m_args << std::endl;
+    stream << std::string(level + 1, ' ') << "args: " << std::endl;
+    for(const auto& a : m_args) {
+        if(a) {
+            a->print(level + 1, stream);
+        } else {
+            stream << std::string(level + 1, ' ') + "null arg" << std::endl;
+        }
+    }
+    stream << std::string(level + 1, ' ') << "body: " << std::endl;
     if(m_body) {
         m_body->print(level + 1, stream);
     } else {

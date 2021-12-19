@@ -427,3 +427,12 @@ llvm::Module* km2::module::llvmModule() const {
 llvm::IRBuilder<>* km2::module::builder() const {
     return m_builder.get();
 }
+
+std::string km2::module::current_namespace() const {
+    return m_current_namespace;
+}
+
+void km2::module::set_current_namespace(const std::string &nspace) {
+    m_current_namespace = nspace;
+}
+
