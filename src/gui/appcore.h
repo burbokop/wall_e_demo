@@ -4,6 +4,7 @@
 #include <QObject>
 #include <wall_e/src/variant.h>
 #include <src/km2/km2.h>
+#include <src/km2/error.h>
 #include "klibcore/kmacro.h"
 #include "asmexecutor.h"
 #include "highlighter.h"

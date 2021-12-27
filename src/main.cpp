@@ -20,8 +20,8 @@
 #include <type_traits>
 #include <src/km2/tree/block_node.h>
 #include <src/km2/tree/call_node.h>
-#include <src/cpp/cpp_parser.h>
-
+#include <src/km2/cpp/cpp_parser.h>
+#include <wall_e/src/compiler_info.h>
 
 
 struct Vehicle {
@@ -37,11 +37,22 @@ struct Helicopter : Aircraft {
 };
 
 
-
-
+namespace aaa {
+struct o {
+};
+bool operator == (const aaa::o& o1, const aaa::o& o2) { return true; }
+}
 
 
 int main(int argc, char **argv) {
+    std::cout << "wall_e compiled with: " << wall_e::cxx_info << std::endl;
+    std::cout << "km2 compiled with: " << wall_e::inline_cxx_info << std::endl;
+
+    KCompareEngine<QList<aaa::o>>::compare(QList<aaa::o>(), QList<aaa::o>());
+
+
+    static_cast<const QList<aaa::o>&>(QList<aaa::o>()) == static_cast<const QList<aaa::o>&>(QList<aaa::o>());
+
 
     using namespace std::chrono_literals;
 

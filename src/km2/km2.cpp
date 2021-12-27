@@ -28,7 +28,7 @@
 #include <src/km2/tree/const_node.h>
 #include <wall_e/src/color.h>
 
-#include <llvm-12/llvm/IR/Value.h>
+//#include <llvm-12/llvm/IR/Value.h>
 
 struct __km2_flags_private {
     bool verbose = false;
