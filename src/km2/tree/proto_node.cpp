@@ -7,11 +7,12 @@
 #include <src/km2/module.h>
 
 
-km2::proto_node::proto_node(const std::string &name, const std::vector<std::shared_ptr<decl_arg_node> > &args, std::shared_ptr<abstract_type_node> result_type_node) {
-    m_name = name;
-    m_args = args;
-    m_result_type_node = result_type_node;
-}
+km2::proto_node::proto_node(const std::string &name, const std::vector<std::shared_ptr<decl_arg_node> > &args, std::shared_ptr<abstract_type_node> result_type_node)
+    : km2::abstract_value_node(cast_to_children(args, std::vector { result_type_node })),
+    m_name(name),
+    m_args(args),
+    m_result_type_node(result_type_node)
+{}
 
 wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &args) {
     std::cout << "km2::proto_node::create: " << args << std::endl;
@@ -35,7 +36,7 @@ wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &a
     return nullptr;
 }
 
-wall_e::either<km2::error, llvm::Value *> km2::proto_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
+wall_e::either<wall_e::error, llvm::Value *> km2::proto_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     std::vector<llvm::Type*> argTypes;
     bool isVarArg = false;
@@ -61,7 +62,7 @@ wall_e::either<km2::error, llvm::Value *> km2::proto_node::generate_llvm(const s
             return rt.left();
         }
     } else {
-        return wall_e::left(km2::error("result type node missing"));
+        return wall_e::left(wall_e::error("result type node missing"));
     }
 }
 
@@ -83,6 +84,6 @@ void km2::proto_node::print(size_t level, std::ostream &stream) {
 }
 
 
-std::list<km2::error> km2::proto_node::errors() {
-    return { error("err not implemented") };
+std::list<wall_e::error> km2::proto_node::errors() {
+    return { wall_e::error("err not implemented") };
 }

@@ -7,5 +7,6 @@
         <file>resources/CodeArea.qml</file>
         <file>resources/ExecArea.qml</file>
         <file>resources/ToolBarChackBox.qml</file>
+        <file>resources/InfoDialog.qml</file>
     </qresource>
 </RCC>

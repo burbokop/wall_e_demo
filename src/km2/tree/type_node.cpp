@@ -28,7 +28,8 @@ std::optional<uint16_t> km2::type_node::parse_integer_type(const std::string &st
 }
 
 km2::type_node::type_node(type t, const std::optional<uint16_t> &bits)
-    : m_type(t),
+    : km2::abstract_type_node({}),
+      m_type(t),
       m_bits(bits) {}
 
 wall_e::gram::argument km2::type_node::create(const wall_e::gram::arg_vector &args) {
@@ -51,12 +52,12 @@ wall_e::gram::argument km2::type_node::create(const wall_e::gram::arg_vector &ar
     return std::make_shared<type_node>(Undefined, std::nullopt);
 }
 
-wall_e::either<km2::error, llvm::Type *> km2::type_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
+wall_e::either<wall_e::error, llvm::Type *> km2::type_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
     if(m_type == Unsigned || m_type == Signed) {
         if(m_bits) {
             return wall_e::right<llvm::Type*>(llvm::Type::getIntNTy(*module->context(), *m_bits));
         } else {
-            return wall_e::left(km2::error("bits not set for integer type"));
+            return wall_e::left(wall_e::error("bits not set for integer type"));
         }
     } else if(m_type == Float) {
         return wall_e::right<llvm::Type*>(llvm::Type::getFloatTy(*module->context()));
@@ -65,7 +66,7 @@ wall_e::either<km2::error, llvm::Type *> km2::type_node::generate_llvm(const std
     } else if(m_type == String) {
         return wall_e::right<llvm::Type*>(llvm::PointerType::get(llvm::Type::getInt8Ty(*module->context()), 0));
     }
-    return wall_e::left(km2::error("unknown type_node type"));
+    return wall_e::left(wall_e::error("unknown type_node type"));
 }
 
 void km2::type_node::print(size_t level, std::ostream &stream) {
@@ -75,6 +76,6 @@ void km2::type_node::print(size_t level, std::ostream &stream) {
 }
 
 
-std::list<km2::error> km2::type_node::errors() {
-    return { error("err not implemented") };
+std::list<wall_e::error> km2::type_node::errors() {
+    return { wall_e::error("err not implemented") };
 }

@@ -1,7 +1,7 @@
 #ifndef TO_PDF_H
 #define TO_PDF_H
 
-#include <wall_e/src/node.h>
+#include <wall_e/src/models/node.h>
 
 void to_pdf(const wall_e::relation_list &rl, const std::string &path);
 

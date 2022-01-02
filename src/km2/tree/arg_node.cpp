@@ -22,11 +22,10 @@ km2::arg_node::arg_node(
         const std::string& text,
         std::shared_ptr<abstract_value_node> value_node
         )
-    : km2::abstract_value_node(segment) {
-    m_type = t;
-    m_text = text;
-    m_value_node = value_node;
-}
+    : km2::abstract_value_node({ value_node }, segment),
+      m_type(t),
+      m_text(text),
+      m_value_node(value_node) {}
 
 wall_e::gram::argument km2::arg_node::create(const wall_e::gram::arg_vector &args) {
     std::cout << "km2::arg_node::create: " << args << std::endl;
@@ -52,43 +51,49 @@ wall_e::gram::argument km2::arg_node::create(const wall_e::gram::arg_vector &arg
     return std::make_shared<arg_node>(wall_e::text_segment(), Undefined);
 }
 
-wall_e::either<km2::error, llvm::Value *> km2::arg_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
+wall_e::either<wall_e::error, llvm::Value *> km2::arg_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     if(m_type == IntLiteral) {
         try {
             return wall_e::right<llvm::Value *>(module->uintptr(std::stoi(m_text)));
         }  catch (std::exception e) {
-            return wall_e::left(km2::error(m_text + " is not a integer"));
+            return wall_e::left(wall_e::error(m_text + " is not a integer"));
         }
     } else if(m_type == FloatLiteral) {
         try {
             return wall_e::right<llvm::Value *>(module->float64(std::stod(m_text)));
         }  catch (std::exception e) {
-            return wall_e::left(km2::error(m_text + " is not a floating point number"));
+            return wall_e::left(wall_e::error(m_text + " is not a floating point number"));
         }
     } else if(m_type == StringLiteral) {
         module->setupInsertPoint();
         return wall_e::right<llvm::Value *>(module->string_const_ptr(
-                    "arg_" + std::to_string(reinterpret_cast<uintptr_t>(this)),
-                    m_text
-                    ));
+                                                "arg_" + std::to_string(reinterpret_cast<uintptr_t>(this)),
+                                                m_text
+                                                ));
     } else if(m_type == Id) {
         module->setupInsertPoint();
         if(const auto a = module->arg(m_text)) {
             return wall_e::right<llvm::Value *>(a);
         } else {
-            return wall_e::left(km2::error("variable " + m_text + " not found in current context", segment()));
+            return wall_e::left(wall_e::error(
+                                    "variable " + m_text + " not found in current context",
+                                    wall_e::error::err,
+                                    wall_e::error::semantic,
+                                    0,
+                                    segment()
+                                    ));
         }
     } else if(m_type == ValueNode) {
         if(m_value_node) {
             module->setupInsertPoint();
             return m_value_node->generate_llvm(module);
         } else {
-            return wall_e::left(km2::error("empty value node"));
+            return wall_e::left(wall_e::error("empty value node"));
         }
     }
 
-    return wall_e::left(km2::error("unknown arg type"));
+    return wall_e::left(wall_e::error("unknown arg type"));
 }
 
 void km2::arg_node::print(size_t level, std::ostream &stream) {
@@ -103,6 +108,6 @@ void km2::arg_node::print(size_t level, std::ostream &stream) {
 }
 
 
-std::list<km2::error> km2::arg_node::errors() {
+std::list<wall_e::error> km2::arg_node::errors() {
     return {};
 }

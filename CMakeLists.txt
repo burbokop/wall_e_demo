@@ -42,9 +42,9 @@ set(CLANG_LIBRARY_LIST
     )
 
 
-find_package(Qt6 COMPONENTS Core Quick Qml)
+find_package(Qt6 COMPONENTS Core Quick Qml Concurrent)
 if (NOT Qt6_FOUND)
-    find_package(Qt5 COMPONENTS Core Quick Qml REQUIRED)
+    find_package(Qt5 COMPONENTS Core Quick Qml Concurrent REQUIRED)
 endif()
 
 
@@ -52,7 +52,6 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_parser.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_consumer.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_parse_action.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_visitor.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_namespace_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_block_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_function_node.cpp
@@ -65,8 +64,8 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/km2.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/math_patterns.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/function.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/module.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/error.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/module/module.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/module/namespace_cap.cpp
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/lsp/service.cpp
 
@@ -91,7 +90,6 @@ set(KM2_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_parser.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_consumer.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_parse_action.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_visitor.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_namespace_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_block_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_function_node.h
@@ -104,8 +102,8 @@ set(KM2_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/km2.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/math_patterns.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/function.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/module.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/error.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/module/module.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/module/namespace_cap.h
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/lsp/service.h
 
@@ -175,6 +173,8 @@ add_library(km2 SHARED
     ${KM2_SOURCES}
     ${KM2_HEADERS}
     )
+set_property(TARGET km2 PROPERTY AUTOMOC OFF)
+set_property(TARGET km2 PROPERTY AUTOUIC OFF)
 
 add_executable(km2ide
     ${SOURCES}
@@ -252,6 +252,7 @@ target_link_libraries(km2ide
     Qt::Core
     Qt::Qml
     Qt::Quick
+    Qt::Concurrent
     #clangTooling
     #clangBasic
     #clangASTMatchers

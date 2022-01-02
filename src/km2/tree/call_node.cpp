@@ -1,8 +1,9 @@
 #include "call_node.h"
+#include "namespace_node.h"
 
 #include <wall_e/src/utility/token_tools.h>
 #include <iostream>
-#include <src/km2/module.h>
+#include <src/km2/module/module.h>
 
 
 
@@ -10,7 +11,7 @@ km2::call_node::call_node(
         const std::string &name,
         const std::vector<std::shared_ptr<km2::abstract_value_node>>& args,
         const wall_e::text_segment& name_segment
-        ) {
+        ) : km2::abstract_value_node(cast_to_children(args)) {
     m_name = name;
     m_args = args;
     m_name_segment = name_segment;
@@ -42,11 +43,23 @@ wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &ar
 }
 
 
-wall_e::either<km2::error, llvm::Value *> km2::call_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
+wall_e::either<wall_e::error, llvm::Value *> km2::call_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
     std::cout << __PRETTY_FUNCTION__ << "name: " << m_name << std::endl;
-    const auto proto = module->llvmModule()->getFunction(m_name);
+
+    std::list<std::string> namepace_name;
+    if(const auto ns = nearest_ancestor<namespace_node>()) {
+        namepace_name = ns->full_name();
+    }
+
+    const auto proto = module->findFunction(namepace_name, m_name);
     if (!proto) {
-        return wall_e::left(km2::error("function '" + m_name + "' not defined", m_name_segment));
+        return wall_e::left(wall_e::error(
+                                "function '" + m_name + "' not defined",
+                                wall_e::error::severity::err,
+                                wall_e::error::stage::semantic,
+                                0,
+                                m_name_segment
+                                ));
     }
 
     std::vector<llvm::Value*> args;
@@ -81,7 +94,13 @@ wall_e::either<km2::error, llvm::Value *> km2::call_node::generate_llvm(const st
                     << "' of func '" << m_name
                     << "'";
 
-            return wall_e::left(km2::error(err_message, arg_segment));
+            return wall_e::left(wall_e::error(
+                                    err_message,
+                                    wall_e::error::err,
+                                    wall_e::error::stage::semantic,
+                                    0,
+                                    arg_segment
+                                    ));
         }
     }
 
@@ -105,6 +124,6 @@ void km2::call_node::print(size_t level, std::ostream &stream) {
 }
 
 
-std::list<km2::error> km2::call_node::errors() {
+std::list<wall_e::error> km2::call_node::errors() {
     return {};
 }

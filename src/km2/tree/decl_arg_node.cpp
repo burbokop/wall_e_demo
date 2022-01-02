@@ -13,11 +13,12 @@ std::string km2::decl_arg_node::name() const {
     return m_name;
 }
 
-km2::decl_arg_node::decl_arg_node(const std::string &name, std::shared_ptr<abstract_type_node> type_node, bool is_variadic) {
-    m_name = name;
-    m_type_node = type_node;
-    m_is_variadic = is_variadic;
-}
+km2::decl_arg_node::decl_arg_node(const std::string &name, std::shared_ptr<abstract_type_node> type_node, bool is_variadic)
+    : km2::abstract_node({ type_node }),
+    m_name(name),
+    m_type_node(type_node),
+    m_is_variadic(is_variadic)
+{}
 
 wall_e::gram::argument km2::decl_arg_node::create(const wall_e::gram::arg_vector &args) {
     if(args.size() > 1) {
@@ -47,6 +48,6 @@ void km2::decl_arg_node::print(size_t level, std::ostream &stream) {
 }
 
 
-std::list<km2::error> km2::decl_arg_node::errors() {
+std::list<wall_e::error> km2::decl_arg_node::errors() {
     return {};
 }

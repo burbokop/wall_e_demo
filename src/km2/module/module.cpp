@@ -1,11 +1,12 @@
 #include "module.h"
 
-#include <llvm/IR/DiagnosticPrinter.h>
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/IR/IRPrintingPasses.h"
 #include <iostream>
 #include <regex>
 
+#pragma warning(push, 0)
+#include <llvm/IR/DiagnosticPrinter.h>
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/IRPrintingPasses.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Analysis/BasicAliasAnalysis.h"
 #include "llvm/IR/LLVMContext.h"
@@ -17,7 +18,6 @@
 #include "llvm/ExecutionEngine/Orc/CompileUtils.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/IR/InlineAsm.h"
-
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/Optional.h"
 #include "llvm/ADT/STLExtras.h"
@@ -34,9 +34,9 @@
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Host.h"
-//#include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
+#pragma warning(pop)
 
 #include <sproc/src/fork.h>
 
@@ -275,7 +275,7 @@ int km2::module::aaa() {
     return 0;
 }
 
-llvm::Function *km2::module::proto(llvm::Type* resultType, std::vector<llvm::Type*> argTypes, const std::string& name, bool isVarArg) {
+std::pair<std::string, llvm::Function *> km2::module::proto(llvm::Type* resultType, std::vector<llvm::Type*> argTypes, const std::list<std::string> &namespace_name, const std::string& name, bool isVarArg) {
     return llvm::Function::Create(
                 llvm::FunctionType::get(
                     resultType,
@@ -286,6 +286,10 @@ llvm::Function *km2::module::proto(llvm::Type* resultType, std::vector<llvm::Typ
                 name,
                 m_module.get()
                 );
+}
+
+llvm::Function *km2::module::findFunction(std::list<std::string> &call_namespace, const std::string &func_name) {
+    return nullptr;
 }
 
 llvm::CallInst *km2::module::inline_asm(const std::string& text) {
@@ -407,7 +411,7 @@ wall_e::either<std::string, int> km2::module::make_executable(const std::string 
         return err;
     }
 
-    const auto link_result = sproc::system("g++ " + object_path + " -o " + output_path);
+    const auto link_result = sproc::system("clang++ " + object_path + " -o " + output_path);
     if(link_result.ext_code != 0) {
         return wall_e::left(link_result.err);
     }
@@ -428,11 +432,9 @@ llvm::IRBuilder<>* km2::module::builder() const {
     return m_builder.get();
 }
 
-std::string km2::module::current_namespace() const {
-    return m_current_namespace;
-}
 
-void km2::module::set_current_namespace(const std::string &nspace) {
-    m_current_namespace = nspace;
-}
 
+
+km2::namespace_cap &km2::module::namespace_capability() {
+    return m_namespace_capability;
+}

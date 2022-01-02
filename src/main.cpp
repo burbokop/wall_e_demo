@@ -21,8 +21,8 @@
 #include <src/km2/tree/block_node.h>
 #include <src/km2/tree/call_node.h>
 #include <src/km2/cpp/cpp_parser.h>
-#include <wall_e/src/compiler_info.h>
-
+#include <wall_e/src/models/compiler_info.h>
+#include <wall_e/src/stack.h>
 
 struct Vehicle {
 public:
@@ -36,38 +36,24 @@ struct Helicopter : Aircraft {
     }
 };
 
-
-namespace aaa {
-struct o {
-};
-bool operator == (const aaa::o& o1, const aaa::o& o2) { return true; }
-}
-
-
 int main(int argc, char **argv) {
     std::cout << "wall_e compiled with: " << wall_e::cxx_info << std::endl;
     std::cout << "km2 compiled with: " << wall_e::inline_cxx_info << std::endl;
-
-    KCompareEngine<QList<aaa::o>>::compare(QList<aaa::o>(), QList<aaa::o>());
-
-
-    static_cast<const QList<aaa::o>&>(QList<aaa::o>()) == static_cast<const QList<aaa::o>&>(QList<aaa::o>());
-
 
     using namespace std::chrono_literals;
 
     cpp_parser ppp(argc, argv);
 
     const auto cppcode = "\
-    namespace ooo {           \n\
+        namespace ooo {           \n\
             int foo(int a) {      \n\
-            return a;         \n\
-}                     \n\
+                return a;         \n\
+            }                     \n\
             int main() {          \n\
-            return foo(2);    \n\
-}                     \n\
-}                     \n\
-            ";
+                return foo(2);    \n\
+            }                     \n\
+        }                         \n\
+        ";
 
     std::cout << "SOURCE CODE" << std::endl << cppcode << std::endl << "SOURCE CODE END" << std::endl;
 
@@ -86,7 +72,7 @@ int main(int argc, char **argv) {
     }
     std::cout << "SOURCE CODE END" << std::endl;
 
-    return clang_result.status;
+    //return clang_result.status;
 
     //km2::module_builder b;
     //b.aaa();

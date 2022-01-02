@@ -28,7 +28,7 @@ public:
 
     // abstract_node interface
 public:
-    virtual std::list<error> errors() override;
+    virtual std::list<wall_e::error> errors() override;
 };
 
 } // namespace km2

@@ -1,5 +1,6 @@
 #include "decl_arg_node.h"
 #include "function_node.h"
+#include "namespace_node.h"
 
 
 #include <wall_e/src/utility/token_tools.h>
@@ -27,14 +28,15 @@ wall_e::gram::argument km2::function_node::create(const wall_e::gram::arg_vector
     return nullptr;
 }
 
-km2::function_node::function_node(const std::string &name, const std::vector<std::shared_ptr<decl_arg_node> > &args, std::shared_ptr<abstract_value_node> body) {
+km2::function_node::function_node(const std::string &name, const std::vector<std::shared_ptr<decl_arg_node> > &args, std::shared_ptr<abstract_value_node> body)
+    : abstract_value_node(cast_to_children(args, std::vector { body })) {
     m_name = name;
     m_args = args;
     m_body = body;
 }
 
 
-wall_e::either<km2::error, llvm::Value *> km2::function_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
+wall_e::either<wall_e::error, llvm::Value *> km2::function_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     std::vector<llvm::Type*> argTypes;
     std::vector<std::string> argNames;
@@ -47,8 +49,14 @@ wall_e::either<km2::error, llvm::Value *> km2::function_node::generate_llvm(cons
             return type.left();
         }
     }
-    const auto proto = module->proto(llvm::Type::getVoidTy(*module->context()), argTypes, m_name);
-    const auto block = module->beginBlock(m_name + "_block", proto, argNames);
+
+    std::list<std::string> namepace_name;
+    if(const auto ns = nearest_ancestor<namespace_node>()) {
+        namepace_name = ns->full_name();
+    }
+
+    const auto proto = module->proto(llvm::Type::getVoidTy(*module->context()), argTypes, namepace_name, m_name);
+    const auto block = module->beginBlock(proto.first + "_block", proto.second, argNames);
 
     if (m_body) {
         if(const auto body = m_body->generate_llvm(module)) {
@@ -60,13 +68,18 @@ wall_e::either<km2::error, llvm::Value *> km2::function_node::generate_llvm(cons
 
     module->builder()->CreateRetVoid();
     module->endBlock();
-    return wall_e::right<llvm::Value *>(proto);
+    return wall_e::right<llvm::Value *>(proto.second);
 }
 
 void km2::function_node::print(size_t level, std::ostream &stream) {
     stream << std::string(level, ' ') << "{function_node}:" << std::endl;
-    stream << std::string(level + 1, ' ') << "name: " << m_name << std::endl;
+    if(const auto ns = nearest_ancestor<namespace_node>()) {
+        stream << std::string(level + 1, ' ') << "name: " << wall_e::lex::join(ns->full_name(), "::") << "::" << m_name << std::endl;
+    } else {
+        stream << std::string(level + 1, ' ') << "name: " << m_name << std::endl;
+    }
     stream << std::string(level + 1, ' ') << "args: " << std::endl;
+
     for(const auto& a : m_args) {
         if(a) {
             a->print(level + 1, stream);
@@ -82,6 +95,6 @@ void km2::function_node::print(size_t level, std::ostream &stream) {
     }
 }
 
-std::list<km2::error> km2::function_node::errors() {
+std::list<wall_e::error> km2::function_node::errors() {
     return {};
 }

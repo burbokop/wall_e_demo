@@ -2,10 +2,13 @@
 #define MODULE_H
 
 
-
+#pragma warning(push, 0)
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/IRBuilder.h>
-#include <wall_e/src/either.h>
+#pragma warning(pop)
+
+#include "namespace_cap.h"
+#include <wall_e/src/models/either.h>
 #include <wall_e/src/lex.h>
 
 namespace km2 {
@@ -15,13 +18,13 @@ class module {
     std::unique_ptr<llvm::IRBuilder<>> m_builder;
     std::unique_ptr<llvm::Module> m_module;
 
-    std::string m_current_namespace;
-
     struct ctx {
         llvm::BasicBlock* block = nullptr;
         std::map<std::string, llvm::Value*> args;
     };
     std::stack<ctx> m_stack;
+
+    namespace_cap m_namespace_capability = namespace_cap(this);
 public:
     enum ArgSettingStatus {
         ArgSettingSuccess,
@@ -57,7 +60,17 @@ public:
     llvm::Function* createSumFunction();
     int aaa();
 
-    llvm::Function *proto(llvm::Type* resultType, std::vector<llvm::Type*> argTypes, const std::string& name, bool isVarArg = false);
+    std::pair<std::string, llvm::Function*> proto(
+            llvm::Type* resultType,
+            std::vector<llvm::Type*> argTypes,
+            const std::list<std::string>& namespace_name,
+            const std::string& name,
+            bool isVarArg = false
+            );
+
+    llvm::Function *findFunction(std::list<std::string>& call_namespace, const std::string& func_name);
+
+
     llvm::CallInst *inline_asm(const std::string &text);
 
     void print();
@@ -69,14 +82,14 @@ public:
 
     wall_e::either<std::string, int> compile(const std::string &output_path);
 
-    wall_e::either<std::string, int> make_executable(const std::string &output_path);
+    /* warning do not call in thread and dont ask why */ wall_e::either<std::string, int> make_executable(const std::string &output_path);
 
 
     llvm::LLVMContext *context() const;
     llvm::Module* llvmModule() const;
     llvm::IRBuilder<> *builder() const;
-    std::string current_namespace() const;
-    void set_current_namespace(const std::string &nspace);
+
+    namespace_cap &namespace_capability();
 };
 
 }

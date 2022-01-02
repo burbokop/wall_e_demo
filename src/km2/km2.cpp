@@ -1,4 +1,4 @@
-#include "module.h"
+#include "module/module.h"
 #include "km2.h"
 
 #include <regex>
@@ -20,7 +20,6 @@
 #include <src/km2/tree/namespace_node.h>
 #include <src/km2/tree/call_node.h>
 #include <src/km2/tree/function_node.h>
-#include <src/km2/tree/internal_block_node.h>
 #include <src/km2/tree/arg_node.h>
 #include <src/km2/tree/proto_node.h>
 #include <src/km2/tree/type_node.h>
@@ -80,6 +79,18 @@ const std::list<wall_e::lex::pattern> km2_lexlist = {
     { std::regex("[ \t\n]+"), "ignore" }
 };
 
+std::list<std::string> km2::key_names() {
+    return {
+        "asm",
+        "number",
+        "string",
+        "const",
+        "namespace",
+        "nspace",
+        "f32",
+        "f64"
+    };
+}
 
 void aaa(std::string && a) {
     a.resize(10);
@@ -130,14 +141,21 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
             std::cout << "sorted: " << t.position << " " << t.name << " " << t.text << "\n";
     }
 
+    std::list<wall_e::error> lex_errors;
     for(const auto& st : sorted_tokens) {
-        if(st.name == "error") {
+        if(const auto& err = st.undef_error()) {
             if(__flags.verbose) {
-                std::cout << "[ LEX ERROR ]\n";
+                std::cout << "[ LEX ERROR ] " << *err << std::endl;
             }
-
-            return { {}, nullptr, sorted_tokens, std::string(), {}, {} };
+            lex_errors.push_back(*err);
         }
+    }
+
+    if(lex_errors.size() > 0) {
+        return {
+            .tokens = sorted_tokens,
+            .errors = lex_errors,
+        };
     }
 
     std::list<wall_e::function> functions;
@@ -150,8 +168,8 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
     gram_list.push_back("block << (namespace | stmt) & SEMICOLON & (EB | block)"_pattern
         << km2::block_node::create);
 
-    gram_list.push_back("internal_block << (namespace | stmt) & SEMICOLON & (EB | internal_block)"_pattern
-        << km2::internal_block_node::create);
+    //gram_list.push_back("internal_block << (namespace | stmt) & SEMICOLON & (EB | internal_block)"_pattern
+    //    << km2::internal_block_node::create);
 
     gram_list.push_back("stmt << function_call | function_declaration | proto_declaration | const"_pattern
         << km2::stmt_node::create);
@@ -159,7 +177,7 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
     gram_list.push_back("const << TOK_CONST & TOK_ID & EQUALS & arg"_pattern
         << km2::const_node::create);
 
-    gram_list.push_back("function_declaration << TOK_ID & EQUALS & OP & (EP | decl_arg_list) & OB & (EB | internal_block)"_pattern
+    gram_list.push_back("function_declaration << TOK_ID & EQUALS & OP & (EP | decl_arg_list) & OB & (EB | block)"_pattern
         << km2::function_node::create);
 
     gram_list.push_back("proto_declaration << TOK_ID & EQUALS & OP & (EP | decl_arg_list) & type"_pattern
@@ -209,20 +227,36 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
                 );
 
     std::cout << "result: " << result << std::endl;
-    std::cout << "result type: " << result.type() << std::endl;
-    std::cout << "result lineage: " << result.lineage() << std::endl;
+
+    if(const auto err = result.left()) {
+        return {
+            .tokens = sorted_tokens,
+            .rules = wall_e::gram::pattern::to_string(gram_list),
+            .errors = { err.value() }
+        };
+    }
+    const auto right = result.right().value();
+
+    std::cout << "result type: " << right.type() << std::endl;
+    std::cout << "result lineage: " << right.lineage() << std::endl;
 
     if(__flags.verbose) {
         std::cout << "\n -------------- GRAM END --------------\n\n";
     }
 
 
-    if(result.contains_type<std::shared_ptr<km2::namespace_node>>()) {
-        if(const auto node = result.value<std::shared_ptr<km2::namespace_node>>()) {
+    if(right.contains_type<std::shared_ptr<km2::namespace_node>>()) {
+        if(const auto node = right.value<std::shared_ptr<km2::namespace_node>>()) {
             const auto errors = node->errors();
 
             if(errors.size() > 0) {
                 std::cout << wall_e::color::Red << "FOUND ERRORS OF LEVEL 1: " << errors << wall_e::color::reset() << std::endl;
+                return {
+                    .token_tree = right,
+                    .tokens = sorted_tokens,
+                    .rules = wall_e::gram::pattern::to_string(gram_list),
+                    .errors = errors
+                };;
             } else {
                 std::cout << wall_e::color::Green << "NO ERRORS OF LEVEL 1" << wall_e::color::reset() << std::endl;
             }
@@ -237,9 +271,6 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
                 llvm::Value* llvm_value = gen_result.right_value();
 
                 module->print();
-                if(const auto err = module->make_executable("app_out/module").left()) {
-                    std::cout << "Compile error: " << err.value() << std::endl;
-                }
 
                 return {
                     .token_tree = result,
@@ -259,5 +290,6 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
 
     return { result, nullptr, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, {}};
 }
+
 
 

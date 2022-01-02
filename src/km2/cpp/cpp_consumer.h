@@ -1,10 +1,14 @@
 #ifndef CPP_CONSUMER_H
 #define CPP_CONSUMER_H
 
-#include "clang/AST/ASTConsumer.h"
-#include "clang_namespace_node.h"
-#include "cpp_visitor.h"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wall"
+#pragma clang diagnostic ignored "-Wextra"
+#include <clang/AST/ASTConsumer.h>
 #include <clang/Frontend/CompilerInstance.h>
+#pragma clang diagnostic pop
+
+#include "clang_namespace_node.h"
 
 class cpp_consumer : public clang::ASTConsumer {
     clang::CompilerInstance *m_compiler_instance;

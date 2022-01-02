@@ -2,7 +2,8 @@
 #include  <iostream>
 
 km2::block_node::block_node(const std::shared_ptr<stmt_node> &stmt, const std::shared_ptr<block_node> &next_node)
-    : m_stmt(stmt),
+    : km2::abstract_value_node(cast_to_children(std::vector { stmt }, std::vector { next_node })),
+      m_stmt(stmt),
       m_next_node(next_node) {}
 
 wall_e::gram::argument km2::block_node::create(const wall_e::gram::arg_vector &args) {
@@ -20,7 +21,7 @@ wall_e::gram::argument km2::block_node::create(const wall_e::gram::arg_vector &a
 }
 
 
-wall_e::either<km2::error, llvm::Value *> km2::block_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
+wall_e::either<wall_e::error, llvm::Value *> km2::block_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     if(m_stmt) {
         if(const auto cmd_result = m_stmt->generate_llvm(module)) {
@@ -50,6 +51,6 @@ void km2::block_node::print(size_t level, std::ostream &stream) {
 }
 
 
-std::list<km2::error> km2::block_node::errors() {
-    return { error("err not implemented") };
+std::list<wall_e::error> km2::block_node::errors() {
+    return { wall_e::error("err not implemented") };
 }

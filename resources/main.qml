@@ -97,6 +97,19 @@ Window {
                         onClicked: appCore.mode = AppCore.ModeAsm
                     }
 
+                    ToolBarButton {
+                        text: "clang\n  ++"
+                        Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
+                        onClicked: {
+                            const err = appCore.makeExecutable("app_out/module");
+                            if(err.length > 0) {
+                                infoDialog.openWithMessage(`err: ${err}`)
+                            } else {
+                                infoDialog.openWithMessage(`success`)
+                            }
+                        }
+                    }
+
                     ToolBarChackBox {
                         Layout.topMargin: 30
                         text: "T"
@@ -147,12 +160,12 @@ Window {
                         anchors.fill: parent
                         model: appCore.errors
                         delegate: Rectangle {
-                            color: (errTile.currentErr == index) ? "#88888888" : "#00000000"
+                            color: (errTile.currentErr === index) ? "#88888888" : "#00000000"
                             id: errRect
                             width: parent.width
-                            height: (errTile.currentErr == index) ? 48 : 24
+                            height: (errTile.currentErr === index) ? 48 : 24
                             Text {
-                                text: (errTile.currentErr == index)
+                                text: (errTile.currentErr === index)
                                       ? appCore.errToString(modelData) + "\nat fragment: " +  codeArea.textFragmentForError(modelData)
                                       : appCore.errToString(modelData)
                                 anchors.verticalCenter: parent.verticalCenter
@@ -210,5 +223,11 @@ Window {
                 }
             }
         }
+    }
+
+    InfoDialog {
+        anchors.fill: parent
+        visible: false
+        id: infoDialog
     }
 }

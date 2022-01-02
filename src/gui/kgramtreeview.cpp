@@ -5,7 +5,7 @@
 #include <wall_e/src/lex.h>
 #include <wall_e/src/gram.h>
 #include <src/km2/km2.h>
-
+#include <src/km2/tree/abstract/abstract_node.h>
 #include <QQmlListProperty>
 
 KGramTreeView::KGramTreeView(QQuickItem *parent) : QQuickPaintedItem(parent) {
@@ -21,7 +21,7 @@ void KGramTreeView::displayTree(const wall_e::variant &var) {
 
 
 void KGramTreeView::paint(QPainter *painter) {
-    painter->setPen(QPen(QColor("#000000"), 4));
+    painter->setPen(QPen(QColor(Qt::black), 4));
     painter->setRenderHint(QPainter::Antialiasing);
 
 
@@ -80,13 +80,9 @@ void KGramTreeView::print_branch(const wall_e::variant &branch, int x, int y, QP
         painter->drawText(cellRect, QString::fromStdString(branch.type()), QTextOption(Qt::AlignCenter));
     } else {
         const auto penBackup = painter->pen();
-        painter->setPen(QPen(QColor("#ff8800"), penBackup.width()));
+        painter->setPen(QPen(QColor(Qt::yellow | Qt::green), penBackup.width()));
         painter->drawRect(cellRect);
-        if(branch.contains_type<wall_e::gram::recursion_error>()) {
-            painter->drawText(cellRect,  QString::fromStdString(wall_e::type_name<wall_e::gram::recursion_error>()), QTextOption(Qt::AlignCenter));
-        } else {
-            painter->drawText(cellRect, "???", QTextOption(Qt::AlignCenter));
-        }
+        painter->drawText(cellRect, "???", QTextOption(Qt::AlignCenter));
         painter->setPen(penBackup);
     }
 }
@@ -106,8 +102,6 @@ int KGramTreeView::branch_width(const wall_e::variant &branch, bool onlyCells) {
         return string_radius(branch.value<wall_e::lex::token>().text);
     } else if(branch.contains_type<std::string>()) {
         return string_radius(branch.value<std::string>());
-    } else if(branch.contains_type<wall_e::gram::recursion_error>()) {
-        return wall_e::type_name<wall_e::gram::recursion_error>().size();
     } else if(branch.contains_type<int>()) {
         return std::to_string(branch.value<int>()).size();
     } else if(branch.inherited_by<km2::abstract_node*>()) {
@@ -116,8 +110,6 @@ int KGramTreeView::branch_width(const wall_e::variant &branch, bool onlyCells) {
         return 3;
     }
 }
-
-
 
 void KGramTreeView::mousePressEvent(QMouseEvent *event) {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)

@@ -4,7 +4,7 @@
 
 #include <string>
 #include <vector>
-#include "wall_e/src/variant.h"
+#include "wall_e/src/models/variant.h"
 #include "wall_e/src/lex.h"
 
 

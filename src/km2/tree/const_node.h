@@ -21,11 +21,11 @@ public:
     // abstract_node interface
 public:
     virtual void print(size_t level, std::ostream &stream) override;
-    virtual std::list<error> errors() override;
+    virtual std::list<wall_e::error> errors() override;
 
     // abstract_value_node interface
 public:
-    virtual wall_e::either<error, llvm::Value *> generate_llvm(const std::shared_ptr<module> &module) override;
+    virtual wall_e::either<wall_e::error, llvm::Value *> generate_llvm(const std::shared_ptr<module> &module) override;
 };
 
 } // namespace km2
