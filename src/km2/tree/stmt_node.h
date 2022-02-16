@@ -3,6 +3,7 @@
 
 #include "abstract/abstract_value_node.h"
 #include <wall_e/src/gram.h>
+#include <src/km2/translation_unit/models/context.h>
 
 namespace km2 {
 
@@ -13,16 +14,18 @@ public:
 
     stmt_node(std::shared_ptr<abstract_value_node> node = nullptr);
 
-    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
+    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
 
+    const km2::context m_context;
     // node interface
 public:
-    virtual wall_e::either<wall_e::error, llvm::Value*> generate_llvm(const std::shared_ptr<module> &module) override;
+    virtual wall_e::either<wall_e::error, llvm::Value*> generate_llvm(const std::shared_ptr<translation_unit> &unit) override;
     virtual void print(size_t level, std::ostream &stream) override;
 
     // abstract_node interface
 public:
-    virtual std::list<wall_e::error> errors() override;
+    virtual std::list<wall_e::error> errors() const override;
+    const km2::context &context() const;
 };
 
 } // namespace km2

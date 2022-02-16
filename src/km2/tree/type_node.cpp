@@ -2,7 +2,10 @@
 
 #include <llvm/IR/Type.h>
 
-#include <src/km2/module.h>
+#include <src/km2/translation_unit/translation_unit.h>
+
+#include <src/km2/translation_unit/capabilities/constants_capability.h>
+#include <src/km2/translation_unit/capabilities/type_capability.h>
 
 std::string km2::type_node::type_string(type t) {
     switch (t) {
@@ -32,7 +35,7 @@ km2::type_node::type_node(type t, const std::optional<uint16_t> &bits)
       m_type(t),
       m_bits(bits) {}
 
-wall_e::gram::argument km2::type_node::create(const wall_e::gram::arg_vector &args) {
+wall_e::gram::argument km2::type_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
     if(args.size() > 0) {
         const auto token = args[0].option<wall_e::lex::token>();
         if(token.has_value()) {
@@ -52,19 +55,19 @@ wall_e::gram::argument km2::type_node::create(const wall_e::gram::arg_vector &ar
     return std::make_shared<type_node>(Undefined, std::nullopt);
 }
 
-wall_e::either<wall_e::error, llvm::Type *> km2::type_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
+wall_e::either<wall_e::error, llvm::Type *> km2::type_node::generate_llvm(const std::shared_ptr<km2::translation_unit> &unit) {
     if(m_type == Unsigned || m_type == Signed) {
         if(m_bits) {
-            return wall_e::right<llvm::Type*>(llvm::Type::getIntNTy(*module->context(), *m_bits));
+            return wall_e::right<llvm::Type*>(unit->cap<type_capability>()->custom_int(*m_bits));
         } else {
             return wall_e::left(wall_e::error("bits not set for integer type"));
         }
     } else if(m_type == Float) {
-        return wall_e::right<llvm::Type*>(llvm::Type::getFloatTy(*module->context()));
+        return wall_e::right<llvm::Type*>(unit->cap<type_capability>()->float32());
     } else if(m_type == Double) {
-        return wall_e::right<llvm::Type*>(llvm::Type::getDoubleTy(*module->context()));
+        return wall_e::right<llvm::Type*>(unit->cap<type_capability>()->float64());
     } else if(m_type == String) {
-        return wall_e::right<llvm::Type*>(llvm::PointerType::get(llvm::Type::getInt8Ty(*module->context()), 0));
+        return wall_e::right<llvm::Type*>(unit->cap<type_capability>()->cstr());
     }
     return wall_e::left(wall_e::error("unknown type_node type"));
 }
@@ -76,6 +79,6 @@ void km2::type_node::print(size_t level, std::ostream &stream) {
 }
 
 
-std::list<wall_e::error> km2::type_node::errors() {
+std::list<wall_e::error> km2::type_node::errors() const {
     return { wall_e::error("err not implemented") };
 }

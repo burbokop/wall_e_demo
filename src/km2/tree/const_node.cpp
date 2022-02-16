@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include <src/km2/module.h>
+#include <src/km2/translation_unit/translation_unit.h>
 #include "arg_node.h"
 
 km2::const_node::const_node(const std::string &id, const std::shared_ptr<arg_node> &value)
@@ -11,7 +11,7 @@ km2::const_node::const_node(const std::string &id, const std::shared_ptr<arg_nod
       m_id(id),
       m_value(value) {}
 
-wall_e::gram::argument km2::const_node::create(const wall_e::gram::arg_vector &args) {
+wall_e::gram::argument km2::const_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
     std::cout << "km2::const_node::create: " << args << std::endl;
     if(args.size() > 3) {
         if(const auto id = args[1].option<wall_e::lex::token>()) {
@@ -35,18 +35,18 @@ void km2::const_node::print(size_t level, std::ostream &stream) {
     }
 }
 
-std::list<wall_e::error> km2::const_node::errors() {
+std::list<wall_e::error> km2::const_node::errors() const {
     return {};
 }
 
-wall_e::either<wall_e::error, llvm::Value *> km2::const_node::generate_llvm(const std::shared_ptr<module> &module) {
-    if(const auto value = m_value->generate_llvm(module)) {
-        const auto status = module->setArg(m_id, value.right_value());
-        if(status == module::ArgSettingSuccess) {
+wall_e::either<wall_e::error, llvm::Value *> km2::const_node::generate_llvm(const std::shared_ptr<translation_unit> &unit) {
+    if(const auto value = m_value->generate_llvm(unit)) {
+        const auto status = unit->set_arg(m_id, value.right_value());
+        if(status == translation_unit::ArgSettingSuccess) {
             return value.right();
-        } else if(status == module::ArgSettingDublicates) {
+        } else if(status == translation_unit::ArgSettingDublicates) {
             return wall_e::left(wall_e::error("ArgSettingDublicates"));
-        } else if(status == module::ArgSettingEmptyStack) {
+        } else if(status == translation_unit::ArgSettingEmptyStack) {
             return wall_e::left(wall_e::error("ArgSettingEmptyStack"));
         } else {
             return wall_e::left(wall_e::error("ArgSettingUnknownStatus"));

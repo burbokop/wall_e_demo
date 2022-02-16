@@ -16,7 +16,7 @@ public:
 
     decl_arg_node(const std::string &name, std::shared_ptr<abstract_type_node> type_node, bool is_variadic = false);
 
-    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
+    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
 
     bool is_variadic() const;
     std::shared_ptr<abstract_type_node> type_node() const;
@@ -28,7 +28,7 @@ public:
 
     // abstract_node interface
 public:
-    virtual std::list<wall_e::error> errors() override;
+    virtual std::list<wall_e::error> errors() const override;
 };
 
 } // namespace km2

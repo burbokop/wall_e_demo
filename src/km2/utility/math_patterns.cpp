@@ -38,14 +38,14 @@ gram::rule math_patterns::add_to(
     return expr_id;
 }
 
-gram::argument math_patterns::add_sub_processor(const gram::arg_vector &args) {
+gram::argument math_patterns::add_sub_processor(const gram::arg_vector &args, const wall_e::index& index) {
     std::list<std::pair<std::string, std::function<int (int, int)>>> operations;
     operations.push_back({ "TOK_PLUS", [](int a, int b){ return a + b; } });
     operations.push_back({ "TOK_MINUS", [](int a, int b){ return a - b; } });
     return binary_int_operator(args, operations);
 }
 
-gram::argument math_patterns::mul_div_processor(const gram::arg_vector &args) {
+gram::argument math_patterns::mul_div_processor(const gram::arg_vector &args, const wall_e::index& index) {
     std::list<std::pair<std::string, std::function<int (int, int)>>> operations;
     operations.push_back({ "TOK_MUL", [](int a, int b){ return a * b; } });
     operations.push_back({ "TOK_DIV", [](int a, int b){
@@ -94,7 +94,7 @@ gram::argument math_patterns::binary_int_operator(const gram::arg_vector &args, 
                 }
             }
         }
-        return gram::pattern::default_processor(args);
+        return gram::pattern::default_processor(args, index(0, 0, 0, 0));
     }
     return gram::argument();
 }

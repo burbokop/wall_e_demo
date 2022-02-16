@@ -24,7 +24,7 @@ class Value;
 
 namespace km2 {
 
-class module;
+class translation_unit;
 class abstract_node;
 
 struct compilation_result {
@@ -32,7 +32,7 @@ struct compilation_result {
     std::shared_ptr<km2::abstract_node> root_node;
     std::vector<wall_e::lex::token> tokens;
     std::string rules;
-    std::shared_ptr<module> mod;
+    std::shared_ptr<translation_unit> unit;
     llvm::Value* llvm_value;
     std::list<wall_e::error> errors;
     std::map<wall_e::text_segment, std::string> hovers;

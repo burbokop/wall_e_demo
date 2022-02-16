@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-#include <src/km2/module.h>
+#include <src/km2/translation_unit/translation_unit.h>
 
 
 km2::proto_node::proto_node(const std::string &name, const std::vector<std::shared_ptr<decl_arg_node> > &args, std::shared_ptr<abstract_type_node> result_type_node)
@@ -14,7 +14,7 @@ km2::proto_node::proto_node(const std::string &name, const std::vector<std::shar
     m_result_type_node(result_type_node)
 {}
 
-wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &args) {
+wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
     std::cout << "km2::proto_node::create: " << args << std::endl;
 
     if(args.size() > 4 && args[0].contains_type<wall_e::lex::token>()) {
@@ -36,7 +36,10 @@ wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &a
     return nullptr;
 }
 
-wall_e::either<wall_e::error, llvm::Value *> km2::proto_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
+wall_e::either<
+    wall_e::error,
+    llvm::Value *
+> km2::proto_node::generate_llvm(const std::shared_ptr<km2::translation_unit> &unit) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     std::vector<llvm::Type*> argTypes;
     bool isVarArg = false;
@@ -47,7 +50,7 @@ wall_e::either<wall_e::error, llvm::Value *> km2::proto_node::generate_llvm(cons
             }
             isVarArg = true;
         } else {
-            if(const auto type = arg->type_node()->generate_llvm(module)) {
+            if(const auto type = arg->type_node()->generate_llvm(unit)) {
                 argTypes.push_back(type.right_value());
             } else {
                 return type.left();
@@ -56,8 +59,8 @@ wall_e::either<wall_e::error, llvm::Value *> km2::proto_node::generate_llvm(cons
     }
 
     if(m_result_type_node) {
-        if (const auto rt = m_result_type_node->generate_llvm(module)) {
-            return wall_e::right<llvm::Value *>(module->proto(rt.right_value(), argTypes, m_name, isVarArg));
+        if (const auto rt = m_result_type_node->generate_llvm(unit)) {
+            return wall_e::right<llvm::Value *>(unit->proto(m_name, argTypes, rt.right_value(), isVarArg));
         } else {
             return rt.left();
         }
@@ -84,6 +87,6 @@ void km2::proto_node::print(size_t level, std::ostream &stream) {
 }
 
 
-std::list<wall_e::error> km2::proto_node::errors() {
+std::list<wall_e::error> km2::proto_node::errors() const {
     return { wall_e::error("err not implemented") };
 }

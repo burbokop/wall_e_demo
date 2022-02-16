@@ -6,7 +6,7 @@
 #include <llvm/IR/Function.h>
 
 
-#include <src/km2/module.h>
+#include <src/km2/translation_unit/translation_unit.h>
 #include <wall_e/src/color.h>
 
 JitExecutor::JitExecutor(QObject *parent) : QObject(parent) {
@@ -42,12 +42,12 @@ JitExecutor::JitExecutor(QObject *parent) : QObject(parent) {
     });
 }
 
-bool JitExecutor::start(const std::shared_ptr<km2::module> &module, llvm::Value *entry) {
+bool JitExecutor::start(const std::shared_ptr<km2::translation_unit> &unit, llvm::Value *entry) {
     if(!executing()) {
         llvm::Function* f = static_cast<llvm::Function*>(entry);
 
-        process = sproc::non_blocking::fork([module, f, this](){
-            if(const auto result = module->runJit(f)) {
+        process = sproc::non_blocking::fork([unit, f, this](){
+            if(const auto result = unit->run_jit(f)) {
                 return result.right_value();
             } else {
                 return -1;

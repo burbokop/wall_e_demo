@@ -9,14 +9,18 @@ namespace llvm { class Value; }
 
 namespace km2 {
 
-class module;
+class translation_unit;
 
 class abstract_value_node : public km2::abstract_node {
 public:
     typedef abstract_node super_type;
-    abstract_value_node(const std::vector<std::shared_ptr<abstract_node>> &children, const wall_e::text_segment &segment = {});
+    abstract_value_node(
+            const wall_e::index& index,
+            const children_t &children,
+            const wall_e::text_segment &segment = {}
+            );
 
-    virtual wall_e::either<wall_e::error, llvm::Value*> generate_llvm(const std::shared_ptr<module> &module) = 0;
+    virtual wall_e::either<wall_e::error, llvm::Value*> generate_llvm(const std::shared_ptr<translation_unit> &unit) = 0;
 };
 
 } // namespace km2

@@ -12,8 +12,8 @@ namespace gram { class pattern; }
 class math_patterns {
 public:
     static gram::rule add_to(std::list<gram::pattern> *patterns, const std::string &preffix);
-    static gram::argument add_sub_processor(const gram::arg_vector &args);
-    static gram::argument mul_div_processor(const gram::arg_vector &args);
+    static gram::argument add_sub_processor(const gram::arg_vector &args, const index &index);
+    static gram::argument mul_div_processor(const gram::arg_vector &args, const index &index);
     static gram::argument binary_int_operator(const gram::arg_vector &args, std::list<std::pair<std::string, std::function<int(int, int)>>> l);
 
     static bool extract_number_str(const std::string &arg, int *number);

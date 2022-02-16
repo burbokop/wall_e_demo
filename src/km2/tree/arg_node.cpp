@@ -2,9 +2,11 @@
 
 #include <iostream>
 
-#include <src/km2/module.h>
+#include <src/km2/translation_unit/translation_unit.h>
 
-std::string km2::arg_node::typeString(const type &t) {
+#include <src/km2/translation_unit/capabilities/constants_capability.h>
+
+std::string km2::arg_node::type_string(const type &t) {
     switch (t) {
     case Id: return "Id";
     case IntLiteral: return "IntLiteral";
@@ -27,7 +29,7 @@ km2::arg_node::arg_node(
       m_text(text),
       m_value_node(value_node) {}
 
-wall_e::gram::argument km2::arg_node::create(const wall_e::gram::arg_vector &args) {
+wall_e::gram::argument km2::arg_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
     std::cout << "km2::arg_node::create: " << args << std::endl;
     if(args.size() > 0) {
         if(args[0].contains_type<wall_e::lex::token>()) {
@@ -51,29 +53,32 @@ wall_e::gram::argument km2::arg_node::create(const wall_e::gram::arg_vector &arg
     return std::make_shared<arg_node>(wall_e::text_segment(), Undefined);
 }
 
-wall_e::either<wall_e::error, llvm::Value *> km2::arg_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
+wall_e::either<
+    wall_e::error,
+    llvm::Value *
+> km2::arg_node::generate_llvm(const std::shared_ptr<km2::translation_unit> &unit) {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     if(m_type == IntLiteral) {
         try {
-            return wall_e::right<llvm::Value *>(module->uintptr(std::stoi(m_text)));
+            return wall_e::right<llvm::Value *>(unit->cap<constants_capability>()->uintptr(std::stoi(m_text)));
         }  catch (std::exception e) {
             return wall_e::left(wall_e::error(m_text + " is not a integer"));
         }
     } else if(m_type == FloatLiteral) {
         try {
-            return wall_e::right<llvm::Value *>(module->float64(std::stod(m_text)));
+            return wall_e::right<llvm::Value *>(unit->cap<constants_capability>()->float64(std::stod(m_text)));
         }  catch (std::exception e) {
             return wall_e::left(wall_e::error(m_text + " is not a floating point number"));
         }
     } else if(m_type == StringLiteral) {
-        module->setupInsertPoint();
-        return wall_e::right<llvm::Value *>(module->string_const_ptr(
+        unit->setup_insert_point();
+        return wall_e::right<llvm::Value *>(unit->cap<constants_capability>()->string_cstr(
                                                 "arg_" + std::to_string(reinterpret_cast<uintptr_t>(this)),
                                                 m_text
                                                 ));
     } else if(m_type == Id) {
-        module->setupInsertPoint();
-        if(const auto a = module->arg(m_text)) {
+        unit->setup_insert_point();
+        if(const auto a = unit->arg(m_text)) {
             return wall_e::right<llvm::Value *>(a);
         } else {
             return wall_e::left(wall_e::error(
@@ -86,8 +91,8 @@ wall_e::either<wall_e::error, llvm::Value *> km2::arg_node::generate_llvm(const 
         }
     } else if(m_type == ValueNode) {
         if(m_value_node) {
-            module->setupInsertPoint();
-            return m_value_node->generate_llvm(module);
+            unit->setup_insert_point();
+            return m_value_node->generate_llvm(unit);
         } else {
             return wall_e::left(wall_e::error("empty value node"));
         }
@@ -98,7 +103,7 @@ wall_e::either<wall_e::error, llvm::Value *> km2::arg_node::generate_llvm(const 
 
 void km2::arg_node::print(size_t level, std::ostream &stream) {
     stream << std::string(level, ' ') << "{arg_node}:" << std::endl;
-    stream << std::string(level + 1, ' ') << "type: " << typeString(m_type) << std::endl;
+    stream << std::string(level + 1, ' ') << "type: " << type_string(m_type) << std::endl;
     stream << std::string(level + 1, ' ') << "text: " << m_text << std::endl;
     if (m_value_node) {
         m_value_node->print(level + 1, stream);
@@ -108,6 +113,6 @@ void km2::arg_node::print(size_t level, std::ostream &stream) {
 }
 
 
-std::list<wall_e::error> km2::arg_node::errors() {
+std::list<wall_e::error> km2::arg_node::errors() const {
     return {};
 }

@@ -7,7 +7,7 @@
 #include <sproc/src/fork.h>
 
 namespace km2 {
-    class module;
+    class translation_unit;
 }
 
 namespace llvm {
@@ -21,7 +21,7 @@ class JitExecutor : public QObject {
     QTimer *timer = nullptr;
 public:
     explicit JitExecutor(QObject *parent = nullptr);
-    bool start(const std::shared_ptr<km2::module> &module, llvm::Value* entry);
+    bool start(const std::shared_ptr<km2::translation_unit> &unit, llvm::Value* entry);
     void abort();
 
 signals:

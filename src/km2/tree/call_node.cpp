@@ -3,21 +3,22 @@
 
 #include <wall_e/src/utility/token_tools.h>
 #include <iostream>
-#include <src/km2/module/module.h>
+#include <src/km2/translation_unit/translation_unit.h>
+#include <src/km2/translation_unit/capabilities/namespace_capability.h>
 
 
 
-km2::call_node::call_node(
+km2::call_node::call_node(const wall_e::index &index,
         const std::string &name,
         const std::vector<std::shared_ptr<km2::abstract_value_node>>& args,
         const wall_e::text_segment& name_segment
-        ) : km2::abstract_value_node(cast_to_children(args)) {
+        ) : km2::abstract_value_node(index, cast_to_children(args)) {
     m_name = name;
     m_args = args;
     m_name_segment = name_segment;
 }
 
-wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &args) {
+wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
     std::cout << "km2::call_node::create" << std::endl;
     if(args.size() > 2) {
         const auto function_name_token = args[0].value<wall_e::lex::token>();
@@ -43,7 +44,10 @@ wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &ar
 }
 
 
-wall_e::either<wall_e::error, llvm::Value *> km2::call_node::generate_llvm(const std::shared_ptr<km2::module> &module) {
+wall_e::either<
+    wall_e::error,
+    llvm::Value *
+> km2::call_node::generate_llvm(const std::shared_ptr<km2::translation_unit> &unit) {
     std::cout << __PRETTY_FUNCTION__ << "name: " << m_name << std::endl;
 
     std::list<std::string> namepace_name;
@@ -51,62 +55,60 @@ wall_e::either<wall_e::error, llvm::Value *> km2::call_node::generate_llvm(const
         namepace_name = ns->full_name();
     }
 
-    const auto proto = module->findFunction(namepace_name, m_name);
-    if (!proto) {
+    if(const auto block_node = nearest_ancestor<km2::block_node>()) {
+        if(const auto& overload = block_node->find_overload_in_whole_tree(namepace_name, m_name)) {
+            std::vector<llvm::Value*> args;
+            std::vector<llvm::Type*> arg_types;
+            std::vector<wall_e::text_segment> arg_segments;
+            args.reserve(m_args.size());
+            arg_types.reserve(m_args.size());
+            for(const auto& arg : m_args) {
+                if (arg) {
+                    if(const auto arg_value = arg->generate_llvm(unit)) {
+                        const auto& argr = arg_value.right_value();
+                        args.push_back(argr);
+                        arg_types.push_back(argr->getType());
+                        arg_segments.push_back(arg->segment());
+                    } else {
+                        return arg_value.left();
+                    }
+                } else {
+                    args.push_back(nullptr);
+                    arg_types.push_back(nullptr);
+                    arg_segments.push_back({});
+                }
+            }
+
+            if(const auto& func = overload->find(arg_types, nullptr)) {
+                unit->setup_insert_point();
+                return wall_e::right<llvm::Value *>(unit->llvm_builder()->CreateCall(func, args));
+            } else {
+                return wall_e::left(wall_e::error(
+                                        "function '" + m_name + "' not defined for specific arg types",
+                                        wall_e::error::severity::err,
+                                        wall_e::error::stage::semantic,
+                                        0,
+                                        m_name_segment
+                                        ));
+            }
+        } else {
+            return wall_e::left(wall_e::error(
+                                    "function '" + m_name + "' not defined",
+                                    wall_e::error::severity::err,
+                                    wall_e::error::stage::semantic,
+                                    0,
+                                    m_name_segment
+                                    ));
+        }
+    } else {
         return wall_e::left(wall_e::error(
-                                "function '" + m_name + "' not defined",
+                                "function '" + m_name + "' not defined in block",
                                 wall_e::error::severity::err,
                                 wall_e::error::stage::semantic,
                                 0,
                                 m_name_segment
                                 ));
     }
-
-    std::vector<llvm::Value*> args;
-    std::vector<wall_e::text_segment> arg_segments;
-    args.reserve(m_args.size());
-    for(const auto& arg : m_args) {
-        if (arg) {
-            if(const auto arg_value = arg->generate_llvm(module)) {
-                args.push_back(arg_value.right_value());
-                arg_segments.push_back(arg->segment());
-            } else {
-                return arg_value.left();
-            }
-        } else {
-            args.push_back(nullptr);
-            arg_segments.push_back({});
-        }
-    }
-
-    for(size_t i = 0, s = proto->arg_size(); i < s; ++i) {
-        const auto func_type = proto->getArg(i)->getType();
-        const auto arg_type = args[i]->getType();
-        const auto arg_segment = arg_segments[i];
-
-
-        if(func_type->getTypeID() != arg_type->getTypeID()) {
-            std::string err_message;
-            llvm::raw_string_ostream err_message_stream(err_message);
-            err_message_stream
-                    << "arg type '" << *arg_type
-                    << "' does not match with '" << *func_type
-                    << "' of func '" << m_name
-                    << "'";
-
-            return wall_e::left(wall_e::error(
-                                    err_message,
-                                    wall_e::error::err,
-                                    wall_e::error::stage::semantic,
-                                    0,
-                                    arg_segment
-                                    ));
-        }
-    }
-
-    module->setupInsertPoint();
-
-    return wall_e::right<llvm::Value *>(module->builder()->CreateCall(proto, args));
 }
 
 
@@ -124,6 +126,6 @@ void km2::call_node::print(size_t level, std::ostream &stream) {
 }
 
 
-std::list<wall_e::error> km2::call_node::errors() {
+std::list<wall_e::error> km2::call_node::errors() const {
     return {};
 }

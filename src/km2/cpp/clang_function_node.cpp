@@ -19,6 +19,7 @@ clang_function_node::target_ptr_type clang_function_node::km2_node() const {
     }
 
     return std::make_shared<km2::function_node>(
+                wall_e::index(0, 0, 0, 0),
                 origin->getNameAsString(),
                 args,
                 nullptr//std::make_shared<clang_block_node>(decl->getBody())

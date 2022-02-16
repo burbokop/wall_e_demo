@@ -19,7 +19,7 @@ public:
         ValueNode,
         Undefined
     };
-    static std::string typeString(const type& t);
+    static std::string type_string(const type& t);
 private:
     type m_type;
     std::string m_text;
@@ -33,14 +33,17 @@ public:
             std::shared_ptr<abstract_value_node> value_node = nullptr
             );
 
-    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
+    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
 
 
     // node interface
 public:
-    virtual wall_e::either<wall_e::error, llvm::Value*> generate_llvm(const std::shared_ptr<module> &module) override;
+    virtual wall_e::either<
+        wall_e::error,
+        llvm::Value*
+    > generate_llvm(const std::shared_ptr<translation_unit> &unit) override;
     virtual void print(size_t level, std::ostream &stream) override;    
-    virtual std::list<wall_e::error> errors() override;
+    virtual std::list<wall_e::error> errors() const override;
 };
 
 } // namespace km2

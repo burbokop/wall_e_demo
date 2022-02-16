@@ -1,4 +1,4 @@
-#include "module.h"
+#include "translation_unit.h"
 
 #include <iostream>
 #include <regex>
@@ -36,40 +36,28 @@
 #include "llvm/Support/Host.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
+
 #pragma warning(pop)
 
 #include <sproc/src/fork.h>
 
 #include <wall_e/src/lex.h>
 
-km2::module::module() {
+#include <src/km2/translation_unit/capabilities/constants_capability.h>
+
+km2::translation_unit::translation_unit() {
     m_context = std::make_unique<llvm::LLVMContext>();
     m_builder = std::unique_ptr<llvm::IRBuilder<>>(new llvm::IRBuilder<>(*m_context));
     m_module = std::make_unique<llvm::Module>("Module", *m_context);
 
 }
 
-llvm::Value *km2::module::execute(const std::function<llvm::Value *(llvm::LLVMContext *, llvm::IRBuilder<> *, llvm::Module *)> &func) {
+llvm::Value *km2::translation_unit::execute(const std::function<llvm::Value *(llvm::LLVMContext *, llvm::IRBuilder<> *, llvm::Module *)> &func) {
     return func(m_context.get(), m_builder.get(), m_module.get());
 }
 
-llvm::ConstantInt *km2::module::uint32(uint32_t value) {
-    return llvm::ConstantInt::getSigned((llvm::Type::getInt32Ty(*m_context)), value);
-}
 
-llvm::ConstantInt *km2::module::uintptr(uintptr_t value) {
-    return llvm::ConstantInt::getSigned(m_builder->getIntPtrTy(m_module->getDataLayout()), value);
-}
-
-llvm::ConstantInt *km2::module::uint(uint64_t value, size_t size) {
-    return llvm::ConstantInt::getSigned(m_builder->getIntNTy(size), value);
-}
-
-llvm::Constant *km2::module::float64(double value) {
-    return llvm::ConstantFP::get(llvm::Type::getDoubleTy(*m_context.get()), value);
-}
-
-km2::module::ArgSettingStatus km2::module::setArg(const std::string &name, llvm::Value *value) {
+km2::translation_unit::ArgSettingStatus km2::translation_unit::set_arg(const std::string &name, llvm::Value *value) {
     if(m_stack.size() > 0) {
         auto& args = m_stack.top().args;
         const auto it = args.find(name);
@@ -82,7 +70,7 @@ km2::module::ArgSettingStatus km2::module::setArg(const std::string &name, llvm:
     return ArgSettingEmptyStack;
 }
 
-llvm::Value *km2::module::arg(const std::string &name) const {
+llvm::Value *km2::translation_unit::arg(const std::string &name) const {
     if(m_stack.size() > 0) {
         const auto& args = m_stack.top().args;
         const auto it = args.find(name);
@@ -93,27 +81,11 @@ llvm::Value *km2::module::arg(const std::string &name) const {
     return nullptr;
 }
 
-llvm::FunctionType *km2::module::func(llvm::Type* returnType, llvm::ArrayRef<llvm::Type*> argTypes) {
+llvm::FunctionType *km2::translation_unit::func(llvm::Type* returnType, llvm::ArrayRef<llvm::Type*> argTypes) {
     return llvm::FunctionType::get(returnType, argTypes, false);
 }
 
-llvm::Value *km2::module::string_const_ptr(const std::string &name, const std::string &text) {
-    const auto str = llvm::ConstantDataArray::getString(*m_context.get(), text, true);
-
-    const auto global_str = new llvm::GlobalVariable(
-                *m_module.get(),
-                str->getType(),
-                true,
-                llvm::GlobalValue::ExternalLinkage,
-                str,
-                name
-                );
-
-    return m_builder->CreateGEP(global_str, uintptr(0));
-}
-
-
-llvm::BasicBlock *km2::module::beginBlock(
+llvm::BasicBlock *km2::translation_unit::begin_block(
         const std::string &name,
         llvm::Function *func,
         const std::vector<std::string> &argNames
@@ -134,31 +106,31 @@ llvm::BasicBlock *km2::module::beginBlock(
     return entryBasicBlock;
 }
 
-void km2::module::endBlock() {
+void km2::translation_unit::end_block() {
     if(m_stack.size() > 0) {
         m_stack.pop();
     }
 }
 
-void km2::module::setupInsertPoint() {
+void km2::translation_unit::setup_insert_point() {
     if(m_stack.size() > 0) {
         m_builder->SetInsertPoint(m_stack.top().block);
     }
 }
 
-llvm::Function *km2::module::beginEntry(const std::string &name) {
+llvm::Function *km2::translation_unit::begin_entry(const std::string &name) {
     const auto result = llvm::Function::Create(
                 llvm::FunctionType::get(llvm::Type::getInt32Ty(*m_context.get()), {}, false),
                 llvm::Function::ExternalLinkage,
                 name,
                 m_module.get()
                 );
-    beginBlock(name + "_block", result);
+    begin_block(name + "_block", result);
     return result;
 }
 
-int km2::module::gen() {
-    auto someVal = uint32(42);
+int km2::translation_unit::gen() {
+    auto someVal = cap<constants_capability>()->uint32(42);
 
     std::string debug;
     llvm::raw_string_ostream s(debug);
@@ -182,7 +154,7 @@ int km2::module::gen() {
     return 0;
 }
 
-llvm::Function *km2::module::createSumFunction() {
+llvm::Function *km2::translation_unit::createSumFunction() {
     /* Builds the following function:
 
         int sum(int a, int b) {
@@ -229,9 +201,8 @@ llvm::Function *km2::module::createSumFunction() {
     return fooFunc;
 }
 
-int km2::module::aaa() {
+int km2::translation_unit::aaa() {
     auto sumFunc = createSumFunction();
-
 
     const auto m_entryPoint = llvm::Function::Create(
                 llvm::FunctionType::get(llvm::Type::getInt32Ty(*m_context.get()), {}, false),
@@ -244,8 +215,8 @@ int km2::module::aaa() {
     m_builder->SetInsertPoint(entryBasicBlock);
 
     auto a = m_builder->CreateCall(sumFunc, {
-                                       uint32(10),
-                                       uint32(20)
+                                       cap<constants_capability>()->uint32(10),
+                                       cap<constants_capability>()->uint32(20)
                                    });
 
     auto printf_func = m_module->getOrInsertFunction(
@@ -257,7 +228,7 @@ int km2::module::aaa() {
                     )
                 );
 
-    const auto format_str_ptr = string_const_ptr(".fmt", "Hello World: %d\n");
+    const auto format_str_ptr = cap<constants_capability>()->string_cstr(".fmt", "Hello World: %d\n");
 
     m_builder->CreateCall(printf_func, {
                               format_str_ptr,
@@ -275,12 +246,12 @@ int km2::module::aaa() {
     return 0;
 }
 
-std::pair<std::string, llvm::Function *> km2::module::proto(llvm::Type* resultType, std::vector<llvm::Type*> argTypes, const std::list<std::string> &namespace_name, const std::string& name, bool isVarArg) {
+llvm::Function *km2::translation_unit::proto(const std::string& name, std::vector<llvm::Type*> arg_types, llvm::Type* result_type, bool is_var_arg) {
     return llvm::Function::Create(
                 llvm::FunctionType::get(
-                    resultType,
-                    argTypes,
-                    isVarArg
+                    result_type,
+                    arg_types,
+                    is_var_arg
                     ),
                 llvm::Function::ExternalLinkage,
                 name,
@@ -288,11 +259,7 @@ std::pair<std::string, llvm::Function *> km2::module::proto(llvm::Type* resultTy
                 );
 }
 
-llvm::Function *km2::module::findFunction(std::list<std::string> &call_namespace, const std::string &func_name) {
-    return nullptr;
-}
-
-llvm::CallInst *km2::module::inline_asm(const std::string& text) {
+llvm::CallInst *km2::translation_unit::inline_asm(const std::string& text) {
 
     llvm::InlineAsm *IA = llvm::InlineAsm::get(nullptr, text, "", true, false);
 
@@ -302,18 +269,18 @@ llvm::CallInst *km2::module::inline_asm(const std::string& text) {
     return result;
 }
 
-void km2::module::print() {
+void km2::translation_unit::print() {
     llvm::outs() << llvm::raw_ostream::CYAN << "\nMODULE:\n" << llvm::raw_ostream::YELLOW << *m_module.get() << llvm::raw_ostream::RESET;
 }
 
-std::string km2::module::llvmAssembly() const {
+std::string km2::translation_unit::llvm_assembly() const {
     std::string result;
     llvm::raw_string_ostream stream(result);
     stream << *m_module.get();
     return result;
 }
 
-wall_e::either<std::string, int> km2::module::runJit(llvm::Function *entry_point) {
+wall_e::either<std::string, int> km2::translation_unit::run_jit(llvm::Function *entry_point) {
     //std::cout << "\nRUN JIT\n";
     //
     //llvm::outs() << "Blocks:\n";
@@ -352,7 +319,7 @@ wall_e::either<std::string, int> km2::module::runJit(llvm::Function *entry_point
     return wall_e::left<std::string>("entry point not specified");
 }
 
-wall_e::either<std::string, int> km2::module::compile(const std::string &output_path) {
+wall_e::either<std::string, int> km2::translation_unit::compile(const std::string &output_path) {
     auto target_triple = llvm::sys::getDefaultTargetTriple();
     llvm::outs() << "TargetTriple: " << target_triple << "\n";
 
@@ -405,7 +372,7 @@ wall_e::either<std::string, int> km2::module::compile(const std::string &output_
     return wall_e::right(0);
 }
 
-wall_e::either<std::string, int> km2::module::make_executable(const std::string &output_path) {
+wall_e::either<std::string, int> km2::translation_unit::make_executable(const std::string &output_path) {
     const auto object_path = output_path + ".o";
     if(const auto err = compile(object_path).left()) {
         return err;
@@ -420,21 +387,20 @@ wall_e::either<std::string, int> km2::module::make_executable(const std::string 
 }
 
 
-llvm::LLVMContext* km2::module::context() const {
+llvm::LLVMContext* km2::translation_unit::llvm_context() const {
     return m_context.get();
 }
 
-llvm::Module* km2::module::llvmModule() const {
+llvm::Module* km2::translation_unit::llvm_module() const {
     return m_module.get();
 }
 
-llvm::IRBuilder<>* km2::module::builder() const {
+llvm::IRBuilder<>* km2::translation_unit::llvm_builder() const {
     return m_builder.get();
 }
 
-
-
-
-km2::namespace_cap &km2::module::namespace_capability() {
-    return m_namespace_capability;
+km2::translation_unit::~translation_unit() {
+    for(const auto& c : m_capabilities) {
+        delete c.second;
+    }
 }

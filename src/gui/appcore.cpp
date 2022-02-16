@@ -5,7 +5,7 @@
 #include <QTextBlock>
 #include <QThread>
 #include <QtConcurrent>
-#include <src/km2/module.h>
+#include <src/km2/translation_unit/translation_unit.h>
 
 void AppCore::recompile() {
     km2::flags flags;
@@ -31,8 +31,8 @@ void AppCore::recompile() {
 }
 
 QString AppCore::makeExecutable(const QString &path) {
-    if(lastResult.mod) {
-        if(const auto err = lastResult.mod->make_executable(path.toStdString()).left()) {
+    if(lastResult.unit) {
+        if(const auto err = lastResult.unit->make_executable(path.toStdString()).left()) {
             return errToString(err.value());
         }
         return {};
@@ -46,8 +46,8 @@ void AppCore::completeCompilation(const km2::compilation_result &cresult) {
     setTree(cresult.token_tree);
 
     qDebug() << "COMPILATION COMPLETE";
-    if(cresult.mod) {
-        setAsmCode(QString::fromStdString(cresult.mod->llvmAssembly()));
+    if(cresult.unit) {
+        setAsmCode(QString::fromStdString(cresult.unit->llvm_assembly()));
     } else {
         setAsmCode("err: empty module");
     }
@@ -84,7 +84,7 @@ AppCore::AppCore(QObject *parent) : QObject(parent) {
 }
 
 bool AppCore::startExecuting() {
-    return executor()->start(lastResult.mod, lastResult.llvm_value);
+    return executor()->start(lastResult.unit, lastResult.llvm_value);
 }
 
 QString AppCore::errToString(const wall_e::error &err) const {

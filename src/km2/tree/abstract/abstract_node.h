@@ -5,19 +5,24 @@
 #include <list>
 #include <functional>
 #include <wall_e/src/private/gram_private.h>
+#include <src/km2/translation_unit/models/context.h>
 
 namespace km2 {
 
 struct abstract_node {
-    typedef std::function<wall_e::gram::argument(const wall_e::gram::arg_vector &)> factory;
+    typedef std::function<wall_e::gram::argument(const wall_e::gram::arg_vector &, const wall_e::index&)> factory;
     typedef std::vector<std::shared_ptr<abstract_node>> children_t;
+
 private:
+
+    static std::vector<context> contexts(const children_t& children);
 
     const wall_e::text_segment m_segment;
     km2::abstract_node* m_parent = nullptr;
     const children_t m_children;
-
     mutable std::map<std::size_t, abstract_node*> m_ancestor_cache;
+    const km2::context m_context;
+    const wall_e::index m_index;
 
     template<typename T>
     static children_t __cast_to_children(const std::vector<std::shared_ptr<T>>& vecs) {
@@ -29,9 +34,11 @@ private:
         return result;
     }
 public:
-
-    abstract_node(const children_t &children, const wall_e::text_segment& segment = {});
-
+    abstract_node(
+            const wall_e::index& index,
+            const children_t &children,
+            const wall_e::text_segment& segment = {}
+            );
 
     abstract_node* parent() const;
 
@@ -58,8 +65,13 @@ public:
     template<typename T>
     T* parent_as() const { return dynamic_cast<T*>(parent()); }
 
+    /**
+     * @brief nearest_ancestor
+     * @param break_other - break recursion and return nullptr if parent type neither T nor this type
+     * @return
+     */
     template<typename T>
-    T* nearest_ancestor() const {
+    T* nearest_ancestor(bool break_other = false) const {
         const auto& hash = typeid (T).hash_code();
         const auto& it = m_ancestor_cache.find(hash);
         if(it != m_ancestor_cache.end()) {
@@ -70,7 +82,11 @@ public:
             if(const auto& casted_p = dynamic_cast<T*>(p)) {
                 m_ancestor_cache[hash] = p;
                 return casted_p;
-            } else if(const auto ancestor = p->nearest_ancestor<T>()) {
+            }
+            if(break_other && !dynamic_cast<std::remove_const<decltype (this)>::type>(p)) {
+                return nullptr;
+            }
+            if(const auto ancestor = p->nearest_ancestor<T>(break_other)) {
                 m_ancestor_cache[hash] = ancestor;
                 return ancestor;
             }
@@ -83,7 +99,9 @@ public:
     children_t children() const;
 
     virtual void print(size_t level, std::ostream &stream) = 0;
-    virtual std::list<wall_e::error> errors() = 0;
+    virtual std::list<wall_e::error> errors() const = 0;
+    const km2::context &context() const;
+    const wall_e::index &index() const;
 };
 
 } // namespace km2

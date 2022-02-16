@@ -13,19 +13,22 @@ class internal_block_node : public km2::abstract_value_node {
 public:
     typedef abstract_value_node super_type;
 
-    internal_block_node(std::shared_ptr<stmt_node> stmt, std::shared_ptr<internal_block_node> next_node = nullptr);
+    internal_block_node(const wall_e::index &index, std::shared_ptr<stmt_node> stmt, std::shared_ptr<internal_block_node> next_node = nullptr);
 
-    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args);
+    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
 
 
     // node interface
 public:
-    virtual wall_e::either<wall_e::error, llvm::Value*> generate_llvm(const std::shared_ptr<module> &module) override;
+    virtual wall_e::either<
+        wall_e::error,
+        llvm::Value*
+    > generate_llvm(const std::shared_ptr<translation_unit> &unit) override;
     virtual void print(size_t level, std::ostream &stream) override;
 
     // abstract_node interface
 public:
-    virtual std::list<wall_e::error> errors() override;
+    virtual std::list<wall_e::error> errors() const override;
 };
 
 } // namespace km2

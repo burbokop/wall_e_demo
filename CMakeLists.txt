@@ -64,8 +64,15 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/km2.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/math_patterns.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/function.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/module/module.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/module/namespace_cap.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/translation_unit.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/abstract_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/type_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/constants_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/namespace_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/symbol.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/function.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/overload.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/context.cpp
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/lsp/service.cpp
 
@@ -102,8 +109,15 @@ set(KM2_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/km2.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/math_patterns.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/function.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/module/module.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/module/namespace_cap.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/translation_unit.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/abstract_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/type_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/constants_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/namespace_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/symbol.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/function.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/overload.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/context.h
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/lsp/service.h
 

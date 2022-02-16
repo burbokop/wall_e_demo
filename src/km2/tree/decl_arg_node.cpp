@@ -20,7 +20,7 @@ km2::decl_arg_node::decl_arg_node(const std::string &name, std::shared_ptr<abstr
     m_is_variadic(is_variadic)
 {}
 
-wall_e::gram::argument km2::decl_arg_node::create(const wall_e::gram::arg_vector &args) {
+wall_e::gram::argument km2::decl_arg_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
     if(args.size() > 1) {
         if(args[0].contains_type<wall_e::lex::token>()) {
             const auto id = args[0].value<wall_e::lex::token>().text;
@@ -48,6 +48,6 @@ void km2::decl_arg_node::print(size_t level, std::ostream &stream) {
 }
 
 
-std::list<wall_e::error> km2::decl_arg_node::errors() {
+std::list<wall_e::error> km2::decl_arg_node::errors() const {
     return {};
 }

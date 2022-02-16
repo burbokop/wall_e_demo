@@ -1,4 +1,4 @@
-#include "module/module.h"
+#include "translation_unit/translation_unit.h"
 #include "km2.h"
 
 #include <regex>
@@ -266,18 +266,18 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
 
 
             std::cout << "LLVM:"<< std::endl;
-            const auto module = std::make_shared<km2::module>();            
-            if(const auto gen_result = node->generate_llvm(module)) {
+            const auto unit = std::make_shared<km2::translation_unit>();
+            if(const auto gen_result = node->generate_llvm(unit)) {
                 llvm::Value* llvm_value = gen_result.right_value();
 
-                module->print();
+                unit->print();
 
                 return {
                     .token_tree = result,
                     .root_node = node,
                     .tokens = sorted_tokens,
                     .rules = wall_e::gram::pattern::to_string(gram_list),
-                    .mod = module,
+                    .unit = unit,
                     .llvm_value = llvm_value,
                     .errors = {}
                 };
