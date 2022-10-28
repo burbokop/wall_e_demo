@@ -1,4 +1,5 @@
 #include "context.h"
+#include <wall_e/src/private/gram_private.h>
 
 km2::context::context() {}
 
@@ -31,6 +32,10 @@ std::shared_ptr<km2::overload> km2::context::find_overload(
 
 km2::context km2::context::operator +(const context &other) const {
     return km2::context();
+}
+
+std::ostream &km2::context::print(std::ostream &stream) const {
+    return stream << "context " << m_overloads;
 }
 
 

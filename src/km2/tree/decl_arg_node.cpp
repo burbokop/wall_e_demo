@@ -13,8 +13,8 @@ std::string km2::decl_arg_node::name() const {
     return m_name;
 }
 
-km2::decl_arg_node::decl_arg_node(const std::string &name, std::shared_ptr<abstract_type_node> type_node, bool is_variadic)
-    : km2::abstract_node({ type_node }),
+km2::decl_arg_node::decl_arg_node(const wall_e::index &index, const std::string &name, std::shared_ptr<abstract_type_node> type_node, bool is_variadic)
+    : km2::abstract_node(index, { type_node }),
     m_name(name),
     m_type_node(type_node),
     m_is_variadic(is_variadic)
@@ -25,17 +25,17 @@ wall_e::gram::argument km2::decl_arg_node::create(const wall_e::gram::arg_vector
         if(args[0].contains_type<wall_e::lex::token>()) {
             const auto id = args[0].value<wall_e::lex::token>().text;
             if(args[1].value_or<wall_e::lex::token>().name == "THREE_DOT") {
-                return std::make_shared<decl_arg_node>(id, nullptr, true);
+                return std::make_shared<decl_arg_node>(index, id, nullptr, true);
             } else {
-                return std::make_shared<decl_arg_node>(id, args[1].cast_or<std::shared_ptr<abstract_type_node>>(), false);
+                return std::make_shared<decl_arg_node>(index, id, args[1].cast_or<std::shared_ptr<abstract_type_node>>(), false);
             }
         }
     }
-    return std::make_shared<decl_arg_node>(std::string(), nullptr, false);
+    return std::make_shared<decl_arg_node>(index, std::string(), nullptr, false);
 }
 
 
-void km2::decl_arg_node::print(size_t level, std::ostream &stream) {
+void km2::decl_arg_node::print(size_t level, std::ostream &stream) const {
     stream << std::string(level, ' ') << "{decl_arg_node}:" << std::endl;
     stream << std::string(level + 1, ' ') << "name: " << m_name << std::endl;
     if(m_type_node) {
@@ -45,6 +45,10 @@ void km2::decl_arg_node::print(size_t level, std::ostream &stream) {
     } else {
         stream << std::string(level + 1, ' ') << "not variadic & type missing" << std::endl;
     }
+}
+
+void km2::decl_arg_node::short_print(std::ostream &stream) const {
+    stream << "decl_arg_node { name: " << m_name << ", is_variadic: " << m_is_variadic << " }";
 }
 
 

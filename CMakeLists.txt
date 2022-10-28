@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.18.4)
 
 project(km2ide LANGUAGES CXX VERSION 0.0.1)
 
@@ -41,12 +41,9 @@ set(CLANG_LIBRARY_LIST
     clangToolingCore
     )
 
+message("CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 
-find_package(Qt6 COMPONENTS Core Quick Qml Concurrent)
-if (NOT Qt6_FOUND)
-    find_package(Qt5 COMPONENTS Core Quick Qml Concurrent REQUIRED)
-endif()
-
+find_package(Qt6 REQUIRED COMPONENTS Core Quick Qml Concurrent)
 
 set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_parser.cpp
@@ -214,6 +211,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/sproc/sproc.cmake)
 find_package(LLVM REQUIRED)
 find_package(Clang REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${CLANG_INCLUDE_DIRS})
 
 #clang
 include_directories(${LLVM_BUILD_MAIN_SRC_DIR}/tools/clang/include)

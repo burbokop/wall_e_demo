@@ -25,7 +25,7 @@ JitExecutor::JitExecutor(QObject *parent) : QObject(parent) {
             if(result.has_value()) {
                 emit message(QString::fromStdString(result.value().out), false);
                 emit message(QString::fromStdString(result.value().err), true);
-                emit message("__finished with code: " + QString::number(result.value().ext_code) + " __", false);
+                emit message("finished with code: " + QString::number(result.value().ext_code), false);
                 timer->stop();
                 setExecuting(false);
             } else {

@@ -1,4 +1,5 @@
 #include "decl_arg_node.h"
+#include "namespace_node.h"
 #include "proto_node.h"
 #include <wall_e/src/utility/token_tools.h>
 
@@ -7,8 +8,8 @@
 #include <src/km2/translation_unit/translation_unit.h>
 
 
-km2::proto_node::proto_node(const std::string &name, const std::vector<std::shared_ptr<decl_arg_node> > &args, std::shared_ptr<abstract_type_node> result_type_node)
-    : km2::abstract_value_node(cast_to_children(args, std::vector { result_type_node })),
+km2::proto_node::proto_node(const wall_e::index& index, const std::string &name, const std::vector<std::shared_ptr<decl_arg_node> > &args, std::shared_ptr<abstract_type_node> result_type_node)
+    : km2::abstract_value_node(index, cast_to_children(args, std::vector { result_type_node })),
     m_name(name),
     m_args(args),
     m_result_type_node(result_type_node)
@@ -28,6 +29,7 @@ wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &a
         }
 
         return std::make_shared<proto_node>(
+                index,
                 args[0].value<wall_e::lex::token>().text,
                 da_nodes,
                 args[4].cast_or<std::shared_ptr<abstract_type_node>>()
@@ -60,7 +62,20 @@ wall_e::either<
 
     if(m_result_type_node) {
         if (const auto rt = m_result_type_node->generate_llvm(unit)) {
-            return wall_e::right<llvm::Value *>(unit->proto(m_name, argTypes, rt.right_value(), isVarArg));
+            const auto& proto = unit->proto(m_name, argTypes, rt.right_value(), isVarArg);
+
+            std::list<std::string> namepace_name;
+            if(const auto& ns = nearest_ancestor<namespace_node>()) {
+                namepace_name = ns->full_name();
+            }
+
+            if(const auto& block_node = nearest_ancestor<km2::block_node>()) {
+                if(const auto& error = block_node->add_function(km2::function(namepace_name, m_name, proto))) {
+                    return wall_e::left(*error);
+                }
+            }
+
+            return wall_e::right<llvm::Value *>(proto);
         } else {
             return rt.left();
         }
@@ -69,7 +84,7 @@ wall_e::either<
     }
 }
 
-void km2::proto_node::print(size_t level, std::ostream &stream) {
+void km2::proto_node::print(size_t level, std::ostream &stream) const {
     stream << std::string(level, ' ') << "{proto_node}:" << std::endl;
     stream << std::string(level + 1, ' ') << "name: " << m_name << std::endl;
     for(const auto& arg : m_args) {
@@ -89,4 +104,8 @@ void km2::proto_node::print(size_t level, std::ostream &stream) {
 
 std::list<wall_e::error> km2::proto_node::errors() const {
     return { wall_e::error("err not implemented") };
+}
+
+void km2::proto_node::short_print(std::ostream &stream) const {
+    stream << "proto_node: { name: " << m_name << " }";
 }

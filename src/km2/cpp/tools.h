@@ -8,8 +8,13 @@
 #include <clang/AST/Decl.h>
 #pragma GCC diagnostic pop
 
+#include <wall_e/src/models/index.h>
+
 namespace clang_tools {
 std::string decl_name(clang::Decl* decl);
+
+[[deprecated("Do not use it")]]
+inline wall_e::index index_plug() { return wall_e::index(0, 0, 0, 0); }
 }
 
 

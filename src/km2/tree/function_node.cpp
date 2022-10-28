@@ -21,7 +21,8 @@ wall_e::gram::argument km2::function_node::create(const wall_e::gram::arg_vector
         }
 
         return std::make_shared<function_node>(
-                    args[0].value<wall_e::lex::token>().text,
+                index,
+                args[0].value<wall_e::lex::token>().text,
                 da_nodes,
                 args[5].cast_or<std::shared_ptr<abstract_value_node>>()
                 );
@@ -86,7 +87,7 @@ llvm::Value *
     return wall_e::right<llvm::Value *>(proto);
 }
 
-void km2::function_node::print(size_t level, std::ostream &stream) {
+void km2::function_node::print(size_t level, std::ostream &stream) const {
     stream << std::string(level, ' ') << "{function_node}:" << std::endl;
     if(const auto ns = nearest_ancestor<namespace_node>()) {
         stream << std::string(level + 1, ' ') << "name: " << wall_e::lex::join(ns->full_name(), "::") << "::" << m_name << std::endl;
@@ -112,4 +113,8 @@ void km2::function_node::print(size_t level, std::ostream &stream) {
 
 std::list<wall_e::error> km2::function_node::errors() const {
     return {};
+}
+
+void km2::function_node::short_print(std::ostream &stream) const {
+    stream << "function_node { name: " << m_name << ", args: " << m_args << " }";
 }

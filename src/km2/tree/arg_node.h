@@ -26,7 +26,7 @@ private:
     std::shared_ptr<abstract_value_node> m_value_node;
 public:
 
-    arg_node(
+    arg_node(const wall_e::index &index,
             const wall_e::text_segment& segment,
             type t,
             const std::string& text = {},
@@ -42,8 +42,12 @@ public:
         wall_e::error,
         llvm::Value*
     > generate_llvm(const std::shared_ptr<translation_unit> &unit) override;
-    virtual void print(size_t level, std::ostream &stream) override;    
+    virtual void print(size_t level, std::ostream &stream) const override;
     virtual std::list<wall_e::error> errors() const override;
+
+    // abstract_node interface
+public:
+    virtual void short_print(std::ostream &stream) const override;
 };
 
 } // namespace km2

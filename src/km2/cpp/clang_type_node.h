@@ -3,7 +3,9 @@
 
 #include "abstract_clang_node.h"
 
+#pragma clang warning(push, 0)
 #include <clang/AST/Type.h>
+#pragma clang warning(pop)
 
 #include <src/km2/tree/type_node.h>
 

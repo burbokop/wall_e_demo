@@ -35,6 +35,7 @@ wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &ar
         }
 
         return std::make_shared<call_node>(
+                    index,
                     function_name_token.text,
                     funcArgs,
                     function_name_token.segment()
@@ -56,6 +57,7 @@ wall_e::either<
     }
 
     if(const auto block_node = nearest_ancestor<km2::block_node>()) {
+        std::cout << __PRETTY_FUNCTION__ << "find: " << namepace_name << "::" << m_name << std::endl;
         if(const auto& overload = block_node->find_overload_in_whole_tree(namepace_name, m_name)) {
             std::vector<llvm::Value*> args;
             std::vector<llvm::Type*> arg_types;
@@ -113,10 +115,10 @@ wall_e::either<
 
 
 
-void km2::call_node::print(size_t level, std::ostream &stream) {
+void km2::call_node::print(size_t level, std::ostream &stream) const {
     stream << std::string(level, ' ') << "{call_node}:" << std::endl;
     stream << std::string(level + 1, ' ') << "name: " << m_name << std::endl;
-    for(const auto arg : m_args) {
+    for(const auto &arg : m_args) {
         if(arg) {
             arg->print(level + 1, stream);
         } else {
@@ -128,4 +130,8 @@ void km2::call_node::print(size_t level, std::ostream &stream) {
 
 std::list<wall_e::error> km2::call_node::errors() const {
     return {};
+}
+
+void km2::call_node::short_print(std::ostream &stream) const {
+    stream << "call_node { name: " << m_name << " }";
 }

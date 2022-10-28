@@ -14,18 +14,22 @@ class const_node : public km2::abstract_value_node {
 public:
     typedef abstract_value_node super_type;
 
-    const_node(const std::string &id, const std::shared_ptr<arg_node>& value = nullptr);
+    const_node(const wall_e::index &index, const std::string &id, const std::shared_ptr<arg_node>& value = nullptr);
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
 
     // abstract_node interface
 public:
-    virtual void print(size_t level, std::ostream &stream) override;
+    virtual void print(size_t level, std::ostream &stream) const override;
     virtual std::list<wall_e::error> errors() const override;
 
     // abstract_value_node interface
 public:
     virtual wall_e::either<wall_e::error, llvm::Value *> generate_llvm(const std::shared_ptr<translation_unit> &unit) override;
+
+    // abstract_node interface
+public:
+    virtual void short_print(std::ostream &stream) const override;
 };
 
 } // namespace km2

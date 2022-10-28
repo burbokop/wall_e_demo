@@ -4,6 +4,8 @@
 #include "function.h"
 #include "overload.h"
 
+
+
 namespace km2 {
 
 class context {
@@ -34,7 +36,12 @@ public:
         *this = *this + other;
         return *this;
     }
+
+    std::ostream& print(std::ostream& stream) const;
+    inline friend std::ostream& operator<<(std::ostream& stream, const context& ctx) { return ctx.print(stream); }
 };
 
 }
+
+
 #endif // CONTEXT_H

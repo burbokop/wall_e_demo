@@ -28,22 +28,20 @@ public:
     static std::optional<uint16_t> parse_integer_type(const std::string& str);
 
 
-    type_node(type t, const std::optional<uint16_t>& bits);
+    type_node(const wall_e::index &index, type t, const std::optional<uint16_t>& bits);
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
 
 
     // abstract_node interface
 public:
-    virtual void print(size_t level, std::ostream &stream) override;
+    virtual void print(size_t level, std::ostream &stream) const override;
+    virtual void short_print(std::ostream &stream) const override;
+    virtual std::list<wall_e::error> errors() const override;
 
     // abstract_type_node interface
 public:
     virtual wall_e::either<wall_e::error, llvm::Type*> generate_llvm(const std::shared_ptr<translation_unit> &unit) override;
-
-    // abstract_node interface
-public:
-    virtual std::list<wall_e::error> errors() const override;
 };
 
 } // namespace km2

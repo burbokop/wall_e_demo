@@ -19,12 +19,13 @@ std::string km2::arg_node::type_string(const type &t) {
 }
 
 km2::arg_node::arg_node(
+        const wall_e::index& index,
         const wall_e::text_segment& segment,
         type t,
         const std::string& text,
         std::shared_ptr<abstract_value_node> value_node
         )
-    : km2::abstract_value_node({ value_node }, segment),
+    : km2::abstract_value_node(index, { value_node }, segment),
       m_type(t),
       m_text(text),
       m_value_node(value_node) {}
@@ -35,22 +36,22 @@ wall_e::gram::argument km2::arg_node::create(const wall_e::gram::arg_vector &arg
         if(args[0].contains_type<wall_e::lex::token>()) {
             const auto token = args[0].value<wall_e::lex::token>();
             if(token.name == "INT_LITERAL") {
-                return std::make_shared<arg_node>(token.segment(), IntLiteral, token.text);
+                return std::make_shared<arg_node>(index, token.segment(), IntLiteral, token.text);
             } else if(token.name == "FLOAT_LITERAL") {
-                return std::make_shared<arg_node>(token.segment(), FloatLiteral, token.text);
+                return std::make_shared<arg_node>(index, token.segment(), FloatLiteral, token.text);
             } else if(token.name == "STRING_LITERAL") {
-                return std::make_shared<arg_node>(token.segment(), StringLiteral, wall_e::lex::parse_string_literal(token.text, true));
+                return std::make_shared<arg_node>(index, token.segment(), StringLiteral, wall_e::lex::parse_string_literal(token.text, true));
             } else if(token.name == "TOK_ID") {
-                return std::make_shared<arg_node>(token.segment(), Id, token.text);
+                return std::make_shared<arg_node>(index, token.segment(), Id, token.text);
             }
         } else {
             const auto node = args[0].option_cast<std::shared_ptr<abstract_value_node>>();
             if (node.has_value() && node.value()) {
-                return std::make_shared<arg_node>(node.value()->segment(), ValueNode, std::string(), node.value());
+                return std::make_shared<arg_node>(index, node.value()->segment(), ValueNode, std::string(), node.value());
             }
         }
     }
-    return std::make_shared<arg_node>(wall_e::text_segment(), Undefined);
+    return std::make_shared<arg_node>(index, wall_e::text_segment(), Undefined);
 }
 
 wall_e::either<
@@ -101,7 +102,7 @@ wall_e::either<
     return wall_e::left(wall_e::error("unknown arg type"));
 }
 
-void km2::arg_node::print(size_t level, std::ostream &stream) {
+void km2::arg_node::print(size_t level, std::ostream &stream) const {
     stream << std::string(level, ' ') << "{arg_node}:" << std::endl;
     stream << std::string(level + 1, ' ') << "type: " << type_string(m_type) << std::endl;
     stream << std::string(level + 1, ' ') << "text: " << m_text << std::endl;
@@ -115,4 +116,8 @@ void km2::arg_node::print(size_t level, std::ostream &stream) {
 
 std::list<wall_e::error> km2::arg_node::errors() const {
     return {};
+}
+
+void km2::arg_node::short_print(std::ostream &stream) const {
+    stream << "arg_node { type: " << m_type << ", text: " << m_text << " }";
 }

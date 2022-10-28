@@ -35,7 +35,7 @@ wall_e::either<wall_e::error, llvm::Value *> km2::internal_block_node::generate_
     return wall_e::right<llvm::Value *>(nullptr);
 }
 
-void km2::internal_block_node::print(size_t level, std::ostream &stream) {
+void km2::internal_block_node::print(size_t level, std::ostream &stream) const {
     stream << std::string(level, ' ') << "{internal_block_node}:" << std::endl;
     if(m_stmt) {
         m_stmt->print(level + 1, stream);
@@ -52,4 +52,8 @@ void km2::internal_block_node::print(size_t level, std::ostream &stream) {
 
 std::list<wall_e::error> km2::internal_block_node::errors() const {
     return { wall_e::error("err not implemented") };
+}
+
+void km2::internal_block_node::short_print(std::ostream &stream) const {
+    stream << "internal_block_node { recursive content }";
 }

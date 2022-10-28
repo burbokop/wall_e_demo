@@ -33,6 +33,10 @@ public:
     llvm::Function *find(std::vector<llvm::Type*> arg_types, llvm::Type* return_type = nullptr);
 
     std::optional<wall_e::error> add_value(llvm::Function *value, const wall_e::text_segment& segment);
+
+    std::ostream& print(std::ostream& stream) const;
+    inline friend std::ostream& operator<<(std::ostream& stream, const overload& o) { return o.print(stream); }
+    inline friend std::ostream& operator<<(std::ostream& stream, const std::shared_ptr<overload>& o) { return o->print(stream); }
 };
 
 }

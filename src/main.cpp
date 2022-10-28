@@ -40,6 +40,8 @@ int main(int argc, char **argv) {
     std::cout << "wall_e compiled with: " << wall_e::cxx_info << std::endl;
     std::cout << "km2 compiled with: " << wall_e::inline_cxx_info << std::endl;
 
+    const bool additional_log = false;
+
     using namespace std::chrono_literals;
 
     cpp_parser ppp(argc, argv);
@@ -55,22 +57,24 @@ int main(int argc, char **argv) {
         }                         \n\
         ";
 
-    std::cout << "SOURCE CODE" << std::endl << cppcode << std::endl << "SOURCE CODE END" << std::endl;
+    if(additional_log) std::cout << "SOURCE CODE" << std::endl << cppcode << std::endl << "SOURCE CODE END" << std::endl;
 
     const auto& clang_result = ppp.parse(cppcode, "input.cc");
 
-    std::cout << "CLNG RESULT" << std::endl;
-    if(clang_result.node) {
+    if(additional_log) {
+        std::cout << "CLNG RESULT" << std::endl;
+        if(clang_result.node) {
 
-        if(const auto& km2_node = clang_result.node.km2_node()) {
-            km2_node->print(0, std::cout);
+            if(const auto& km2_node = clang_result.node.km2_node()) {
+                km2_node->print(0, std::cout);
+            } else {
+                std::cout << "empty km2 root node" << std::endl;
+            }
         } else {
-            std::cout << "empty km2 root node" << std::endl;
+            std::cout << "empty clang root node" << std::endl;
         }
-    } else {
-        std::cout << "empty clang root node" << std::endl;
+        std::cout << "SOURCE CODE END" << std::endl;
     }
-    std::cout << "SOURCE CODE END" << std::endl;
 
     //return clang_result.status;
 
@@ -127,35 +131,36 @@ int main(int argc, char **argv) {
 
 
 
+    if(additional_log) {
+        std::cout << "before wall_e::gram::rule_from_str\n";
+        const auto r0 = (wall_e::gram::rule("decl_arg") & (wall_e::gram::rule("EP") | (wall_e::gram::rule("COMA") & "decl_arg_list")));
+        std::cout << "after wall_e::gram::rule_from_str\n";
+        const auto r1 = ((wall_e::gram::rule("cmd") & "SEMICOLON") & (wall_e::gram::rule("EB") | "internal_block"));
 
-    std::cout << "before wall_e::gram::rule_from_str\n";
-    const auto r0 = (wall_e::gram::rule("decl_arg") & (wall_e::gram::rule("EP") | (wall_e::gram::rule("COMA") & "decl_arg_list")));
-    std::cout << "after wall_e::gram::rule_from_str\n";
-    const auto r1 = ((wall_e::gram::rule("cmd") & "SEMICOLON") & (wall_e::gram::rule("EB") | "internal_block"));
 
+        wall_e::write_graph(std::cout, r0.to_graph());
 
-    wall_e::write_graph(std::cout, r0.to_graph());
+        std::cout << r0 << "\n";
+        wall_e::write_graph(std::cout, r0.to_graph());
+        std::cout << "sm: " << wall_e::gram::simplify_rule_default(r0) << "\n";
+        wall_e::write_graph(std::cout, wall_e::gram::simplify_rule_default(r0).to_graph());
 
-    std::cout << r0 << "\n";
-    wall_e::write_graph(std::cout, r0.to_graph());
-    std::cout << "sm: " << wall_e::gram::simplify_rule_default(r0) << "\n";
-    wall_e::write_graph(std::cout, wall_e::gram::simplify_rule_default(r0).to_graph());
+        std::cout << r1 << "\n";
+        wall_e::write_graph(std::cout, r1.to_graph());
+        std::cout << "sm: " << wall_e::gram::simplify_rule_default(r1) << "\n";
+        wall_e::write_graph(std::cout, wall_e::gram::simplify_rule_default(r1).to_graph());
 
-    std::cout << r1 << "\n";
-    wall_e::write_graph(std::cout, r1.to_graph());
-    std::cout << "sm: " << wall_e::gram::simplify_rule_default(r1) << "\n";
-    wall_e::write_graph(std::cout, wall_e::gram::simplify_rule_default(r1).to_graph());
+        std::filesystem::create_directory("app_out");
+        to_pdf(r0.to_relation_list(), "./app_out/r0");
+        to_pdf(r1.to_relation_list(), "./app_out/r1");
+        to_pdf(wall_e::gram::simplify_rule_default(r0).to_relation_list(), "./app_out/r0_s");
+        to_pdf(wall_e::smp::cc(r0).to_relation_list(), "./app_out/r0_s2");
+        to_pdf(wall_e::gram::simplify_rule_default(r1).to_relation_list(), "./app_out/r1_s");
+        to_pdf(wall_e::smp::cc(r1).to_relation_list(), "./app_out/r1_s2");
 
-    std::filesystem::create_directory("app_out");
-    to_pdf(r0.to_relation_list(), "./app_out/r0");
-    to_pdf(r1.to_relation_list(), "./app_out/r1");
-    to_pdf(wall_e::gram::simplify_rule_default(r0).to_relation_list(), "./app_out/r0_s");
-    to_pdf(wall_e::smp::cc(r0).to_relation_list(), "./app_out/r0_s2");
-    to_pdf(wall_e::gram::simplify_rule_default(r1).to_relation_list(), "./app_out/r1_s");
-    to_pdf(wall_e::smp::cc(r1).to_relation_list(), "./app_out/r1_s2");
-
-    std::cout << "\n";
-    std::cout << "____\n";
+        std::cout << "\n";
+        std::cout << "____\n";
+    }
 
     // /home/borys/projects/cpp/example.cpp --
     //std::cout << "r0: " << r0 << " : " << smp::simplify(r0) << '\n';
@@ -198,8 +203,8 @@ int main(int argc, char **argv) {
     std::cout << "++++\n";
 
     qmlRegisterType<KGramTreeView>("Km2", 1, 0, wall_e::type_name<KGramTreeView>().c_str());
-    QCoreApplication::setOrganizationName("bacul14");
-    QCoreApplication::setOrganizationDomain("bacul14.kl.ua");
+    QCoreApplication::setOrganizationName("burbokop");
+    QCoreApplication::setOrganizationDomain("io.github.burbokop");
 
     Q_INIT_RESOURCE(resources);
 

@@ -4,8 +4,8 @@
 
 #include <iostream>
 
-km2::stmt_node::stmt_node(std::shared_ptr<abstract_value_node> node)
-    : km2::abstract_value_node({ node }),
+km2::stmt_node::stmt_node(const wall_e::index &index, std::shared_ptr<abstract_value_node> node)
+    : km2::abstract_value_node(index, { node }),
     m_node(node) {}
 
 wall_e::gram::argument km2::stmt_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
@@ -15,10 +15,10 @@ wall_e::gram::argument km2::stmt_node::create(const wall_e::gram::arg_vector &ar
         const auto node = args[0].option_cast<std::shared_ptr<abstract_value_node>>();
         if(node.has_value()) {
             std::cout << "km2::cmd_node::create 2: " << node.value() << std::endl;
-            return std::make_shared<stmt_node>(node.value());
+            return std::make_shared<stmt_node>(index, node.value());
         }
     }
-    return std::make_shared<stmt_node>();
+    return std::make_shared<stmt_node>(index);
 }
 
 wall_e::either<wall_e::error, llvm::Value *> km2::stmt_node::generate_llvm(const std::shared_ptr<translation_unit> &unit) {
@@ -30,7 +30,7 @@ wall_e::either<wall_e::error, llvm::Value *> km2::stmt_node::generate_llvm(const
 }
 
 
-void km2::stmt_node::print(size_t level, std::ostream &stream) {
+void km2::stmt_node::print(size_t level, std::ostream &stream) const {
     stream << std::string(level, ' ') << "{stmt_node}:" << std::endl;
     if(m_node) {
         m_node->print(level + 1, stream);
@@ -46,4 +46,8 @@ std::list<wall_e::error> km2::stmt_node::errors() const {
 
 const km2::context &km2::stmt_node::context() const {
     return m_context;
+}
+
+void km2::stmt_node::short_print(std::ostream &stream) const {
+    stream << "stmt_node { recursive content }";
 }

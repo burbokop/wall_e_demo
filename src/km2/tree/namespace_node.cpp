@@ -9,7 +9,7 @@
 
 
 km2::namespace_node::namespace_node(const wall_e::index &index, const std::string &name, const std::shared_ptr<block_node>& block_node)
-    : abstract_value_node({ block_node }),
+    : abstract_value_node(index, { block_node }),
       m_name(name),
       m_block_node(block_node),
       m_context({}) {}
@@ -22,13 +22,13 @@ km2::abstract_node::factory km2::namespace_node::create(const std::string &name_
                 if(name_with_ob->size() > 0) {
                     const auto& name_or_ob = (*name_with_ob)[0].option<wall_e::lex::token>();
                     if(name_with_ob->size() > 1 && name_or_ob->name == name_token) {
-                        return std::make_shared<namespace_node>(name_or_ob->text, args[2].value<std::shared_ptr<block_node>>());
+                        return std::make_shared<namespace_node>(index, name_or_ob->text, args[2].value<std::shared_ptr<block_node>>());
                     }
                 }
             }
-            return std::make_shared<namespace_node>(std::string(), args[2].value<std::shared_ptr<block_node>>());
+            return std::make_shared<namespace_node>(index, std::string(), args[2].value<std::shared_ptr<block_node>>());
         }
-        return std::make_shared<namespace_node>();
+        return std::make_shared<namespace_node>(index);
     };
 }
 
@@ -48,7 +48,7 @@ wall_e::either<wall_e::error, llvm::Value *> km2::namespace_node::generate_llvm(
     return wall_e::right<llvm::Value *>(nullptr);
 }
 
-void km2::namespace_node::print(size_t level, std::ostream &stream) {
+void km2::namespace_node::print(size_t level, std::ostream &stream) const {
     stream << std::string(level, ' ') << "{namespace_node}:" << std::endl;
     stream << std::string(level + 1, ' ') << "name: " << m_name << std::endl;
     if(m_block_node) {
@@ -82,3 +82,6 @@ const km2::context &km2::namespace_node::context() const {
     return m_context;
 }
 
+void km2::namespace_node::short_print(std::ostream &stream) const {
+    stream << "namespace_node: { name: " << m_name << " }";
+}

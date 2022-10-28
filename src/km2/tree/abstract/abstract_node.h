@@ -98,10 +98,15 @@ public:
     std::map<std::size_t, abstract_node*> ancestor_cache() const;
     children_t children() const;
 
-    virtual void print(size_t level, std::ostream &stream) = 0;
+    virtual void print(size_t level, std::ostream &stream) const = 0;
+    virtual void short_print(std::ostream &stream) const = 0;
+
     virtual std::list<wall_e::error> errors() const = 0;
-    const km2::context &context() const;
+    const km2::context &ctx() const;
     const wall_e::index &index() const;
+
+    inline friend std::ostream& operator<<(std::ostream& stream, const abstract_node* node) { node->short_print(stream); return stream; }
+    inline friend std::ostream& operator<<(std::ostream& stream, const std::shared_ptr<abstract_node>& node) { node->short_print(stream); return stream; }
 };
 
 } // namespace km2

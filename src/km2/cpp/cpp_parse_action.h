@@ -4,7 +4,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wall"
 #pragma GCC diagnostic ignored "-Wextra"
-#include "clang/Frontend/FrontendAction.h"
+#include <clang/Frontend/FrontendAction.h>
 #pragma GCC diagnostic pop
 
 #include "cpp_consumer.h"

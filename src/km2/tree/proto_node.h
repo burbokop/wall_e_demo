@@ -16,7 +16,7 @@ class proto_node : public km2::abstract_value_node {
 public:
     typedef abstract_value_node super_type;
 
-    proto_node(
+    proto_node(const wall_e::index &index,
             const std::string &name,
             const std::vector<std::shared_ptr<decl_arg_node>> &args,
             std::shared_ptr<abstract_type_node> result_type_node
@@ -31,11 +31,12 @@ public:
         wall_e::error,
         llvm::Value*
     > generate_llvm(const std::shared_ptr<translation_unit> &unit) override;
-    virtual void print(size_t level, std::ostream &stream) override;
+    virtual void print(size_t level, std::ostream &stream) const override;
 
     // abstract_node interface
 public:
     virtual std::list<wall_e::error> errors() const override;
+    virtual void short_print(std::ostream &stream) const override;
 };
 
 } // namespace km2

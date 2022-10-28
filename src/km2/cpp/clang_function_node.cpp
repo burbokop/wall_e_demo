@@ -1,6 +1,7 @@
 #include "clang_block_node.h"
 #include "clang_decl_arg_node.h"
 #include "clang_function_node.h"
+#include "src/km2/cpp/tools.h"
 
 #include <clang/AST/Stmt.h>
 
@@ -19,7 +20,7 @@ clang_function_node::target_ptr_type clang_function_node::km2_node() const {
     }
 
     return std::make_shared<km2::function_node>(
-                wall_e::index(0, 0, 0, 0),
+                clang_tools::index_plug(),
                 origin->getNameAsString(),
                 args,
                 nullptr//std::make_shared<clang_block_node>(decl->getBody())

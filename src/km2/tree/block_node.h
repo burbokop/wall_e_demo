@@ -19,7 +19,7 @@ class block_node : public km2::abstract_value_node {
 public:
     typedef abstract_value_node super_type;
 
-    block_node(const std::shared_ptr<stmt_node> &stmt, const std::shared_ptr<block_node>& next_node = nullptr);
+    block_node(const wall_e::index &index, const std::shared_ptr<stmt_node> &stmt, const std::shared_ptr<block_node>& next_node = nullptr);
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
 
@@ -30,7 +30,7 @@ public:
         llvm::Value*
     > generate_llvm(const std::shared_ptr<translation_unit> &unit) override;
 
-    virtual void print(size_t level, std::ostream &stream) override;
+    virtual void print(size_t level, std::ostream &stream) const override;
 
     // abstract_node interface
 public:
@@ -50,6 +50,10 @@ public:
     const km2::context &context() const;
     const km2::context &acc_context() const;
     km2::context &mutable_context();
+
+    // abstract_node interface
+public:
+    virtual void short_print(std::ostream &stream) const override;
 };
 
 } // namespace km2

@@ -30,8 +30,8 @@ std::optional<uint16_t> km2::type_node::parse_integer_type(const std::string &st
     return std::nullopt;
 }
 
-km2::type_node::type_node(type t, const std::optional<uint16_t> &bits)
-    : km2::abstract_type_node({}),
+km2::type_node::type_node(const wall_e::index& index, type t, const std::optional<uint16_t> &bits)
+    : km2::abstract_type_node(index, {}),
       m_type(t),
       m_bits(bits) {}
 
@@ -40,19 +40,19 @@ wall_e::gram::argument km2::type_node::create(const wall_e::gram::arg_vector &ar
         const auto token = args[0].option<wall_e::lex::token>();
         if(token.has_value()) {
             if(token.value().name == "TOK_UNSIGNED") {
-                return std::make_shared<type_node>(Unsigned, parse_integer_type(token.value().text));
+                return std::make_shared<type_node>(index, Unsigned, parse_integer_type(token.value().text));
             } else if(token.value().name == "TOK_SIGNED") {
-                return std::make_shared<type_node>(Signed, parse_integer_type(token.value().text));
+                return std::make_shared<type_node>(index, Signed, parse_integer_type(token.value().text));
             } else if(token.value().name == "TOK_FLOAT") {
-                return std::make_shared<type_node>(Float, std::nullopt);
+                return std::make_shared<type_node>(index, Float, std::nullopt);
             } else if(token.value().name == "TOK_DOUBLE") {
-                return std::make_shared<type_node>(Double, std::nullopt);
+                return std::make_shared<type_node>(index, Double, std::nullopt);
             } else if(token.value().name == "TOK_STRING") {
-                return std::make_shared<type_node>(String, std::nullopt);
+                return std::make_shared<type_node>(index, String, std::nullopt);
             }
         }
     }
-    return std::make_shared<type_node>(Undefined, std::nullopt);
+    return std::make_shared<type_node>(index, Undefined, std::nullopt);
 }
 
 wall_e::either<wall_e::error, llvm::Type *> km2::type_node::generate_llvm(const std::shared_ptr<km2::translation_unit> &unit) {
@@ -72,13 +72,16 @@ wall_e::either<wall_e::error, llvm::Type *> km2::type_node::generate_llvm(const 
     return wall_e::left(wall_e::error("unknown type_node type"));
 }
 
-void km2::type_node::print(size_t level, std::ostream &stream) {
+void km2::type_node::print(size_t level, std::ostream &stream) const {
     stream << std::string(level, ' ') << "{type_node}:" << std::endl;
     stream << std::string(level + 1, ' ') << "type: " << type_string(m_type) << std::endl;
     stream << std::string(level + 1, ' ') << "bits: " << m_bits << std::endl;
 }
 
-
 std::list<wall_e::error> km2::type_node::errors() const {
     return { wall_e::error("err not implemented") };
+}
+
+void km2::type_node::short_print(std::ostream &stream) const {
+    stream << "type_node { type: " << m_type << ", bits: " << m_bits << " }";
 }

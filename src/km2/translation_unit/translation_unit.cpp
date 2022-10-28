@@ -309,12 +309,12 @@ wall_e::either<std::string, int> km2::translation_unit::run_jit(llvm::Function *
         auto* ep = executionEngine->getPointerToFunction(entry_point);
         std::function<int()> entryPoint = (int(*)())ep;
 
-        //std::cout << "jit begin" << std::endl;
+        std::cout << "JIT BEGIN" << std::endl;
         auto result = entryPoint();
-        //std::cout << "jit result: " << result << std::endl;
+        std::cout << "JIT END: " << result << std::endl;
         return wall_e::right(result);
     } else {
-        std::cout << "jit entry point not set" << std::endl;
+        std::cout << "JIT ERR: entry point not set" << std::endl;
     }
     return wall_e::left<std::string>("entry point not specified");
 }

@@ -2,8 +2,9 @@
 #define CLANG_BLOCK_NODE_H
 
 #include "abstract_clang_node.h"
-
+#pragma clang diagnostic push
 #include <clang/AST/Decl.h>
+#pragma clang diagnostic pop
 
 #include <src/km2/tree/block_node.h>
 

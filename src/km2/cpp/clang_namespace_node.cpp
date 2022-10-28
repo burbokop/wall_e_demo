@@ -14,12 +14,12 @@ clang_namespace_node::target_ptr_type clang_namespace_node::km2_node() const {
     for(const auto& d : buffered_reverse_range(origin->decls())) {
 
         if(const clang_function_node& function_node = dynamic_cast<clang::FunctionDecl*>(d)) {
-            const auto& stmt = std::make_shared<km2::stmt_node>(function_node.km2_node());
-            current_block_node = std::make_shared<km2::block_node>(stmt, current_block_node);
+            const auto& stmt = std::make_shared<km2::stmt_node>(clang_tools::index_plug(), function_node.km2_node());
+            current_block_node = std::make_shared<km2::block_node>(clang_tools::index_plug(), stmt, current_block_node);
         }
 
         std::cout << "decl_name: " << clang_tools::decl_name(d) << std::endl;
     }
 
-    return std::make_shared<km2::namespace_node>(origin->getNameAsString(), current_block_node);
+    return std::make_shared<km2::namespace_node>(clang_tools::index_plug(), origin->getNameAsString(), current_block_node);
 }

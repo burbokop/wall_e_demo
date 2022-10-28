@@ -28,11 +28,15 @@ public:
         wall_e::error,
         llvm::Value*
     > generate_llvm(const std::shared_ptr<translation_unit> &unit) override;
-    virtual void print(size_t level, std::ostream &stream) override;
+    virtual void print(size_t level, std::ostream &stream) const override;
 
     // abstract_node interface
 public:
     virtual std::list<wall_e::error> errors() const override;
+
+    // abstract_node interface
+public:
+    virtual void short_print(std::ostream &stream) const override;
 };
 
 } // namespace km2
