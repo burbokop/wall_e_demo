@@ -51,7 +51,7 @@ wall_e::either<
 > km2::call_node::generate_llvm(const std::shared_ptr<km2::translation_unit> &unit) {
     std::cout << __PRETTY_FUNCTION__ << "name: " << m_name << std::endl;
 
-    std::list<std::string> namepace_name;
+    wall_e::list<std::string> namepace_name;
     if(const auto ns = nearest_ancestor<namespace_node>()) {
         namepace_name = ns->full_name();
     }
@@ -128,10 +128,21 @@ void km2::call_node::print(size_t level, std::ostream &stream) const {
 }
 
 
-std::list<wall_e::error> km2::call_node::errors() const {
+wall_e::list<wall_e::error> km2::call_node::errors() const {
     return {};
 }
 
 void km2::call_node::short_print(std::ostream &stream) const {
     stream << "call_node { name: " << m_name << " }";
+}
+
+km2::ast_token_list km2::call_node::tokens() const {
+    return ast_token_list {
+        ast_token {
+            .node_type = wall_e::type_name<call_node>(),
+            .comment = "function name",
+            .text = m_name,
+            .segment = m_name_segment
+        },
+    } + tokens_from_node_list(m_args);
 }

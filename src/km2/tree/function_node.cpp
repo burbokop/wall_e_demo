@@ -11,7 +11,7 @@
 wall_e::gram::argument km2::function_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
     std::cout << "km2::function_node::create: " << args << std::endl;
     if(args.size() > 5 && args[0].contains_type<wall_e::lex::token>()) {
-        std::vector<std::shared_ptr<decl_arg_node>> da_nodes;
+        wall_e::vec<std::shared_ptr<decl_arg_node>> da_nodes;
         const auto decl_args = args[3].constrain();
         for(const auto& decl_arg : decl_args) {
             const auto da_node = decl_arg.option_cast<std::shared_ptr<km2::decl_arg_node>>();
@@ -23,6 +23,7 @@ wall_e::gram::argument km2::function_node::create(const wall_e::gram::arg_vector
         return std::make_shared<function_node>(
                 index,
                 args[0].value<wall_e::lex::token>().text,
+                args[0].value<wall_e::lex::token>().segment(),
                 da_nodes,
                 args[5].cast_or<std::shared_ptr<abstract_value_node>>()
                 );
@@ -33,11 +34,13 @@ wall_e::gram::argument km2::function_node::create(const wall_e::gram::arg_vector
 km2::function_node::function_node(
         const wall_e::index &index,
         const std::string &name,
-        const std::vector<std::shared_ptr<decl_arg_node> > &args,
+        const wall_e::text_segment &name_segment,
+        const wall_e::vec<std::shared_ptr<decl_arg_node> > &args,
         std::shared_ptr<abstract_value_node> body
         )
     : abstract_value_node(index, cast_to_children(args, std::vector { body })),
       m_name(name),
+      m_name_segment(name_segment),
       m_args(args),
       m_body(body) {}
 
@@ -111,10 +114,22 @@ void km2::function_node::print(size_t level, std::ostream &stream) const {
     }
 }
 
-std::list<wall_e::error> km2::function_node::errors() const {
+wall_e::list<wall_e::error> km2::function_node::errors() const {
     return {};
 }
 
 void km2::function_node::short_print(std::ostream &stream) const {
     stream << "function_node { name: " << m_name << ", args: " << m_args << " }";
+}
+
+km2::ast_token_list km2::function_node::tokens() const {
+    return ast_token_list {
+        km2::ast_token {
+            .node_type = wall_e::type_name<function_node>(),
+            .comment = "decl function name",
+            .text = m_name,
+            .segment = m_name_segment
+        },
+    } + tokens_from_node_list(m_args)
+    + (m_body ? m_body->tokens() : ast_token_list {});
 }

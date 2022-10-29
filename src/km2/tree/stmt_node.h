@@ -17,6 +17,9 @@ public:
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
 
     const km2::context m_context;
+    const km2::context &context() const;
+public:
+
     // node interface
 public:
     virtual wall_e::either<wall_e::error, llvm::Value*> generate_llvm(const std::shared_ptr<translation_unit> &unit) override;
@@ -24,12 +27,9 @@ public:
 
     // abstract_node interface
 public:
-    virtual std::list<wall_e::error> errors() const override;
-    const km2::context &context() const;
-
-    // abstract_node interface
-public:
+    virtual wall_e::list<wall_e::error> errors() const override;
     virtual void short_print(std::ostream &stream) const override;
+    virtual wall_e::list<ast_token> tokens() const override { return m_node ? m_node->tokens() : wall_e::list<ast_token> {}; }
 };
 
 } // namespace km2

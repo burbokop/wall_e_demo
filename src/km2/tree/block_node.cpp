@@ -61,7 +61,7 @@ void km2::block_node::print(size_t level, std::ostream &stream) const {
 }
 
 
-std::list<wall_e::error> km2::block_node::errors() const {
+wall_e::list<wall_e::error> km2::block_node::errors() const {
     return { wall_e::error("err not implemented") };
 }
 
@@ -120,4 +120,10 @@ km2::context &km2::block_node::mutable_context() { return m_mutable_context; }
 
 void km2::block_node::short_print(std::ostream &stream) const {
     stream << "block_node { recursive content }";
+}
+
+wall_e::list<km2::ast_token> km2::block_node::tokens() const {
+    return
+            (m_stmt ? m_stmt->tokens() : wall_e::list<ast_token> {}) +
+            (m_next_node ? m_next_node->tokens() : wall_e::list<ast_token> {});
 }

@@ -12,6 +12,12 @@
     #include <km2/km2.h>
 #endif
 
+#if __has_include(<src/km2/tree/abstract/abstract_node.h>)
+    #include <src/km2/tree/abstract/abstract_node.h>
+#else
+    #include <km2/tree/abstract/abstract_node.h>
+#endif
+
 #if __has_include(<wall_e/src/enums.h>)
     #include <wall_e/src/enums.h>
 #else
@@ -23,6 +29,7 @@ namespace km2 {
 namespace lsp {
 
 
+/** Language Server Protocol Specification - 3.17 */
 wall_e_enum(semantic_token_type,
     Namespace = 0,
     Type,
@@ -49,6 +56,7 @@ wall_e_enum(semantic_token_type,
     Decorator
 )
 
+/** Language Server Protocol Specification - 3.17 */
 wall_e_enum(semantic_token_modifier,
     Declaration = 0,
     Definition,
@@ -106,7 +114,8 @@ struct semantic_tokens_legend {
     std::vector<semantic_token_modifier> token_modifiers;
 };
 
-static const std::map<std::string, semantic_token_type>& default_semantic_token_types_map();
+const std::map<std::string, semantic_token_type>& default_semantic_token_types_map();
+const std::map<km2::ast_token_type, semantic_token_type>& default_ast_semantic_token_types_map();
 
 class service {
     struct cache_item {
@@ -118,6 +127,7 @@ class service {
 
     std::map<uri_t, cache_item> m_cache;
     std::map<std::string, semantic_token_type> m_semantic_token_types_map;
+    std::map<km2::ast_token_type, semantic_token_type> m_ast_semantic_token_types_map;
     //std::map<std::string, semantic_token_modifier> m_semantic_token_modifiers_map; TODO
 public:
     service();

@@ -3,13 +3,12 @@
 
 #include "function.h"
 #include "overload.h"
-
-
+#include <wall_e/src/utility/collections.h>
 
 namespace km2 {
 
 class context {
-    std::list<std::shared_ptr<overload>> m_overloads;
+    wall_e::list<std::shared_ptr<overload>> m_overloads;
 public:
     context();
     std::list<std::shared_ptr<overload>> overloads() const;

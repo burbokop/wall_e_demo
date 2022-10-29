@@ -213,7 +213,18 @@ Window {
                             } else if(appCore.mode === AppCore.ModeAsm) {
                                 return appCore.asmCode;
                             } else {
-                                return "";
+                                return '';
+                            }
+                        }
+                        subtext: {
+                            if(appCore.mode === AppCore.ModeTokens) {
+                                return appCore.astTokens;
+                            } else if(appCore.mode === AppCore.ModeGramatic) {
+                                return '';
+                            } else if(appCore.mode === AppCore.ModeAsm) {
+                                return '';
+                            } else {
+                                return '';
                             }
                         }
                     }

@@ -8,13 +8,20 @@
 namespace km2 {
 
 class decl_arg_node : public km2::abstract_node {
-    std::string m_name;
-    std::shared_ptr<abstract_type_node> m_type_node;
-    bool m_is_variadic = false;
+    const std::string m_name;
+    const wall_e::text_segment m_name_segment;
+    const std::shared_ptr<abstract_type_node> m_type_node;
+    const bool m_is_variadic = false;
 public:
     typedef abstract_node super_type;
 
-    decl_arg_node(const wall_e::index &index, const std::string &name, std::shared_ptr<abstract_type_node> type_node, bool is_variadic = false);
+    decl_arg_node(
+            const wall_e::index &index,
+            const std::string &name,
+            const wall_e::text_segment& name_segment,
+            std::shared_ptr<abstract_type_node> type_node,
+            bool is_variadic = false
+            );
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
 
@@ -26,7 +33,8 @@ public:
 public:
     virtual void print(size_t level, std::ostream &stream) const override;
     void short_print(std::ostream &stream) const override;
-    virtual std::list<wall_e::error> errors() const override;
+    virtual wall_e::list<wall_e::error> errors() const override;
+    virtual wall_e::list<ast_token> tokens() const override;
 };
 
 } // namespace km2

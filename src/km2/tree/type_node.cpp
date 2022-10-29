@@ -19,7 +19,7 @@ std::string km2::type_node::type_string(type t) {
     return "Undefined";
 }
 
-std::optional<uint16_t> km2::type_node::parse_integer_type(const std::string &str) {
+wall_e::opt<uint16_t> km2::type_node::parse_integer_type(const std::string &str) {
     if(str.size() > 1) {
         try {
             return std::stoi(str.substr(1, str.size() - 1));
@@ -30,29 +30,36 @@ std::optional<uint16_t> km2::type_node::parse_integer_type(const std::string &st
     return std::nullopt;
 }
 
-km2::type_node::type_node(const wall_e::index& index, type t, const std::optional<uint16_t> &bits)
-    : km2::abstract_type_node(index, {}),
+km2::type_node::type_node(
+        const wall_e::index& index,
+        type t,
+        const wall_e::opt<uint16_t> &bits,
+        const std::string &original_text,
+        const wall_e::text_segment &segment
+        )
+    : km2::abstract_type_node(index, {}, segment),
       m_type(t),
-      m_bits(bits) {}
+      m_bits(bits),
+      m_original_text(original_text) {}
 
 wall_e::gram::argument km2::type_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
     if(args.size() > 0) {
         const auto token = args[0].option<wall_e::lex::token>();
         if(token.has_value()) {
             if(token.value().name == "TOK_UNSIGNED") {
-                return std::make_shared<type_node>(index, Unsigned, parse_integer_type(token.value().text));
+                return std::make_shared<type_node>(index, Unsigned, parse_integer_type(token.value().text), token.value().text, token.value().segment());
             } else if(token.value().name == "TOK_SIGNED") {
-                return std::make_shared<type_node>(index, Signed, parse_integer_type(token.value().text));
+                return std::make_shared<type_node>(index, Signed, parse_integer_type(token.value().text), token.value().text, token.value().segment());
             } else if(token.value().name == "TOK_FLOAT") {
-                return std::make_shared<type_node>(index, Float, std::nullopt);
+                return std::make_shared<type_node>(index, Float, std::nullopt, token.value().text, token.value().segment());
             } else if(token.value().name == "TOK_DOUBLE") {
-                return std::make_shared<type_node>(index, Double, std::nullopt);
+                return std::make_shared<type_node>(index, Double, std::nullopt, token.value().text, token.value().segment());
             } else if(token.value().name == "TOK_STRING") {
-                return std::make_shared<type_node>(index, String, std::nullopt);
+                return std::make_shared<type_node>(index, String, std::nullopt, token.value().text, token.value().segment());
             }
         }
     }
-    return std::make_shared<type_node>(index, Undefined, std::nullopt);
+    return std::make_shared<type_node>(index, Undefined, std::nullopt, std::string());
 }
 
 wall_e::either<wall_e::error, llvm::Type *> km2::type_node::generate_llvm(const std::shared_ptr<km2::translation_unit> &unit) {
@@ -78,10 +85,22 @@ void km2::type_node::print(size_t level, std::ostream &stream) const {
     stream << std::string(level + 1, ' ') << "bits: " << m_bits << std::endl;
 }
 
-std::list<wall_e::error> km2::type_node::errors() const {
+wall_e::list<wall_e::error> km2::type_node::errors() const {
     return { wall_e::error("err not implemented") };
 }
 
 void km2::type_node::short_print(std::ostream &stream) const {
     stream << "type_node { type: " << m_type << ", bits: " << m_bits << " }";
+}
+
+
+km2::ast_token_list km2::type_node::tokens() const {
+    return {
+        ast_token {
+            .node_type = wall_e::type_name<type_node>(),
+            .comment = m_bits ? ("type with size " + std::to_string(*m_bits) + " bits") : "type with unknown size",
+            .text = m_original_text,
+            .segment = this->segment()
+        }
+    };
 }

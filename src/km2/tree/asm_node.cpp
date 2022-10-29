@@ -2,8 +2,9 @@
 
 #include <iostream>
 
-km2::asm_node::asm_node(const wall_e::index &index, const std::string& text)
-    : km2::abstract_value_node(index, {}, wall_e::text_segment()) {}
+km2::asm_node::asm_node(const wall_e::index &index, const std::string& text, const wall_e::text_segment &segment)
+    : km2::abstract_value_node(index, {}, wall_e::text_segment()),
+      m_text(text) {}
 
 wall_e::gram::argument km2::asm_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
     if(args.size() > 2 && args[2].contains_type<wall_e::lex::token>()) {
@@ -14,7 +15,7 @@ wall_e::gram::argument km2::asm_node::create(const wall_e::gram::arg_vector &arg
             text.erase(text.end() - 1, text.end());
             text = wall_e::lex::trim(text, '\t');
             text = wall_e::lex::trim(text);
-            return std::make_shared<asm_node>(index, text);
+            return std::make_shared<asm_node>(index, text, token.segment());
         }
         return {};
     }
@@ -33,10 +34,21 @@ void km2::asm_node::print(size_t level, std::ostream &stream) const {
     short_print(stream);
 }
 
-std::list<wall_e::error> km2::asm_node::errors() const {
+wall_e::list<wall_e::error> km2::asm_node::errors() const {
     return {};
 }
 
 void km2::asm_node::short_print(std::ostream &stream) const {
     stream << "asm_node { not implemented }";
+}
+
+wall_e::list<km2::ast_token> km2::asm_node::tokens() const {
+    return {
+        ast_token {
+            .node_type = wall_e::type_name<asm_node>(),
+            .comment = "assembly code ( not implemented )",
+            .text = m_text,
+            .segment = this->segment()
+        }
+    };
 }

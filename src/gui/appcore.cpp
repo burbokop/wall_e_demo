@@ -6,6 +6,7 @@
 #include <QThread>
 #include <QtConcurrent>
 #include <src/km2/translation_unit/translation_unit.h>
+#include <src/km2/tree/abstract/abstract_node.h>
 
 void AppCore::recompile() {
     km2::flags flags;
@@ -42,6 +43,15 @@ QString AppCore::makeExecutable(const QString &path) {
 
 void AppCore::completeCompilation(const km2::compilation_result &cresult) {
     setTokens(QString::fromStdString(wall_e::lex::to_string(cresult.tokens)));
+
+    setAstTokens(QString());
+    if(cresult.root_node) {
+        const auto& tokens = cresult.root_node->tokens();
+        if(tokens.size() > 0) {
+            setAstTokens(QString::fromStdString(km2::to_string(tokens)));
+        }
+    }
+
     setGramatic(QString::fromStdString(cresult.rules));
     setTree(cresult.token_tree);
 

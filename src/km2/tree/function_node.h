@@ -13,15 +13,16 @@ namespace km2 {
 
 class function_node : public abstract_value_node {
     const std::string m_name;
-    const std::vector<std::shared_ptr<decl_arg_node>> m_args;
+    const wall_e::text_segment m_name_segment;
+    const wall_e::vec<std::shared_ptr<decl_arg_node>> m_args;
     const std::shared_ptr<abstract_value_node> m_body;
 public:
     typedef abstract_value_node super_type;
 
-    function_node(
-            const wall_e::index& index,
+    function_node(const wall_e::index& index,
             const std::string &name,
-            const std::vector<std::shared_ptr<decl_arg_node>> &args,
+            const wall_e::text_segment &name_segment,
+            const wall_e::vec<std::shared_ptr<decl_arg_node> > &args,
             std::shared_ptr<abstract_value_node> body
             );
 
@@ -34,11 +35,12 @@ public:
         llvm::Value*
     > generate_llvm(const std::shared_ptr<translation_unit> &unit) override;
     virtual void print(size_t level, std::ostream &stream) const override;
-    virtual std::list<wall_e::error> errors() const override;
 
     // abstract_node interface
 public:
+    virtual wall_e::list<wall_e::error> errors() const override;
     virtual void short_print(std::ostream &stream) const override;
+    virtual wall_e::list<ast_token> tokens() const override;
 };
 
 } // namespace km2

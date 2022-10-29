@@ -28,8 +28,9 @@ public:
 
     // abstract_node interface
 public:
-    virtual std::list<wall_e::error> errors() const override;
+    virtual wall_e::list<wall_e::error> errors() const override;
     virtual void short_print(std::ostream &stream) const override;
+    virtual wall_e::list<ast_token> tokens() const override;
 };
 
 } // namespace km2

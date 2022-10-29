@@ -21,5 +21,5 @@ clang_namespace_node::target_ptr_type clang_namespace_node::km2_node() const {
         std::cout << "decl_name: " << clang_tools::decl_name(d) << std::endl;
     }
 
-    return std::make_shared<km2::namespace_node>(clang_tools::index_plug(), origin->getNameAsString(), current_block_node);
+    return std::make_shared<km2::namespace_node>(clang_tools::index_plug(), std::string(), wall_e::text_segment(), origin->getNameAsString(), wall_e::text_segment(), current_block_node);
 }

@@ -6,8 +6,61 @@
 #include <functional>
 #include <wall_e/src/private/gram_private.h>
 #include <src/km2/translation_unit/models/context.h>
+#include <wall_e/src/enums.h>
 
 namespace km2 {
+
+wall_e_enum(ast_token_type,
+    AstNamespace = 0,
+    AstType,
+    AstClass,
+    AstEnum,
+    AstInterface,
+    AstStruct,
+    AstTypeParameter,
+    AstParameter,
+    AstVariable,
+    AstProperty,
+    AstEnumMember,
+    AstEvent,
+    AstFunction,
+    AstMethod,
+    AstMacro,
+    AstKeyword,
+    AstModifier,
+    AstComment,
+    AstString,
+    AstNumber,
+    AstRegexp,
+    AstOperator,
+    AstDecorator
+)
+
+struct ast_token {
+    ast_token_type type;
+    std::string node_type;
+    std::string comment;
+    std::string text;
+    wall_e::text_segment segment;
+
+    friend inline std::ostream& operator<<(std::ostream& stream, const ast_token& token) {
+        return stream << "{ type: " << token.type
+                      << ", node_type: " << token.node_type
+                      << ", comment: " << token.comment
+                      << ", text: " << token.text
+                      << ", segment: " << token.segment
+                      << " }";
+    }
+};
+
+typedef wall_e::list<ast_token> ast_token_list;
+
+std::string to_string(const std::list<ast_token>& tokens);
+
+struct abstract_node;
+
+template <typename T>
+concept concept_node = std::is_base_of<abstract_node, T>::value;
 
 struct abstract_node {
     typedef std::function<wall_e::gram::argument(const wall_e::gram::arg_vector &, const wall_e::index&)> factory;
@@ -100,8 +153,21 @@ public:
 
     virtual void print(size_t level, std::ostream &stream) const = 0;
     virtual void short_print(std::ostream &stream) const = 0;
+    virtual ast_token_list tokens() const = 0;
 
-    virtual std::list<wall_e::error> errors() const = 0;
+    //km2::abstract_node
+
+    template<concept_node T>
+    inline static ast_token_list tokens_from_node_list(const std::vector<std::shared_ptr<T>>& nodes) {
+        ast_token_list result;
+        for(const auto& n : nodes) {
+            const auto& t = n->tokens();
+            result.insert(result.end(), t.begin(), t.end());
+        }
+        return result;
+    }
+
+    virtual wall_e::list<wall_e::error> errors() const = 0;
     const km2::context &ctx() const;
     const wall_e::index &index() const;
 

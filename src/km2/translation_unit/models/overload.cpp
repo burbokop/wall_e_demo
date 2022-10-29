@@ -66,6 +66,7 @@ std::optional<wall_e::error> km2::overload::add_value(llvm::Function *value, con
 }
 
 std::ostream &km2::overload::print(std::ostream &stream) const {
+    using namespace wall_e;
     return stream << m_namespace_stack << "::" << m_name;
 }
 

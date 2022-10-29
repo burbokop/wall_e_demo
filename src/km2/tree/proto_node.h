@@ -10,14 +10,17 @@
 namespace km2 {
 
 class proto_node : public km2::abstract_value_node {
-    std::string m_name;
-    std::vector<std::shared_ptr<decl_arg_node>> m_args;
-    std::shared_ptr<abstract_type_node> m_result_type_node;
+    const std::string m_name;
+    const wall_e::text_segment m_name_segment;
+    const std::vector<std::shared_ptr<decl_arg_node>> m_args;
+    const std::shared_ptr<abstract_type_node> m_result_type_node;
 public:
     typedef abstract_value_node super_type;
 
-    proto_node(const wall_e::index &index,
+    proto_node(
+            const wall_e::index &index,
             const std::string &name,
+            const wall_e::text_segment& name_segment,
             const std::vector<std::shared_ptr<decl_arg_node>> &args,
             std::shared_ptr<abstract_type_node> result_type_node
             );
@@ -35,8 +38,9 @@ public:
 
     // abstract_node interface
 public:
-    virtual std::list<wall_e::error> errors() const override;
+    virtual wall_e::list<wall_e::error> errors() const override;
     virtual void short_print(std::ostream &stream) const override;
+    virtual wall_e::list<ast_token> tokens() const override;
 };
 
 } // namespace km2

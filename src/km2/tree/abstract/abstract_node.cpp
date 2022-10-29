@@ -40,3 +40,14 @@ std::vector<std::shared_ptr<km2::abstract_node>> km2::abstract_node::children() 
 
 const km2::context &km2::abstract_node::ctx() const { return m_context; }
 const wall_e::index &km2::abstract_node::index() const { return m_index; }
+
+std::string km2::to_string(const std::list<ast_token> &tokens) {
+    std::stringstream ss;
+
+    std::size_t i = 0;
+    for(const auto& t : tokens) {
+        ss << t;
+        if(i++ < tokens.size() - 1) ss << std::endl;
+    }
+    return ss.str();
+}

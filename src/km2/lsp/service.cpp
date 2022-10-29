@@ -1,5 +1,5 @@
 #include "service.h"
-
+#include "../tree/abstract/abstract_node.h"
 
 std::string km2::lsp::first_char_to_lower(std::string str) {
     if(str.size() > 0) {
@@ -16,40 +16,6 @@ std::string km2::lsp::first_char_to_upper(std::string str) {
 }
 
 
-const std::map<std::string, km2::lsp::semantic_token_type> &km2::lsp::default_semantic_token_types_map() {
-    static std::map<std::string, semantic_token_type> res = {
-        { "TOK_WAIT", semantic_token_type::Keyword },
-        { "TOK_ASM", semantic_token_type::Keyword },
-        { "TOK_NUMBER", semantic_token_type::Keyword },
-        { "TOK_STRING", semantic_token_type::Keyword },
-        { "TOK_CONST", semantic_token_type::Keyword },
-        { "TOK_NAMESPACE", semantic_token_type::Keyword },
-        { "TOK_UNSIGNED", semantic_token_type::Keyword },
-        { "TOK_SIGNED", semantic_token_type::Keyword },
-        { "TOK_FLOAT", semantic_token_type::Keyword },
-        { "TOK_DOUBLE", semantic_token_type::Keyword },
-        { "STRING_LITERAL", semantic_token_type::String },
-        { "TOK_ID", semantic_token_type::Variable },
-        { "FLOAT_LITERAL", semantic_token_type::Number },
-        { "INT_LITERAL", semantic_token_type::Number },
-        /** { "OP", no semantic token }, */
-        /** { "EP", no semantic token }, */
-        /** { "OB", no semantic token }, */
-        /** { "EB", no semantic token }, */
-        /** { "DOUBLE_EQUALS", no semantic token }, */
-        /** { "EQUALS", no semantic token }, */
-        /** { "TOK_PLUS", no semantic token }, */
-        /** { "TOK_MINUS", no semantic token }, */
-        /** { "TOK_MUL", no semantic token }, */
-        /** { "TOK_DIV", no semantic token }, */
-        /** { "SEMICOLON", no semantic token }, */
-        /** { "COLON", no semantic token }, */
-        /** { "COMA", no semantic token }, */
-        /** { "THREE_DOT", no semantic token }, */
-        /** { "ignore", no semantic token } */
-    };
-    return res;
-}
 
 
 km2::lsp::service::service() {
@@ -63,10 +29,10 @@ void km2::lsp::service::configure(const std::string &uri, const flags &flags) {
 km2::lsp::semantic_tokens_legend km2::lsp::service::register_semantic_tokens(const semantic_tokens_client_capability &client_cap) {
     m_semantic_token_types_map.clear();
 
-    const auto& map = default_semantic_token_types_map();
     const auto& all_token_types = wall_e::enums::reflect_names<semantic_token_type>();
 
-    m_semantic_token_types_map = map;
+    m_semantic_token_types_map = default_semantic_token_types_map();
+    m_ast_semantic_token_types_map = default_ast_semantic_token_types_map();
 
     std::vector<semantic_token_type> legent_types;
     legent_types.reserve(all_token_types.size());
@@ -103,24 +69,47 @@ std::vector<wall_e::lex::token> km2::lsp::service::tokens(const std::string &uri
 }
 
 std::vector<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const std::string &uri) const {
-    std::vector<km2::lsp::semantic_token> result;
     const auto cache_it = m_cache.find(uri);
     if(cache_it != m_cache.end()) {
-        const auto& tt = cache_it->second.compilation_result.tokens;
-        result.reserve(tt.size());
-        for(const auto& t : tt) {
-            const auto& ttype_it = m_semantic_token_types_map.find(t.name);
-            if(ttype_it != m_semantic_token_types_map.end()) {
-                result.push_back(semantic_token {
-                    .type = ttype_it->second,
-                    .modifier = wall_e::enums::max_value<semantic_token_modifier>(),
-                    .segment = t.segment(),
-                    .position = text_wide_position::from_text_segment(t.segment(), cache_it->second.content)
-                });
+        if(cache_it->second.compilation_result.root_node && m_ast_semantic_token_types_map.size() > 0) {
+            const auto& tokens = cache_it->second.compilation_result.root_node->tokens();
+            if(!tokens.empty()) {
+                std::vector<semantic_token> result;
+                result.reserve(tokens.size());
+                for(const auto& t : tokens) {
+                    const auto& ttype_it = m_ast_semantic_token_types_map.find(t.type);
+                    if(ttype_it != m_ast_semantic_token_types_map.end()) {
+                        result.push_back(semantic_token {
+                            .type = ttype_it->second,
+                            .modifier = wall_e::enums::max_value<semantic_token_modifier>(),
+                            .segment = t.segment,
+                            .position = text_wide_position::from_text_segment(t.segment, cache_it->second.content)
+                        });
+                    }
+                }
+                return result;
             }
         }
+
+        {
+            const auto& tokens = cache_it->second.compilation_result.tokens;
+            std::vector<semantic_token> result;
+            result.reserve(tokens.size());
+            for(const auto& t : tokens) {
+                const auto& ttype_it = m_semantic_token_types_map.find(t.name);
+                if(ttype_it != m_semantic_token_types_map.end()) {
+                    result.push_back(semantic_token {
+                        .type = ttype_it->second,
+                        .modifier = wall_e::enums::max_value<semantic_token_modifier>(),
+                        .segment = t.segment(),
+                        .position = text_wide_position::from_text_segment(t.segment(), cache_it->second.content)
+                    });
+                }
+            }
+            return result;
+        }
     }
-    return result;
+    return std::vector<semantic_token> {};
 }
 
 std::optional<std::string> km2::lsp::service::hover(const std::string &uri, const wall_e::text_segment::predicate &predicate) {

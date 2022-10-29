@@ -8,12 +8,18 @@
 #include <src/km2/translation_unit/translation_unit.h>
 
 
-km2::proto_node::proto_node(const wall_e::index& index, const std::string &name, const std::vector<std::shared_ptr<decl_arg_node> > &args, std::shared_ptr<abstract_type_node> result_type_node)
+km2::proto_node::proto_node(
+        const wall_e::index& index,
+        const std::string &name,
+        const wall_e::text_segment& name_segment,
+        const std::vector<std::shared_ptr<decl_arg_node>> &args,
+        std::shared_ptr<abstract_type_node> result_type_node
+        )
     : km2::abstract_value_node(index, cast_to_children(args, std::vector { result_type_node })),
     m_name(name),
+    m_name_segment(name_segment),
     m_args(args),
-    m_result_type_node(result_type_node)
-{}
+    m_result_type_node(result_type_node) {}
 
 wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
     std::cout << "km2::proto_node::create: " << args << std::endl;
@@ -31,6 +37,7 @@ wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &a
         return std::make_shared<proto_node>(
                 index,
                 args[0].value<wall_e::lex::token>().text,
+                args[0].value<wall_e::lex::token>().segment(),
                 da_nodes,
                 args[4].cast_or<std::shared_ptr<abstract_type_node>>()
                 );
@@ -102,10 +109,23 @@ void km2::proto_node::print(size_t level, std::ostream &stream) const {
 }
 
 
-std::list<wall_e::error> km2::proto_node::errors() const {
+wall_e::list<wall_e::error> km2::proto_node::errors() const {
     return { wall_e::error("err not implemented") };
 }
 
 void km2::proto_node::short_print(std::ostream &stream) const {
     stream << "proto_node: { name: " << m_name << " }";
+}
+
+
+km2::ast_token_list km2::proto_node::tokens() const {
+    return ast_token_list {
+        ast_token {
+            .node_type = wall_e::type_name<proto_node>(),
+            .comment = "proto name",
+            .text = m_name,
+            .segment = m_name_segment
+        },
+    } + tokens_from_node_list(m_args)
+    + (m_result_type_node ? m_result_type_node->tokens() : ast_token_list {});
 }

@@ -114,10 +114,26 @@ void km2::arg_node::print(size_t level, std::ostream &stream) const {
 }
 
 
-std::list<wall_e::error> km2::arg_node::errors() const {
+wall_e::list<wall_e::error> km2::arg_node::errors() const {
     return {};
 }
 
 void km2::arg_node::short_print(std::ostream &stream) const {
     stream << "arg_node { type: " << m_type << ", text: " << m_text << " }";
+}
+
+km2::ast_token_list km2::arg_node::tokens() const {
+    const auto& encoded_text = wall_e::lex::encode_special_syms(m_text);
+    if(m_type == ValueNode) {
+        return m_value_node ? m_value_node->tokens() : ast_token_list {};
+    } else {
+        return ast_token_list {
+            ast_token {
+                .node_type = wall_e::type_name<arg_node>(),
+                .comment = "arg '" + encoded_text + "' of type '" + std::to_string(m_type) + "'",
+                .text = encoded_text,
+                .segment = this->segment()
+            }
+        };
+    }
 }

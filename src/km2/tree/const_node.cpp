@@ -6,9 +6,15 @@
 #include <src/km2/translation_unit/translation_unit.h>
 #include "arg_node.h"
 
-km2::const_node::const_node(const wall_e::index& index, const std::string &id, const std::shared_ptr<arg_node> &value)
+km2::const_node::const_node(
+        const wall_e::index& index,
+        const std::string &id,
+        const wall_e::text_segment &id_segment,
+        const std::shared_ptr<arg_node> &value
+        )
     : km2::abstract_value_node(index, { value }),
       m_id(id),
+      m_id_segment(id_segment),
       m_value(value) {}
 
 wall_e::gram::argument km2::const_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
@@ -16,13 +22,13 @@ wall_e::gram::argument km2::const_node::create(const wall_e::gram::arg_vector &a
     if(args.size() > 3) {
         if(const auto id = args[1].option<wall_e::lex::token>()) {
             if(const auto value = args[3].option_cast<std::shared_ptr<arg_node>>()) {
-                return std::make_shared<const_node>(index, id->text, *value);
+                return std::make_shared<const_node>(index, id->text, id->segment(), *value);
             } else {
-                return std::make_shared<const_node>(index, id->text);
+                return std::make_shared<const_node>(index, id->text, id->segment());
             }
         }
     }
-    return std::make_shared<const_node>(index, std::string());
+    return std::make_shared<const_node>(index, std::string(), wall_e::text_segment());
 }
 
 void km2::const_node::print(size_t level, std::ostream &stream) const {
@@ -35,7 +41,7 @@ void km2::const_node::print(size_t level, std::ostream &stream) const {
     }
 }
 
-std::list<wall_e::error> km2::const_node::errors() const {
+wall_e::list<wall_e::error> km2::const_node::errors() const {
     return {};
 }
 
@@ -58,4 +64,15 @@ wall_e::either<wall_e::error, llvm::Value *> km2::const_node::generate_llvm(cons
 
 void km2::const_node::short_print(std::ostream &stream) const {
     stream << "const_node { id: " << m_id << " }";
+}
+
+wall_e::list<km2::ast_token> km2::const_node::tokens() const {
+    return wall_e::list<km2::ast_token> {
+        ast_token {
+            .node_type = wall_e::type_name<const_node>(),
+            .comment = "constant id '" + m_id + "'",
+            .text = m_id,
+            .segment = m_id_segment
+        }
+    } + (m_value ? m_value->tokens() : wall_e::list<km2::ast_token> {});
 }

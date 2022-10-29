@@ -104,7 +104,6 @@ void aaa(const std::string &a) {
 }
 
 km2::compilation_result km2::compile(const std::string &input, const km2::flags &flags) {
-
     std::string a = "const&";
 
     aaa(a);

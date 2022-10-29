@@ -6,7 +6,6 @@
 #include <src/km2/km2.h>
 #include <wall_e/src/models/error.h>
 #include "klibcore/kmacro.h"
-#include "asmexecutor.h"
 #include "highlighter.h"
 #include "jitexecutor.h"
 #include <QQuickTextDocument>
@@ -22,6 +21,7 @@ class AppCore : public QObject {
     Q_OBJECT
     K_QML_TYPE(AppCore)
     K_READONLY_PROPERTY(QString, tokens, tokens, setTokens, tokensChanged, QString())
+    K_READONLY_PROPERTY(QString, astTokens, astTokens, setAstTokens, astTokensChanged, QString())
     K_READONLY_PROPERTY(QString, gramatic, gramatic, setGramatic, gramaticChanged, QString())
     K_READONLY_PROPERTY(QString, asmCode, asmCode, setAsmCode, asmCodeChanged, QString())
     K_READONLY_PROPERTY(wall_e::variant, tree, tree, setTree, treeChanged, wall_e::variant())

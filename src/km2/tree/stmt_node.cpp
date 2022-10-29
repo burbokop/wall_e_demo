@@ -40,7 +40,7 @@ void km2::stmt_node::print(size_t level, std::ostream &stream) const {
 }
 
 
-std::list<wall_e::error> km2::stmt_node::errors() const {
+wall_e::list<wall_e::error> km2::stmt_node::errors() const {
     return { wall_e::error("err not implemented") };
 }
 

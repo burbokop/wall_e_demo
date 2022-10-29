@@ -13,4 +13,3 @@ namespace {
 
 	print(444.);
 }
-

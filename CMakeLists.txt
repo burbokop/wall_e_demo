@@ -72,6 +72,7 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/context.cpp
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/lsp/service.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/lsp/tables.service.cpp
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/abstract/abstract_type_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/abstract/abstract_value_node.cpp
