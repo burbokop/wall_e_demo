@@ -58,7 +58,7 @@ const std::list<wall_e::lex::pattern> km2_lexlist = {
     { std::regex("f32"), "TOK_FLOAT" },
     { std::regex("f64"), "TOK_DOUBLE" },
     { std::regex("'[^']*'"), "STRING_LITERAL" },
-    { std::regex("[a-zA-Z][a-zA-Z0-9]*"), "TOK_ID" },
+    { std::regex("[a-zA-Z_][a-zA-Z0-9_]*"), "TOK_ID" },
     { std::regex("[0-9]+\\.([0-9]+)?"), "FLOAT_LITERAL" },
     { std::regex("[0-9]+"), "INT_LITERAL" },
     { std::regex("[(]"), "OP" },

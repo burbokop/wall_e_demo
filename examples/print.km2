@@ -1,10 +1,16 @@
-printf = (format string, args ...) u32;
+namespace {
+        printf = (format string, args ...) u32;
 
-pow = (a f64, b f64) f64;
+	pow = (a f64, b f64) f64;
 
-print = (num f64) {
-	printf('gogadoda: %f\n', pow(num, 2.));
-};
+        fn2 = (num f64) {
 
+        };
 
-print(444.);
+	print = (num f64) {
+                printf('gogadoda: %f\n', pow(num, 2.));
+	};
+
+	print(444.);
+}
+
