@@ -8,11 +8,10 @@
 #include <src/km2/translation_unit/translation_unit.h>
 
 
-km2::proto_node::proto_node(
-        const wall_e::index& index,
+km2::proto_node::proto_node(const wall_e::index& index,
         const std::string &name,
         const wall_e::text_segment& name_segment,
-        const std::vector<std::shared_ptr<decl_arg_node>> &args,
+        const wall_e::vec<std::shared_ptr<decl_arg_node> > &args,
         std::shared_ptr<abstract_type_node> result_type_node
         )
     : km2::abstract_value_node(index, cast_to_children(args, std::vector { result_type_node })),
@@ -25,7 +24,7 @@ wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &a
     std::cout << "km2::proto_node::create: " << args << std::endl;
 
     if(args.size() > 4 && args[0].contains_type<wall_e::lex::token>()) {
-        std::vector<std::shared_ptr<decl_arg_node>> da_nodes;
+        wall_e::vec<std::shared_ptr<decl_arg_node>> da_nodes;
         const auto decl_args = args[3].constrain();
         for(const auto& decl_arg : decl_args) {
             const auto da_node = decl_arg.option_cast<std::shared_ptr<km2::decl_arg_node>>();

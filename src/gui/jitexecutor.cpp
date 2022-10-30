@@ -20,6 +20,7 @@ JitExecutor::JitExecutor(QObject *parent) : QObject(parent) {
     });
 
     connect(timer, &QTimer::timeout, this, [this](){
+        qDebug() << "T0" << process;
         if(process) {
             const auto result = process.result();
             if(result.has_value()) {
@@ -39,25 +40,27 @@ JitExecutor::JitExecutor(QObject *parent) : QObject(parent) {
                 }
             }
         }
+        qDebug() << "T1";
     });
 }
 
-bool JitExecutor::start(const std::shared_ptr<km2::translation_unit> &unit, llvm::Value *entry) {
+Either JitExecutor::start(const std::shared_ptr<km2::translation_unit> &unit, llvm::Function *entry) {
+    if(!unit) return Either::newLeft("unit is null");
+    if(!entry) return Either::newLeft("entry is null");
     if(!executing()) {
-        llvm::Function* f = static_cast<llvm::Function*>(entry);
-
-        process = sproc::non_blocking::fork([unit, f, this](){
-            if(const auto result = unit->run_jit(f)) {
+        process = sproc::non_blocking::fork([unit, entry, this](){
+            if(const auto result = unit->run_jit(entry)) {
                 return result.right_value();
             } else {
                 return -1;
             }
         });
+        qDebug() << "H1";
         timer->start(100);
         setExecuting(true);
-        return true;
+        return Either::newRight(QVariant());
     }
-    return false;
+    return Either::newLeft("already executing");
 }
 
 void JitExecutor::abort() {

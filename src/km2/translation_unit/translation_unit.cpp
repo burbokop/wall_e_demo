@@ -6,21 +6,16 @@
 #pragma warning(push, 0)
 #include <llvm/IR/DiagnosticPrinter.h>
 #include "llvm/IR/LegacyPassManager.h"
-#include "llvm/IR/IRPrintingPasses.h"
-#include "llvm/Transforms/Scalar.h"
-#include "llvm/Analysis/BasicAliasAnalysis.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/SectionMemoryManager.h"
-#include "llvm/ExecutionEngine/Orc/CompileUtils.h"
+#include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/IR/InlineAsm.h"
-#include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/Optional.h"
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -36,6 +31,17 @@
 #include "llvm/Support/Host.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
+
+
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/ExecutionEngine/ExecutionEngine.h>
+#include <llvm/ExecutionEngine/JITSymbol.h>
+#include <llvm/ExecutionEngine/SectionMemoryManager.h>
+#include <llvm/ExecutionEngine/Orc/CompileUtils.h>
+#include <llvm/ExecutionEngine/Orc/IRCompileLayer.h>
+#include <llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h>
+
 
 #pragma warning(pop)
 
@@ -207,7 +213,7 @@ int km2::translation_unit::aaa() {
     const auto m_entryPoint = llvm::Function::Create(
                 llvm::FunctionType::get(llvm::Type::getInt32Ty(*m_context.get()), {}, false),
                 llvm::Function::ExternalLinkage,
-                "main",
+                "km2_main",
                 m_module.get()
                 );
 
@@ -273,6 +279,17 @@ void km2::translation_unit::print() {
     llvm::outs() << llvm::raw_ostream::CYAN << "\nMODULE:\n" << llvm::raw_ostream::YELLOW << *m_module.get() << llvm::raw_ostream::RESET;
 }
 
+void km2::translation_unit::print_functions() {
+    llvm::outs() << "functions:\n";
+    for(const auto &f : m_module->functions()) {
+        llvm::outs() << "  " << "func: " << f.getName() << "\n";
+        for(const auto& b : f.getBasicBlockList()) {
+            llvm::outs() << "    " << b.getName() << "\n";
+        }
+    }
+    llvm::outs().flush();
+}
+
 std::string km2::translation_unit::llvm_assembly() const {
     std::string result;
     llvm::raw_string_ostream stream(result);
@@ -281,38 +298,20 @@ std::string km2::translation_unit::llvm_assembly() const {
 }
 
 wall_e::either<std::string, int> km2::translation_unit::run_jit(llvm::Function *entry_point) {
-    //std::cout << "\nRUN JIT\n";
-    //
-    //llvm::outs() << "Blocks:\n";
-    //for(const auto &f : m_module->functions()) {
-    //    //llvm::outs() << "\t" << "func:" << "\n";
-    //    for(const auto& b : f.getBasicBlockList()) {
-    //        llvm::outs() << "\t" << b.getName() << "\n";
-    //        //for (auto it = b.begin()) {
-    //        //
-    //        //}
-    //    }
-    //}
-
-    llvm::TargetOptions Opts;
-    llvm::InitializeNativeTarget();
-    llvm::InitializeNativeTargetAsmPrinter();
-
-    std::unique_ptr<llvm::RTDyldMemoryManager> MemMgr(new llvm::SectionMemoryManager());
-    llvm::EngineBuilder factory(std::move(m_module));
-    factory.setEngineKind(llvm::EngineKind::JIT);
-    factory.setTargetOptions(Opts);
-    factory.setMCJITMemoryManager(std::move(MemMgr));
-    auto executionEngine = std::unique_ptr<llvm::ExecutionEngine>(factory.create());
-    executionEngine->finalizeObject();
     if(entry_point) {
-        auto* ep = executionEngine->getPointerToFunction(entry_point);
-        std::function<int()> entryPoint = (int(*)())ep;
+        llvm::outs().flush();
+        llvm::InitializeNativeTarget();
+        LLVMInitializeNativeAsmPrinter();
+        LLVMInitializeNativeAsmParser();
 
+        auto engine = llvm::EngineBuilder(std::move(m_module)).create();
+        std::vector<llvm::GenericValue> noargs;
         std::cout << "JIT BEGIN" << std::endl;
-        auto result = entryPoint();
-        std::cout << "JIT END: " << result << std::endl;
-        return wall_e::right(result);
+        auto result = engine->runFunction(entry_point, noargs);
+        int int_res = result.IntVal.getSExtValue();
+        std::cout << "JIT END: " << int_res << std::endl;
+        delete engine;
+        return wall_e::right(int_res);
     } else {
         std::cout << "JIT ERR: entry point not set" << std::endl;
     }

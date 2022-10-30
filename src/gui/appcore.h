@@ -6,6 +6,7 @@
 #include <src/km2/km2.h>
 #include <wall_e/src/models/error.h>
 #include "klibcore/kmacro.h"
+#include "either.h"
 #include "highlighter.h"
 #include "jitexecutor.h"
 #include <QQuickTextDocument>
@@ -16,6 +17,10 @@
 
 Q_DECLARE_METATYPE(wall_e::error)
 Q_DECLARE_METATYPE(std::thread::id)
+
+extern "C" {
+int my_test_func();
+}
 
 class AppCore : public QObject {
     Q_OBJECT
@@ -61,7 +66,7 @@ public:
 public slots:
     QString makeExecutable(const QString& path);
 
-    bool startExecuting();
+    Either startExecuting();
     QString errToString(const wall_e::error& err) const;
     int errBegin(const wall_e::error& err) const;
     int errEnd(const wall_e::error& err) const;

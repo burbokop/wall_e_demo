@@ -44,7 +44,6 @@ QString AppCore::makeExecutable(const QString &path) {
         return "not compiled yet";
     }
 }
-
 void AppCore::completeCompilation(const km2::compilation_result &cresult) {
     setTokens(QString::fromStdString(wall_e::lex::to_string(cresult.tokens())));
 
@@ -76,6 +75,8 @@ void AppCore::completeCompilation(const km2::compilation_result &cresult) {
 }
 
 AppCore::AppCore(QObject *parent) : QObject(parent) {
+    qRegisterMetaType<Either>();
+
     connect(this, &AppCore::codeChanged, this, &AppCore::recompile);
     connect(this, &AppCore::onlyTreeChanged, this, &AppCore::recompile);
     connect(this, &AppCore::verboseChanged, this, &AppCore::recompile);
@@ -97,12 +98,14 @@ AppCore::AppCore(QObject *parent) : QObject(parent) {
     recompile();
 }
 
-bool AppCore::startExecuting() {
+Either AppCore::startExecuting() {
     if(prevResult) {
-        return executor()->start(prevResult->unit(), prevResult->llvm_value());
-    } else {
-        return false;
+        if(const auto& f = static_cast<llvm::Function*>(prevResult->llvm_value())) {
+            return executor()->start(prevResult->unit(), f);
+        }
+        return Either::newLeft("llvm value is not a function");
     }
+    return Either::newLeft("no compilation proceeded yet");
 }
 
 QString AppCore::errToString(const wall_e::error &err) const {
@@ -115,4 +118,11 @@ int AppCore::errBegin(const wall_e::error &err) const {
 
 int AppCore::errEnd(const wall_e::error &err) const {
     return err.segment().end();
+}
+
+extern "C" {
+int my_test_func() {
+    qDebug() << "SOME Q DEBUG";
+    return 0;
+}
 }

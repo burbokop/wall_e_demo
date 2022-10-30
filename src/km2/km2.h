@@ -34,7 +34,7 @@ class translation_unit;
 class abstract_node;
 
 class compilation_result {
-    std::vector<wall_e::lex::token> m_tokens;
+    wall_e::lex::token_vec m_tokens;
     std::string m_rules;
     wall_e::variant m_token_tree;
     std::shared_ptr<km2::abstract_node> m_root_node;
@@ -47,7 +47,7 @@ class compilation_result {
     mutable wall_e::opt<std::map<wall_e::text_segment, std::string>> m_hovers;
 public:
     compilation_result(
-            const std::vector<wall_e::lex::token>& tokens,
+            const wall_e::lex::token_vec& tokens,
             const std::string& rules,
             const wall_e::variant& token_tree,
             const std::shared_ptr<km2::abstract_node>& root_node,
@@ -63,7 +63,7 @@ public:
           m_llvm_value(llvm_value),
           m_errors(errors) {}
 
-    const std::vector<wall_e::lex::token>& tokens() const { return m_tokens; }
+    const wall_e::lex::token_vec& tokens() const { return m_tokens; }
     const std::string& rules() const { return m_rules; }
     const wall_e::variant& token_tree() const { return m_token_tree; }
     const std::shared_ptr<km2::abstract_node>& root_node() const { return m_root_node; }

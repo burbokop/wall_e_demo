@@ -46,7 +46,7 @@ __km2_flags_private __km2_parse_flags(const km2::flags &flags) {
     return result;
 }
 
-const std::list<wall_e::lex::pattern> km2_lexlist = {
+const wall_e::lex::pattern_list km2_lexlist = {
     { std::regex("wait[ \t\n]"), "TOK_WAIT" },
     { std::regex("asm"), "TOK_ASM" },
     { std::regex("number"), "TOK_NUMBER" },
@@ -154,9 +154,7 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
         return compilation_result(sorted_tokens, {}, {}, {}, {}, {}, lex_errors);
     }
 
-    std::list<wall_e::function> functions;
-
-    std::list<wall_e::gram::pattern> gram_list;
+    wall_e::gram::pattern_list gram_list;
 
     gram_list.push_back("namespace << TOK_NAMESPACE & (TOK_ID & OB | OB) & (EB | block)"_pattern
         << km2::namespace_node::create("TOK_ID"));
@@ -259,15 +257,15 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
 
                 unit->print();
 
-                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result, node, unit, llvm_value, {});
+                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, unit, llvm_value, {});
             } else {
                 std::cout << wall_e::color::Red << "FOUND ERRORS OF LEVEL 2: " << gen_result.left_value() << wall_e::color::reset() << std::endl;
-                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result, node, unit, {}, { gen_result.left_value() });
+                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, unit, {}, { gen_result.left_value() });
             }          
         }
     }
 
-    return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result, {}, {}, {}, { wall_e::error("root node is not a namespace") });
+    return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), {}, {}, {}, { wall_e::error("root node is not a namespace") });
 }
 
 

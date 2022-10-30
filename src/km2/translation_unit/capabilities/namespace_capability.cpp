@@ -11,7 +11,7 @@ km2::namespace_capability::namespace_capability(km2::translation_unit* unit)
 
 void km2::namespace_capability::begin_namespace(const std::list<std::string> &name) {
     if(m_stack.size() == 0) {
-        m_stack.push({ .name = name, .entry = unit()->begin_entry("main") });
+        m_stack.push({ .name = name, .entry = unit()->begin_entry("km2_main") });
     } else {
         m_stack.push({ .name = name });
     }

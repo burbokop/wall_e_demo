@@ -84,9 +84,11 @@ public:
 
 
     void print();
+    void print_functions();
     std::string llvm_assembly() const;
     wall_e::either<std::string, int> compile(const std::string &output_path);
     wall_e::either<std::string, int> run_jit(llvm::Function* entry_point);
+
     /**
      * @brief make_executable
      * @param output_path

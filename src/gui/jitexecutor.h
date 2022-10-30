@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QTimer>
 #include "klibcore/kmacro.h"
+#include "either.h"
 #include <sproc/src/fork.h>
 
 namespace km2 {
@@ -11,7 +12,7 @@ namespace km2 {
 }
 
 namespace llvm {
-    class Value;
+    class Function;
 }
 
 class JitExecutor : public QObject {
@@ -21,7 +22,7 @@ class JitExecutor : public QObject {
     QTimer *timer = nullptr;
 public:
     explicit JitExecutor(QObject *parent = nullptr);
-    bool start(const std::shared_ptr<km2::translation_unit> &unit, llvm::Value* entry);
+    Either start(const std::shared_ptr<km2::translation_unit> &unit, llvm::Function *entry);
     void abort();
 
 signals:

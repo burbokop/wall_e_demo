@@ -6,11 +6,14 @@ import KLib 1.0
 
 
 Rectangle {
+    id: localRoot
     color: "#444444"
 
     function pushMessage(str, err) {
         listModel.append({ message: str, error: err });
     }
+
+    signal err(string message)
 
     ColumnLayout {
         anchors.fill: parent
@@ -22,12 +25,16 @@ Rectangle {
             RowLayout {
                 anchors.fill: parent
                 ToolBarButton {
+                    id: runButton
                     width: 100
                     height: 26
                     text: "run"
                     onClicked: {
-                        if(!appCore.startExecuting()) {
-                            emitError();
+                        const res = appCore.startExecuting();
+                        console.log(`appCore.startExecuting: ${res}`)
+                        if(!res.defined) {
+                            runButton.emitError();
+                            localRoot.err(res.left)
                         }
                     }
                 }
@@ -42,8 +49,9 @@ Rectangle {
             model: ListModel { id: listModel }
             delegate: Item {
                 width: parent.width
-                height: 36
+                implicitHeight: txt.implicitHeight
                 Text {
+                    id: txt
                     color: error ? "#ff0000" : "#ffffff"
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter

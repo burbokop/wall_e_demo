@@ -234,6 +234,7 @@ Window {
                         anchors.fill: parent
                         anchors.margins: 2
                         visible: appCore.mode === AppCore.ModeExec
+                        onErr: message => infoDialog.openWithMessage(message)
                     }
                 }
             }

@@ -114,8 +114,10 @@ public:
     inline static ast_token_list tokens_from_node_list(const std::vector<std::shared_ptr<T>>& nodes) {
         ast_token_list result;
         for(const auto& n : nodes) {
-            const auto& t = n->tokens();
-            result.insert(result.end(), t.begin(), t.end());
+            if(n) {
+                const auto& t = n->tokens();
+                result.insert(result.end(), t.begin(), t.end());
+            }
         }
         return result;
     }

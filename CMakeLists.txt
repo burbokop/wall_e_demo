@@ -62,7 +62,7 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/ast_token.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/math_patterns.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/function.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/translation_unit.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/translation_unit.cpp    
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/abstract_capability.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/type_capability.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/constants_capability.cpp
@@ -142,6 +142,7 @@ set(KM2_HEADERS
 set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/to_pdf.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/either.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/kgramtreeview.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/mainwindow.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/appcore.cpp
@@ -155,6 +156,7 @@ set(SOURCES
 )
 set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/to_pdf.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/either.h
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/kgramtreeview.h
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/mainwindow.h
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/appcore.h
@@ -272,6 +274,9 @@ target_link_libraries(km2ide
     #clangBasic
     #clangASTMatchers
 )
+
+
+include(tests/km2_tests.cmake)
 
 # --- LSP DEPENDENCIES ---
 #include(FindPkgConfig)
