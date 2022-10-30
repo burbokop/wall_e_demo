@@ -60,8 +60,9 @@ wall_e::list<wall_e::error> km2::decl_arg_node::errors() const {
 wall_e::list<km2::ast_token> km2::decl_arg_node::tokens() const {
     return wall_e::list<ast_token> {
         ast_token {
+            .type = AstParameter,
             .node_type = wall_e::type_name<decl_arg_node>(),
-            .comment = m_is_variadic ? "variadic decl argument name" : "decl argument name",
+            .hover = m_is_variadic ? "<b>variadic argument</b> " + m_name : "<b>argument</b> " + m_name,
             .text = m_name,
             .segment = m_name_segment
         }

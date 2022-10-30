@@ -38,6 +38,8 @@ public:
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
 
+    std::string hover() const;
+
     // abstract_type_node interface
 public:
     virtual wall_e::either<wall_e::error, llvm::Type*> generate_llvm(const std::shared_ptr<translation_unit> &unit) override;

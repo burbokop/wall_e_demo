@@ -57,22 +57,22 @@ std::list<wall_e::error> km2::lsp::service::change_content(const std::string &ur
     auto& ref = m_cache[uri];
     ref.content = content;
     ref.compilation_result = km2::compile(content, ref.flags);
-    return ref.compilation_result.errors;
+    return ref.compilation_result->errors();
 }
 
 std::vector<wall_e::lex::token> km2::lsp::service::tokens(const std::string &uri) const {
     const auto cache_it = m_cache.find(uri);
-    if(cache_it != m_cache.end()) {
-        return cache_it->second.compilation_result.tokens;
+    if(cache_it != m_cache.end() && cache_it->second.compilation_result) {
+        return cache_it->second.compilation_result->tokens();
     }
     return {};
 }
 
 std::vector<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const std::string &uri) const {
     const auto cache_it = m_cache.find(uri);
-    if(cache_it != m_cache.end()) {
-        if(cache_it->second.compilation_result.root_node && m_ast_semantic_token_types_map.size() > 0) {
-            const auto& tokens = cache_it->second.compilation_result.root_node->tokens();
+    if(cache_it != m_cache.end() && cache_it->second.compilation_result) {
+        if(cache_it->second.compilation_result->root_node() && m_ast_semantic_token_types_map.size() > 0) {
+            const auto& tokens = cache_it->second.compilation_result->ast_tokens();
             if(!tokens.empty()) {
                 std::vector<semantic_token> result;
                 result.reserve(tokens.size());
@@ -92,7 +92,7 @@ std::vector<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const s
         }
 
         {
-            const auto& tokens = cache_it->second.compilation_result.tokens;
+            const auto& tokens = cache_it->second.compilation_result->tokens();
             std::vector<semantic_token> result;
             result.reserve(tokens.size());
             for(const auto& t : tokens) {
@@ -114,9 +114,9 @@ std::vector<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const s
 
 std::optional<std::string> km2::lsp::service::hover(const std::string &uri, const wall_e::text_segment::predicate &predicate) {
     const auto cache_it = m_cache.find(uri);
-    if(cache_it != m_cache.end()) {
+    if(cache_it != m_cache.end() && cache_it->second.compilation_result) {
 
-        const auto& hovers = cache_it->second.compilation_result.hovers;
+        const auto& hovers = cache_it->second.compilation_result->hovers();
         const auto it = std::find_if(hovers.begin(), hovers.end(), [&predicate, &cache_it](
                                      const std::pair<wall_e::text_segment, std::string>& pair
                                      ){

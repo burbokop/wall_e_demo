@@ -6,56 +6,9 @@
 #include <functional>
 #include <wall_e/src/private/gram_private.h>
 #include <src/km2/translation_unit/models/context.h>
-#include <wall_e/src/enums.h>
+#include "../../ast_token.h"
 
 namespace km2 {
-
-wall_e_enum(ast_token_type,
-    AstNamespace = 0,
-    AstType,
-    AstClass,
-    AstEnum,
-    AstInterface,
-    AstStruct,
-    AstTypeParameter,
-    AstParameter,
-    AstVariable,
-    AstProperty,
-    AstEnumMember,
-    AstEvent,
-    AstFunction,
-    AstMethod,
-    AstMacro,
-    AstKeyword,
-    AstModifier,
-    AstComment,
-    AstString,
-    AstNumber,
-    AstRegexp,
-    AstOperator,
-    AstDecorator
-)
-
-struct ast_token {
-    ast_token_type type;
-    std::string node_type;
-    std::string comment;
-    std::string text;
-    wall_e::text_segment segment;
-
-    friend inline std::ostream& operator<<(std::ostream& stream, const ast_token& token) {
-        return stream << "{ type: " << token.type
-                      << ", node_type: " << token.node_type
-                      << ", comment: " << token.comment
-                      << ", text: " << token.text
-                      << ", segment: " << token.segment
-                      << " }";
-    }
-};
-
-typedef wall_e::list<ast_token> ast_token_list;
-
-std::string to_string(const std::list<ast_token>& tokens);
 
 struct abstract_node;
 

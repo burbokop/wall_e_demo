@@ -99,17 +99,20 @@ void km2::namespace_node::short_print(std::ostream &stream) const {
 }
 
 km2::ast_token_list km2::namespace_node::tokens() const {
+    const std::string hover = m_name.empty() ? "<b>anonimus namespace</b>" : "<b>namespace</b> " + m_name;
     return ast_token_list {
         ast_token {
+            .type = AstKeyword,
             .node_type = wall_e::type_name<namespace_node>(),
-            .comment = m_name.empty() ? "namesapce key word" : "namesapce '" + m_name + "'",
+            .hover = hover,
             .text = m_keyword,
             .segment = m_keyword_segment
         },
     } + (m_name.empty() ? ast_token_list {} : ast_token_list {
         ast_token {
+            .type = AstNamespace,
             .node_type = wall_e::type_name<namespace_node>(),
-            .comment = "namesapce name '" + m_name + "'",
+            .hover = hover,
             .text = m_name,
             .segment = m_name_segment
         }

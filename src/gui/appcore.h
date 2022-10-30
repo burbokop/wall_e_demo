@@ -39,7 +39,7 @@ public:
     enum Mode { ModeTokens, ModeGramatic, ModeTree, ModeAsm, ModeExec };
 private:
     K_CONST_PROPERTY(JitExecutor*, executor, new JitExecutor(this));
-    km2::compilation_result lastResult;
+    wall_e::opt<km2::compilation_result> prevResult;
     Q_ENUM(Mode)
     K_AUTO_PROPERTY(Mode, mode, mode, setMode, modeChanged, ModeTree)
     K_AUTO_PROPERTY(QQuickTextDocument*, codeDocument, codeDocument, setCodeDocument, codeDocumentChanged, nullptr)

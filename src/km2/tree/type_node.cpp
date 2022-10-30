@@ -30,6 +30,17 @@ wall_e::opt<uint16_t> km2::type_node::parse_integer_type(const std::string &str)
     return std::nullopt;
 }
 
+std::string km2::type_node::hover() const {
+    switch (m_type) {
+    case Unsigned: return "<b>primitive integer type</b> " + m_original_text;
+    case Signed: return "<b>primitive integer type</b> " + m_original_text;
+    case Float: return "<b>primitive float type</b> " + m_original_text;
+    case Double: return "<b>primitive float type</b> " + m_original_text;
+    case String: return "<b>primitive type</b> " + m_original_text;
+    case Undefined: return "<b>undefined type</b> " + m_original_text;
+    }
+}
+
 km2::type_node::type_node(
         const wall_e::index& index,
         type t,
@@ -97,8 +108,9 @@ void km2::type_node::short_print(std::ostream &stream) const {
 km2::ast_token_list km2::type_node::tokens() const {
     return {
         ast_token {
+            .type = AstType,
             .node_type = wall_e::type_name<type_node>(),
-            .comment = m_bits ? ("type with size " + std::to_string(*m_bits) + " bits") : "type with unknown size",
+            .hover = hover(),
             .text = m_original_text,
             .segment = this->segment()
         }

@@ -139,8 +139,9 @@ void km2::call_node::short_print(std::ostream &stream) const {
 km2::ast_token_list km2::call_node::tokens() const {
     return ast_token_list {
         ast_token {
+            .type = AstFunction,
             .node_type = wall_e::type_name<call_node>(),
-            .comment = "function name",
+            .hover = "<b>function</b> " + m_name,
             .text = m_name,
             .segment = m_name_segment
         },

@@ -69,8 +69,9 @@ void km2::const_node::short_print(std::ostream &stream) const {
 wall_e::list<km2::ast_token> km2::const_node::tokens() const {
     return wall_e::list<km2::ast_token> {
         ast_token {
+            .type = AstVariable,
             .node_type = wall_e::type_name<const_node>(),
-            .comment = "constant id '" + m_id + "'",
+            .hover = "<b>constant</b> " + m_id,
             .text = m_id,
             .segment = m_id_segment
         }

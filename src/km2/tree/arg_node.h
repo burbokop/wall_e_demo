@@ -37,6 +37,8 @@ public:
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
 
+    ast_token_type token_type() const;
+    std::string hover() const;
 
     // node interface
 public:

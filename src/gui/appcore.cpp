@@ -32,42 +32,46 @@ void AppCore::recompile() {
 }
 
 QString AppCore::makeExecutable(const QString &path) {
-    if(lastResult.unit) {
-        if(const auto err = lastResult.unit->make_executable(path.toStdString()).left()) {
-            return errToString(err.value());
+    if(prevResult) {
+        if(prevResult->unit()) {
+            if(const auto err = prevResult->unit()->make_executable(path.toStdString()).left()) {
+                return errToString(err.value());
+            }
+            return {};
         }
-        return {};
+        return "empty module";
+    } else {
+        return "not compiled yet";
     }
-    return "empty module";
 }
 
 void AppCore::completeCompilation(const km2::compilation_result &cresult) {
-    setTokens(QString::fromStdString(wall_e::lex::to_string(cresult.tokens)));
+    setTokens(QString::fromStdString(wall_e::lex::to_string(cresult.tokens())));
 
     setAstTokens(QString());
-    if(cresult.root_node) {
-        const auto& tokens = cresult.root_node->tokens();
+    if(cresult.root_node()) {
+        const auto& tokens = cresult.root_node()->tokens();
         if(tokens.size() > 0) {
             setAstTokens(QString::fromStdString(km2::to_string(tokens)));
         }
     }
 
-    setGramatic(QString::fromStdString(cresult.rules));
-    setTree(cresult.token_tree);
+    setGramatic(QString::fromStdString(cresult.rules()));
+    setTree(cresult.token_tree());
 
     qDebug() << "COMPILATION COMPLETE";
-    if(cresult.unit) {
-        setAsmCode(QString::fromStdString(cresult.unit->llvm_assembly()));
+    if(cresult.unit()) {
+        setAsmCode(QString::fromStdString(cresult.unit()->llvm_assembly()));
     } else {
         setAsmCode("err: empty module");
     }
-    setErrors(QList<wall_e::error>(cresult.errors.begin(), cresult.errors.end()));
+    setErrors(QList<wall_e::error>(cresult.errors().begin(), cresult.errors().end()));
 
     if(higlighter) {
         higlighter->setErrors(errors());
     }
 
-    lastResult = cresult;
+    prevResult = cresult;
     emit compilationCompleated();
 }
 
@@ -94,7 +98,11 @@ AppCore::AppCore(QObject *parent) : QObject(parent) {
 }
 
 bool AppCore::startExecuting() {
-    return executor()->start(lastResult.unit, lastResult.llvm_value);
+    if(prevResult) {
+        return executor()->start(prevResult->unit(), prevResult->llvm_value());
+    } else {
+        return false;
+    }
 }
 
 QString AppCore::errToString(const wall_e::error &err) const {

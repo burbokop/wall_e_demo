@@ -12,10 +12,10 @@
     #include <km2/km2.h>
 #endif
 
-#if __has_include(<src/km2/tree/abstract/abstract_node.h>)
-    #include <src/km2/tree/abstract/abstract_node.h>
+#if __has_include(<src/km2/ast_token.h>)
+    #include <src/km2/ast_token.h>
 #else
-    #include <km2/tree/abstract/abstract_node.h>
+    #include <km2/ast_token.h>
 #endif
 
 #if __has_include(<wall_e/src/enums.h>)
@@ -121,7 +121,7 @@ class service {
     struct cache_item {
         std::string content;
         km2::flags flags;
-        km2::compilation_result compilation_result;
+        wall_e::opt<km2::compilation_result> compilation_result;
     };
     typedef std::string uri_t;
 
@@ -141,6 +141,9 @@ public:
     std::vector<wall_e::lex::token> tokens(const std::string& uri) const;
     std::vector<semantic_token> semantic_tokens(const std::string& uri) const;
     std::optional<std::string> hover(const std::string& uri, const wall_e::text_segment::predicate& predicate);
+    inline std::optional<std::string> hover(const std::string& uri, std::size_t offset) {
+        return hover(uri, wall_e::text_segment::offset_predicate(offset));
+    }
     std::list<std::string> complete(const std::string& uri, const wall_e::text_segment::predicate& predicate);
 };
 

@@ -54,6 +54,28 @@ wall_e::gram::argument km2::arg_node::create(const wall_e::gram::arg_vector &arg
     return std::make_shared<arg_node>(index, wall_e::text_segment(), Undefined);
 }
 
+km2::ast_token_type km2::arg_node::token_type() const {
+    switch (m_type) {
+    case Id: return AstParameter;
+    case IntLiteral: return AstNumber;
+    case FloatLiteral: return AstNumber;
+    case StringLiteral: return AstString;
+    case ValueNode: return wall_e::enums::max_value<ast_token_type>();
+    case Undefined: return wall_e::enums::max_value<ast_token_type>();
+    }
+}
+
+std::string km2::arg_node::hover() const {
+    switch (m_type) {
+    case Id: return "<b>veriable</b> " + m_text;
+    case IntLiteral: return "<b>integer</b> " + m_text;
+    case FloatLiteral: return "<b>float</b> " + m_text;
+    case StringLiteral: return "<b>string</b> '" + wall_e::lex::encode_special_syms(m_text) + "'";
+    case ValueNode: return "";
+    case Undefined: return "";
+    }
+}
+
 wall_e::either<
     wall_e::error,
     llvm::Value *
@@ -129,8 +151,9 @@ km2::ast_token_list km2::arg_node::tokens() const {
     } else {
         return ast_token_list {
             ast_token {
+                .type = token_type(),
                 .node_type = wall_e::type_name<arg_node>(),
-                .comment = "arg '" + encoded_text + "' of type '" + std::to_string(m_type) + "'",
+                .hover = hover(),
                 .text = encoded_text,
                 .segment = this->segment()
             }

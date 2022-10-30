@@ -151,10 +151,7 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
     }
 
     if(lex_errors.size() > 0) {
-        return {
-            .tokens = sorted_tokens,
-            .errors = lex_errors,
-        };
+        return compilation_result(sorted_tokens, {}, {}, {}, {}, {}, lex_errors);
     }
 
     std::list<wall_e::function> functions;
@@ -228,11 +225,7 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
     std::cout << "result: " << result << std::endl;
 
     if(const auto err = result.left()) {
-        return {
-            .tokens = sorted_tokens,
-            .rules = wall_e::gram::pattern::to_string(gram_list),
-            .errors = { err.value() }
-        };
+        return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, {}, {}, {}, { err.value() });
     }
     const auto right = result.right().value();
 
@@ -250,12 +243,7 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
 
             if(errors.size() > 0) {
                 std::cout << wall_e::color::Red << "FOUND ERRORS OF LEVEL 1: " << errors << wall_e::color::reset() << std::endl;
-                return {
-                    .token_tree = right,
-                    .tokens = sorted_tokens,
-                    .rules = wall_e::gram::pattern::to_string(gram_list),
-                    .errors = errors
-                };;
+                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), right, {}, {}, {}, errors);
             } else {
                 std::cout << wall_e::color::Green << "NO ERRORS OF LEVEL 1" << wall_e::color::reset() << std::endl;
             }
@@ -271,24 +259,44 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
 
                 unit->print();
 
-                return {
-                    .token_tree = result,
-                    .root_node = node,
-                    .tokens = sorted_tokens,
-                    .rules = wall_e::gram::pattern::to_string(gram_list),
-                    .unit = unit,
-                    .llvm_value = llvm_value,
-                    .errors = {}
-                };
+                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result, node, unit, llvm_value, {});
             } else {
                 std::cout << wall_e::color::Red << "FOUND ERRORS OF LEVEL 2: " << gen_result.left_value() << wall_e::color::reset() << std::endl;
-                return { result, node, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, {}, { gen_result.left_value() } };
+                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result, node, unit, {}, { gen_result.left_value() });
             }          
         }
     }
 
-    return { result, nullptr, sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, {}};
+    return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result, {}, {}, {}, { wall_e::error("root node is not a namespace") });
 }
 
 
 
+
+const km2::ast_token_list &km2::compilation_result::ast_tokens() const {
+    if(m_root_node) {
+        if(!m_ast_tokens.has_value()) {
+            m_ast_tokens = m_root_node->tokens();
+        }
+        return *m_ast_tokens;
+    } else {
+        static const ast_token_list result;
+        return result;
+    }
+}
+
+const std::map<wall_e::text_segment, std::string> &km2::compilation_result::hovers() const {
+    if(m_root_node) {
+        if(!m_hovers.has_value()) {
+            std::map<wall_e::text_segment, std::string> result;
+            for(const auto& token : ast_tokens()) {
+                result.insert({ token.segment, token.hover });
+            }
+            m_hovers = result;
+        }
+        return *m_hovers;
+    } else {
+        static const std::map<wall_e::text_segment, std::string> result;
+        return result;
+    }
+}

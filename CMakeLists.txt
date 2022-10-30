@@ -59,6 +59,7 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/abstract_clang_node.cpp
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/km2.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/ast_token.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/math_patterns.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/function.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/translation_unit.cpp
@@ -105,6 +106,7 @@ set(KM2_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/abstract_clang_node.h
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/km2.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/ast_token.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/math_patterns.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/function.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/translation_unit.h

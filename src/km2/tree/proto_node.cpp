@@ -121,8 +121,9 @@ void km2::proto_node::short_print(std::ostream &stream) const {
 km2::ast_token_list km2::proto_node::tokens() const {
     return ast_token_list {
         ast_token {
+            .type = AstFunction,
             .node_type = wall_e::type_name<proto_node>(),
-            .comment = "proto name",
+            .hover = "<b>function</b> " + m_name + " (prototype)",
             .text = m_name,
             .segment = m_name_segment
         },
