@@ -5,7 +5,7 @@
 #include <list>
 #include <functional>
 #include <wall_e/src/private/gram_private.h>
-#include <src/km2/translation_unit/models/context.h>
+#include "../../backend/models/context.h"
 #include "../../ast_token.h"
 
 namespace km2 {
@@ -19,15 +19,17 @@ struct abstract_node {
     typedef std::function<wall_e::gram::argument(const wall_e::gram::arg_vector &, const wall_e::index&)> factory;
     typedef std::vector<std::shared_ptr<abstract_node>> children_t;
 
+    static constexpr bool debug = false;
+
 private:
 
-    static std::vector<context> contexts(const children_t& children);
+    static std::vector<backend::context> contexts(const children_t& children);
 
     const wall_e::text_segment m_segment;
     km2::abstract_node* m_parent = nullptr;
     const children_t m_children;
     mutable std::map<std::size_t, abstract_node*> m_ancestor_cache;
-    const km2::context m_context;
+    const backend::context m_context;
     const wall_e::index m_index;
 
     template<typename T>
@@ -123,7 +125,7 @@ public:
     }
 
     virtual wall_e::list<wall_e::error> errors() const = 0;
-    const km2::context &ctx() const;
+    const backend::context &ctx() const;
     const wall_e::index &index() const;
 
     inline friend std::ostream& operator<<(std::ostream& stream, const abstract_node* node) { node->short_print(stream); return stream; }

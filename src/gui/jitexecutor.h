@@ -8,11 +8,10 @@
 #include <sproc/src/fork.h>
 
 namespace km2 {
-    class translation_unit;
+namespace backend {
+    class unit;
+    class function;
 }
-
-namespace llvm {
-    class Function;
 }
 
 class JitExecutor : public QObject {
@@ -21,12 +20,20 @@ class JitExecutor : public QObject {
     sproc::non_blocking::process process;
     QTimer *timer = nullptr;
 public:
+    enum MessageType {
+        Trace,
+        Err,
+        Warn
+    };
+    Q_ENUM(MessageType)
+
+
     explicit JitExecutor(QObject *parent = nullptr);
-    Either start(const std::shared_ptr<km2::translation_unit> &unit, llvm::Function *entry);
+    Either start(const std::shared_ptr<km2::backend::unit> &unit, km2::backend::function *entry);
     void abort();
 
 signals:
-    void message(QString, bool);
+    void message(const QString& message, MessageType type, bool isSystem);
 };
 
 #endif // JITEXECUTOR_H

@@ -1,6 +1,7 @@
 #include "wall_e/src/gram.h"
 #include "math_patterns.h"
 #include <iostream>
+#include <limits>
 
 namespace wall_e {
 
@@ -50,7 +51,7 @@ gram::argument math_patterns::mul_div_processor(const gram::arg_vector &args, co
     operations.push_back({ "TOK_MUL", [](int a, int b){ return a * b; } });
     operations.push_back({ "TOK_DIV", [](int a, int b){
                                if(b == 0) {
-                                   std::cout << "[error] division to null.\n";
+                                   std::cerr << "[error] division to null.\n";
                                    return std::numeric_limits<int>::max();
                                }
                                return a / b;

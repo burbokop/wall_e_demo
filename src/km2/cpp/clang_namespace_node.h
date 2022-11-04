@@ -1,6 +1,8 @@
 #ifndef CLANG_NAMESPACE_NODE_H
 #define CLANG_NAMESPACE_NODE_H
 
+#ifdef CLANG_ENABLED
+
 #include "abstract_clang_node.h"
 
 #pragma clang warning(push, 0)
@@ -16,5 +18,7 @@ public:
 
     virtual target_ptr_type km2_node() const override;
 };
+
+#endif // CLANG_ENABLED
 
 #endif // CLANG_NAMESPACE_NODE_H

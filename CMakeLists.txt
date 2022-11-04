@@ -19,9 +19,6 @@ if(CMAKE_VERSION VERSION_LESS "3.7.0")
     set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
 
-
-set(COMPONENT_LIST mcparser bitreader support mc option)
-
 set(CLANG_LIBRARY_LIST
     clangFrontend
     clangSerialization
@@ -43,34 +40,12 @@ set(CLANG_LIBRARY_LIST
 
 message("CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 
-find_package(Qt6 REQUIRED COMPONENTS Core Quick Qml Concurrent)
 
 set(KM2_SOURCES
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_parser.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_consumer.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_parse_action.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_namespace_node.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_block_node.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_function_node.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_decl_arg_node.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_type_node.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/buffered_reverse_range.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/tools.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/abstract_clang_node.cpp
-
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/km2.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/ast_token.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/math_patterns.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/function.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/translation_unit.cpp    
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/abstract_capability.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/type_capability.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/constants_capability.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/namespace_capability.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/symbol.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/function.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/overload.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/context.cpp
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/lsp/service.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/lsp/tables.service.cpp
@@ -90,34 +65,30 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/type_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/decl_arg_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/const_node.cpp
+
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/backend.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/unit/unit.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/unit/capabilities/abstract_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/unit/capabilities/type_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/unit/capabilities/constants_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/unit/capabilities/namespace_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/function.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/type.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/value.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/block.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/argument.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/models/symbol.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/models/overload.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/models/context.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/models/function_ref.cpp    
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/printable.cpp
     )
 
 set(KM2_HEADERS
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_parser.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_consumer.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_parse_action.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_namespace_node.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_block_node.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_function_node.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_decl_arg_node.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_type_node.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/buffered_reverse_range.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/tools.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/abstract_clang_node.h
-
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/km2.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/ast_token.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/math_patterns.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/function.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/translation_unit.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/abstract_capability.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/type_capability.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/constants_capability.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/capabilities/namespace_capability.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/symbol.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/function.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/overload.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/translation_unit/models/context.h
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/lsp/service.h
 
@@ -136,8 +107,126 @@ set(KM2_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/type_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/decl_arg_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/const_node.h
-    )
 
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/backend.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/as.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/unit/unit.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/unit/capabilities/abstract_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/unit/capabilities/type_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/unit/capabilities/constants_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/unit/capabilities/namespace_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/function.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/type.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/value.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/block.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/argument.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/models/symbol.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/models/overload.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/models/context.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/models/function_ref.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/printable.h
+)
+
+set(KM2_LLVM_BACKEND_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/llvm_backend.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/unit/unit.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/unit/capabilities/abstract_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/unit/capabilities/type_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/unit/capabilities/constants_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/unit/capabilities/namespace_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/entities/function.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/entities/type.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/entities/value.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/entities/block.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/entities/argument.cpp
+)
+
+set(KM2_LLVM_BACKEND_HEADERS
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/llvm_backend.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/unit/unit.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/unit/private.unit.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/unit/capabilities/abstract_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/unit/capabilities/type_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/unit/capabilities/constants_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/unit/capabilities/namespace_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/entities/function.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/entities/type.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/entities/value.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/entities/block.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/llvm_backend/entities/argument.h
+)
+
+set(KM2_INTERPRETER_BACKEND_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/interpreter_backend.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/unit/unit.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/unit/capabilities/abstract_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/unit/capabilities/type_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/unit/capabilities/constants_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/unit/capabilities/namespace_capability.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/entities/function.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/entities/type.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/entities/value.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/entities/block.cpp    
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/entities/argument.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/entities/constant.cpp
+
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/instruction.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/math_instructions.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/call_instruction.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/execution_ctx.cpp    
+)
+
+set(KM2_INTERPRETER_BACKEND_HEADERS
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/interpreter_backend.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/unit/unit.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/unit/capabilities/abstract_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/unit/capabilities/type_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/unit/capabilities/constants_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/unit/capabilities/namespace_capability.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/entities/function.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/entities/type.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/entities/value.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/entities/block.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/entities/argument.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/entities/constant.h
+
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/instruction.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/math_instructions.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/call_instruction.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/execution_ctx.h
+)
+
+if(CLANG_ENABLED)
+    set(KM2_CPP_SOURCES
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_parser.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_consumer.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_parse_action.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_namespace_node.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_block_node.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_function_node.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_decl_arg_node.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_type_node.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/buffered_reverse_range.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/tools.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/abstract_clang_node.cpp
+    )
+endif()
+
+if(CLANG_ENABLED)
+    set(KM2_CPP_HEADERS
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_parser.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_consumer.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/cpp_parse_action.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_namespace_node.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_block_node.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_function_node.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_decl_arg_node.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/clang_type_node.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/buffered_reverse_range.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/tools.h
+        ${CMAKE_CURRENT_LIST_DIR}/src/km2/cpp/abstract_clang_node.h
+    )
+endif()
 
 set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
@@ -152,7 +241,7 @@ set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/asmexecutor.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/highlighter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/jitexecutor.cpp
-
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/backendfactory.cpp
 )
 set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/to_pdf.h
@@ -167,28 +256,14 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/asmexecutor.h
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/highlighter.h
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/jitexecutor.h
-    )
-
-
-
-set(LSP_SOURCES
-    #src/lsp/main.cpp
-    #src/lsp/ioserver.cpp
-    #src/lsp/iofind.cpp
-    #src/lsp/greeting.cpp
-    #src/lsp/index.cpp
-
-)
-set(LSP_HEADERS
-    #src/lsp/ioserver.h
-    #src/lsp/iofind.h
-    #src/lsp/greeting.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/backendfactory.h
     )
 
 add_library(km2 SHARED
     ${KM2_SOURCES}
     ${KM2_HEADERS}
     )
+
 set_property(TARGET km2 PROPERTY AUTOMOC OFF)
 set_property(TARGET km2 PROPERTY AUTOUIC OFF)
 
@@ -197,32 +272,81 @@ add_executable(km2ide
     ${HEADERS}
 )
 
-#add_executable(km2lsp
-#    ${LSP_SOURCES}
-#    ${LSP_HEADERS}
-#)
-
-
 add_library(km2ide_resources SHARED resources.qrc)
 
-target_include_directories(km2 PRIVATE ${CMAKE_CURRENT_LIST_DIR})
-target_include_directories(km2ide PRIVATE ${CMAKE_CURRENT_LIST_DIR})
-#target_include_directories(km2lsp PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+find_package(Qt6 REQUIRED COMPONENTS Core Quick Qml Concurrent)
 
+target_link_libraries(km2ide_resources Qt::Core)
+
+
+
+
+add_library(km2_interpreter_backend SHARED
+    ${KM2_INTERPRETER_BACKEND_SOURCES}
+    ${KM2_INTERPRETER_BACKEND_HEADERS}
+)
+
+if(LLVM_ENABLED)
+
+    add_library(km2_llvm_backend SHARED
+        ${KM2_LLVM_BACKEND_SOURCES}
+        ${KM2_LLVM_BACKEND_HEADERS}
+    )
+
+    find_package(LLVM REQUIRED)
+    add_definitions(${LLVM_DEFINITIONS})
+    add_compile_definitions(LLVM_ENABLED)
+
+    message("LLVM_LIBRARY_LIST: ${LLVM_LIBRARY_LIST}")
+    message("LLVM_LIBS: ${LLVM_LIBS}")
+    message("LLVM_LIBRARIES: ${LLVM_LIBRARIES}")
+
+    if (WIN32)
+        llvm_map_components_to_libnames(llvm_libs mcparser bitreader support mc option)
+        message("llvm_libs: ${llvm_libs}")
+        message("LLVM_DYLIB_COMPONENTS: ${LLVM_DYLIB_COMPONENTS}")
+        message("link_components: ${link_components}")
+        message("LLVM_LINK_COMPONENTS: ${LLVM_LINK_COMPONENTS}")
+        message("expanded_components: ${expanded_components}")
+        set(KM2_LLVM_LIBRARIES ${llvm_libs})
+    elseif (UNIX)
+        set(KM2_LLVM_LIBRARIES LLVM-${LLVM_VERSION_MAJOR})
+    endif()
+
+    message("KM2_LLVM_LIBRARIES: ${KM2_LLVM_LIBRARIES}")
+
+    target_include_directories(km2_llvm_backend PRIVATE ${LLVM_INCLUDE_DIRS})
+    target_link_directories(km2_llvm_backend PRIVATE ${LLVM_LIBRARY_DIRS})
+
+    target_compile_definitions(km2_llvm_backend PRIVATE KM2_LLVM_BACKEND_TARGET)
+
+    target_link_libraries(km2_llvm_backend
+        km2
+        wall_e
+        ${KM2_LLVM_LIBRARIES}
+    )
+
+
+endif()
+
+if(CLANG_ENABLED)
+    find_package(Clang REQUIRED CONFIG)
+    include_directories(${CLANG_INCLUDE_DIRS})
+    include_directories(${LLVM_BUILD_MAIN_SRC_DIR}/tools/clang/include)
+    include_directories(${LLVM_BUILD_BINARY_DIR}/tools/clang/include)
+    add_compile_definitions(CLANG_ENABLED)
+    set(KM2_CLANG_LIBRARIES ${CLANG_LIBRARY_LIST})
+endif()
+
+include_directories(${CMAKE_CURRENT_LIST_DIR})
+#target_include_directories(km2 PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+#target_include_directories(km2ide PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
 include(${CMAKE_CURRENT_LIST_DIR}/wall_e/wall_e.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/sproc/sproc.cmake)
 
-find_package(LLVM REQUIRED)
-find_package(Clang REQUIRED CONFIG)
-include_directories(${LLVM_INCLUDE_DIRS})
-include_directories(${CLANG_INCLUDE_DIRS})
-
 #clang
-include_directories(${LLVM_BUILD_MAIN_SRC_DIR}/tools/clang/include)
-include_directories(${LLVM_BUILD_BINARY_DIR}/tools/clang/include)
 
-add_definitions(${LLVM_DEFINITIONS})
 
 #set(LLVM_VERSION 12)
 
@@ -250,18 +374,22 @@ add_definitions(${LLVM_DEFINITIONS})
 #    LLVMCore           # Support
 #    LLVMSupport
 #    )
-link_directories(${LLVM_LIBRARY_DIRS})
+
 
 target_link_libraries(km2
-    LLVM-${LLVM_VERSION_MAJOR}
-    ${CLANG_LIBRARY_LIST}
-    sproc
-    )
+    ${KM2_CLANG_LIBRARIES}
+    wall_e
+)
 
+target_link_libraries(km2_interpreter_backend
+    km2
+    wall_e
+)
 
 target_link_libraries(km2ide
     PRIVATE
     km2
+    km2_interpreter_backend
     km2ide_resources
     wall_e
     sproc
@@ -270,27 +398,9 @@ target_link_libraries(km2ide
     Qt::Qml
     Qt::Quick
     Qt::Concurrent
-    #clangTooling
-    #clangBasic
-    #clangASTMatchers
 )
 
-
 include(tests/km2_tests.cmake)
-
-# --- LSP DEPENDENCIES ---
-#include(FindPkgConfig)
-#pkg_check_modules(LIBCLSP REQUIRED libclsp)
-## Header path
-#target_include_directories(km2lsp PUBLIC ${LIBCLSP_INCLUDE_DIRS})
-## Linking
-#target_link_libraries(km2lsp PUBLIC
-#    wall_e
-#    km2
-#    ${LIBCLSP_LIBRARIES})
-## Other flags (without this rapidjson can't use std::string)
-#target_compile_definitions(km2lsp PUBLIC ${LIBCLSP_CFLAGS_OTHER})
-
 
 install(TARGETS km2 DESTINATION lib)
 
@@ -300,27 +410,6 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/km2"
         PATTERN "*.h"
 )
 
-
 SET(CPACK_GENERATOR "DEB")
 SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "KK") #required
 INCLUDE(CPack)
-
-
-# kill lsp
-#add_custom_command(
-#  TARGET km2
-#  COMMENT "build km2lsp"
-#  POST_BUILD
-#  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/src/lsp/routes
-#  COMMAND npm install && node-gyp build
-#)
-
-
-
-# kill lsp
-#add_custom_command(
-#  TARGET km2lsp
-#  COMMENT "killall km2lsp processes"
-#  POST_BUILD
-#  COMMAND killall -9 km2lsp || true
-#)

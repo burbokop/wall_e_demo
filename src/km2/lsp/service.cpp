@@ -56,7 +56,7 @@ void km2::lsp::service::initialize(const std::string &uri) {}
 std::list<wall_e::error> km2::lsp::service::change_content(const std::string &uri, const std::string &content) {
     auto& ref = m_cache[uri];
     ref.content = content;
-    ref.compilation_result = km2::compile(content, ref.flags);
+    ref.compilation_result = km2::compile(nullptr, content, ref.flags);
     return ref.compilation_result->errors();
 }
 

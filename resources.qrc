@@ -8,5 +8,6 @@
         <file>resources/ExecArea.qml</file>
         <file>resources/ToolBarChackBox.qml</file>
         <file>resources/InfoDialog.qml</file>
+        <file>resources/BackendList.qml</file>
     </qresource>
 </RCC>

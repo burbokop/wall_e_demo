@@ -3,13 +3,15 @@
 #include "namespace_node.h"
 
 
+#include <wall_e/src/utility/defer.h>
 #include <wall_e/src/utility/token_tools.h>
 #include <iostream>
-#include <src/km2/translation_unit/translation_unit.h>
-#include <src/km2/translation_unit/capabilities/type_capability.h>
+#include <src/km2/backend/unit/unit.h>
+#include <src/km2/backend/unit/capabilities/type_capability.h>
+#include <src/km2/backend/models/function_ref.h>
 
 wall_e::gram::argument km2::function_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
-    std::cout << "km2::function_node::create: " << args << std::endl;
+    if(debug) std::cout << "km2::function_node::create: " << args << std::endl;
     if(args.size() > 5 && args[0].contains_type<wall_e::lex::token>()) {
         wall_e::vec<std::shared_ptr<decl_arg_node>> da_nodes;
         const auto decl_args = args[3].constrain();
@@ -46,48 +48,51 @@ km2::function_node::function_node(
 
 
 wall_e::either<
-wall_e::error,
-llvm::Value *
-> km2::function_node::generate_llvm(const std::shared_ptr<km2::translation_unit> &unit) {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
-    std::vector<llvm::Type*> argTypes;
-    std::vector<std::string> argNames;
+    wall_e::error,
+    km2::backend::value *
+> km2::function_node::generate_backend_value(const std::shared_ptr<km2::backend::unit> &unit) {
+    if(debug) std::cout << __PRETTY_FUNCTION__ << std::endl;
+    wall_e::vec<backend::type*> arg_types;
+    wall_e::vec<std::string> arg_names;
     for(const auto& arg : m_args) {
-        if(const auto type = arg->type_node()->generate_llvm(unit)) {
-
-            argTypes.push_back(type.right().value());
-            argNames.push_back(arg->name());
+        if(const auto type = arg->type_node()->generate_backend_type(unit)) {
+            arg_types.push_back(type.right().value());
+            arg_names.push_back(arg->name());
         } else {
             return type.left();
         }
     }
 
-    std::list<std::string> namepace_name;
+    wall_e::str_list namepace_name;
     if(const auto ns = nearest_ancestor<namespace_node>()) {
         namepace_name = ns->full_name();
     }
 
-    const auto proto = unit->proto(m_name, argTypes, unit->cap<type_capability>()->void_type());
+    const auto proto = unit->proto(m_name, arg_types, unit->cap<backend::type_capability>()->void_type());
 
-    const auto block = unit->begin_block(m_name + "_block", proto, argNames);
+    const auto block = unit->begin_block(m_name + "_block", proto, arg_names);
+    wall_e::defer end_block_defer([unit, block]{
+        if(block) {
+            unit->create_void_return();
+            unit->end_block();
+        }
+    });
 
     if(const auto block_node = nearest_ancestor<km2::block_node>()) {
-        if(const auto& error = block_node->add_function(km2::function(namepace_name, m_name, proto))) {
+        if(const auto& error = block_node->add_function(backend::function_ref(namepace_name, m_name, proto))) {
             return wall_e::left(*error);
         }
     }
 
     if (m_body) {
-        if(const auto body = m_body->generate_llvm(unit)) {
+        if(const auto body = m_body->generate_backend_value(unit)) {
 
         } else  {
             return body.left();
         }
     }
 
-    unit->llvm_builder()->CreateRetVoid();
-    unit->end_block();
-    return wall_e::right<llvm::Value *>(proto);
+    return wall_e::right<backend::value*>(proto);
 }
 
 void km2::function_node::print(size_t level, std::ostream &stream) const {

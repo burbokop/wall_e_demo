@@ -24,13 +24,14 @@
     #include <km2/ast_token.h>
 #endif
 
-namespace llvm {
-class Value;
-}
 
 namespace km2 {
 
-class translation_unit;
+namespace backend {
+class unit;
+class value;
+class backend;
+}
 class abstract_node;
 
 class compilation_result {
@@ -38,8 +39,8 @@ class compilation_result {
     std::string m_rules;
     wall_e::variant m_token_tree;
     std::shared_ptr<km2::abstract_node> m_root_node;
-    std::shared_ptr<translation_unit> m_unit;
-    llvm::Value* m_llvm_value;
+    std::shared_ptr<backend::unit> m_unit;
+    backend::value* m_backend_value;
 
     std::list<wall_e::error> m_errors;
 
@@ -51,8 +52,8 @@ public:
             const std::string& rules,
             const wall_e::variant& token_tree,
             const std::shared_ptr<km2::abstract_node>& root_node,
-            const std::shared_ptr<translation_unit>& unit,
-            llvm::Value*const llvm_value,
+            const std::shared_ptr<backend::unit>& unit,
+            backend::value*const backend_value,
             const std::list<wall_e::error>& errors
             )
         : m_tokens(tokens),
@@ -60,15 +61,15 @@ public:
           m_token_tree(token_tree),
           m_root_node(root_node),
           m_unit(unit),
-          m_llvm_value(llvm_value),
+          m_backend_value(backend_value),
           m_errors(errors) {}
 
     const wall_e::lex::token_vec& tokens() const { return m_tokens; }
     const std::string& rules() const { return m_rules; }
     const wall_e::variant& token_tree() const { return m_token_tree; }
     const std::shared_ptr<km2::abstract_node>& root_node() const { return m_root_node; }
-    const std::shared_ptr<translation_unit>& unit() const { return m_unit; }
-    llvm::Value*const llvm_value() const { return m_llvm_value; }
+    const std::shared_ptr<backend::unit>& unit() const { return m_unit; }
+    backend::value*const backend_value() const { return m_backend_value; }
 
     const std::list<wall_e::error>& errors() const { return m_errors; }
 
@@ -86,7 +87,11 @@ typedef std::list<flag> flags;
 
 std::list<std::string> key_names();
 
-compilation_result compile(const std::string &input, const flags &flags = {});
+compilation_result compile(const backend::backend* b, const std::string &input, const flags &flags = {});
+//inline compilation_result compile(const std::shared_ptr<const backend::backend>& b, const std::string &input, const flags &flags = {}) {
+//    const std::shared_ptr<const backend::backend> b_copy = b;
+//    return compile(b_copy.get(), input, flags);
+//}
 
 }
 

@@ -5,8 +5,8 @@
 
 #include <iostream>
 
-#include <src/km2/translation_unit/translation_unit.h>
-
+#include <src/km2/backend/unit/unit.h>
+#include "../backend/models/function_ref.h"
 
 km2::proto_node::proto_node(const wall_e::index& index,
         const std::string &name,
@@ -21,7 +21,7 @@ km2::proto_node::proto_node(const wall_e::index& index,
     m_result_type_node(result_type_node) {}
 
 wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
-    std::cout << "km2::proto_node::create: " << args << std::endl;
+    if(debug) std::cout << "km2::proto_node::create: " << args << std::endl;
 
     if(args.size() > 4 && args[0].contains_type<wall_e::lex::token>()) {
         wall_e::vec<std::shared_ptr<decl_arg_node>> da_nodes;
@@ -46,20 +46,20 @@ wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &a
 
 wall_e::either<
     wall_e::error,
-    llvm::Value *
-> km2::proto_node::generate_llvm(const std::shared_ptr<km2::translation_unit> &unit) {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
-    std::vector<llvm::Type*> argTypes;
-    bool isVarArg = false;
+    km2::backend::value*
+> km2::proto_node::generate_backend_value(const std::shared_ptr<km2::backend::unit> &unit) {
+    if(debug) std::cout << __PRETTY_FUNCTION__ << std::endl;
+    wall_e::vec<backend::type*> arg_types;
+    bool is_var_arg = false;
     for(const auto& arg : m_args) {
         if(arg->is_variadic()) {
-            if(isVarArg) {
+            if(is_var_arg) {
                 std::cerr << "... repeaded while function declaration\n";
             }
-            isVarArg = true;
+            is_var_arg = true;
         } else {
-            if(const auto type = arg->type_node()->generate_llvm(unit)) {
-                argTypes.push_back(type.right_value());
+            if(const auto type = arg->type_node()->generate_backend_type(unit)) {
+                arg_types.push_back(type.right_value());
             } else {
                 return type.left();
             }
@@ -67,21 +67,21 @@ wall_e::either<
     }
 
     if(m_result_type_node) {
-        if (const auto rt = m_result_type_node->generate_llvm(unit)) {
-            const auto& proto = unit->proto(m_name, argTypes, rt.right_value(), isVarArg);
+        if (const auto rt = m_result_type_node->generate_backend_type(unit)) {
+            const auto& proto = unit->proto(m_name, arg_types, rt.right_value(), is_var_arg);
 
-            std::list<std::string> namepace_name;
+            wall_e::str_list namepace_name;
             if(const auto& ns = nearest_ancestor<namespace_node>()) {
                 namepace_name = ns->full_name();
             }
 
             if(const auto& block_node = nearest_ancestor<km2::block_node>()) {
-                if(const auto& error = block_node->add_function(km2::function(namepace_name, m_name, proto))) {
+                if(const auto& error = block_node->add_function(backend::function_ref(namepace_name, m_name, proto))) {
                     return wall_e::left(*error);
                 }
             }
 
-            return wall_e::right<llvm::Value *>(proto);
+            return wall_e::right<backend::value*>(proto);
         } else {
             return rt.left();
         }

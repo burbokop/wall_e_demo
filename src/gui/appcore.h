@@ -6,6 +6,7 @@
 #include <src/km2/km2.h>
 #include <wall_e/src/models/error.h>
 #include "klibcore/kmacro.h"
+#include "backendfactory.h"
 #include "either.h"
 #include "highlighter.h"
 #include "jitexecutor.h"
@@ -21,6 +22,9 @@ Q_DECLARE_METATYPE(std::thread::id)
 extern "C" {
 int my_test_func();
 }
+
+
+
 
 class AppCore : public QObject {
     Q_OBJECT
@@ -44,6 +48,7 @@ public:
     enum Mode { ModeTokens, ModeGramatic, ModeTree, ModeAsm, ModeExec };
 private:
     K_CONST_PROPERTY(JitExecutor*, executor, new JitExecutor(this));
+    K_CONST_PROPERTY(BackendFactory*, backendFactory, new BackendFactory(this));
     wall_e::opt<km2::compilation_result> prevResult;
     Q_ENUM(Mode)
     K_AUTO_PROPERTY(Mode, mode, mode, setMode, modeChanged, ModeTree)
@@ -75,5 +80,6 @@ signals:
     void compilationCompleated();
     void presentationCompleated();
 };
+
 
 #endif // APPCORE_H

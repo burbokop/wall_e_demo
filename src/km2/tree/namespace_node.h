@@ -16,7 +16,7 @@ class namespace_node : public abstract_value_node {
     const wall_e::text_segment m_name_segment;
     const std::shared_ptr<block_node> m_block_node;
 
-    km2::context m_context;
+    backend::context m_context;
 public:
     typedef abstract_value_node super_type;
 
@@ -34,14 +34,14 @@ public:
 public:
     virtual wall_e::either<
         wall_e::error,
-        llvm::Value*
-    > generate_llvm(const std::shared_ptr<translation_unit> &unit) override;
+        backend::value*
+    > generate_backend_value(const std::shared_ptr<backend::unit> &unit) override;
 
     virtual void print(size_t level, std::ostream &stream) const override;
     virtual wall_e::list<wall_e::error> errors() const override;
     std::string name() const;
-    wall_e::list<std::string> full_name() const;
-    const km2::context &context() const;
+    wall_e::str_list full_name() const;
+    const backend::context &context() const;
 
     // abstract_node interface
 public:

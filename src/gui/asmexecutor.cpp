@@ -23,6 +23,7 @@ AsmExecutor::AsmExecutor(QObject *parent) : QObject(parent) {
 }
 
 bool AsmExecutor::start(const std::string &code) {
+#ifdef __linux__
     if(!executing()) {
         char tmpfile[] = "/tmp/kmova_XXXXXX.s";
         auto fd = mkstemps(tmpfile, 2);
@@ -39,6 +40,9 @@ bool AsmExecutor::start(const std::string &code) {
         setExecuting(true);
         return true;
     }
+#else
+    // TODO
+#endif
     return false;
 }
 

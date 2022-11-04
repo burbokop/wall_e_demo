@@ -3,10 +3,10 @@ import QtQuick.Window 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 
-import QtWayland.Compositor 1.3
+//import QtWayland.Compositor 1.3
 
 import KLib 1.0
-
+import Km2
 
 
 Window {
@@ -35,8 +35,8 @@ Window {
 
     Connections {
         target: appCore.executor
-        function onMessage(mess, err) {
-            execArea.pushMessage(mess, err);
+        function onMessage(mess, type, isSystem) {
+            execArea.pushMessage(mess, type, isSystem);
         }
     }
 
@@ -102,6 +102,12 @@ Window {
                     }
 
                     ToolBarButton {
+                        text: "Back"
+                        Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
+                        onClicked: backendList.collapsed = !backendList.collapsed
+                    }
+
+                    ToolBarButton {
                         text: "clang\n  ++"
                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                         onClicked: {
@@ -132,6 +138,17 @@ Window {
                         Layout.fillHeight: true
                     }
                 }
+            }
+            BackendList {
+                clip: true
+                id: backendList
+                property bool collapsed: true
+                Layout.preferredWidth: backendList.collapsed ? 0 : backendList.implicitWidth
+                Behavior on Layout.preferredWidth { NumberAnimation { duration: 500 } }
+                Layout.fillHeight: true
+                highlightedName: appCore.backendFactory.currentBackendName
+                model: appCore.backendFactory.availableBackends
+                onChoosed: name => appCore.backendFactory.currentBackendName = name
             }
             ColumnLayout {
                 width: 300

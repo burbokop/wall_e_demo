@@ -8,7 +8,7 @@ km2::internal_block_node::internal_block_node(const wall_e::index &index, std::s
 {}
 
 wall_e::gram::argument km2::internal_block_node::create(const wall_e::gram::arg_vector &args, const wall_e::index &index) {
-    std::cout << "km2::internal_block_node::create" << std::endl;
+    if(debug) std::cout << "km2::internal_block_node::create" << std::endl;
     if (args.size() > 0) {
         const auto stmt = args[0].value_or<std::shared_ptr<stmt_node>>(nullptr);
         if (args.size() > 2) {
@@ -21,18 +21,21 @@ wall_e::gram::argument km2::internal_block_node::create(const wall_e::gram::arg_
     return std::make_shared<internal_block_node>(index, nullptr);
 }
 
-wall_e::either<wall_e::error, llvm::Value *> km2::internal_block_node::generate_llvm(const std::shared_ptr<km2::translation_unit> &unit) {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+wall_e::either<
+    wall_e::error,
+    km2::backend::value*
+> km2::internal_block_node::generate_backend_value(const std::shared_ptr<backend::unit> &unit) {
+    if(debug) std::cout << __PRETTY_FUNCTION__ << std::endl;
     if(m_stmt) {
-        if(const auto cmd_result = m_stmt->generate_llvm(unit)) {
+        if(const auto cmd_result = m_stmt->generate_backend_value(unit)) {
         } else {
             return cmd_result.left();
         }
     }
     if(m_next_node) {
-        return m_next_node->generate_llvm(unit);
+        return m_next_node->generate_backend_value(unit);
     }
-    return wall_e::right<llvm::Value *>(nullptr);
+    return wall_e::right<backend::value*>(nullptr);
 }
 
 void km2::internal_block_node::print(size_t level, std::ostream &stream) const {

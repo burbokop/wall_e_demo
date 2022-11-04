@@ -42,7 +42,7 @@ public:
 
     // abstract_type_node interface
 public:
-    virtual wall_e::either<wall_e::error, llvm::Type*> generate_llvm(const std::shared_ptr<translation_unit> &unit) override;
+    virtual wall_e::either<wall_e::error, backend::type*> generate_backend_type(const std::shared_ptr<backend::unit> &unit) override;
 
     // abstract_node interface
 public:

@@ -2,9 +2,10 @@
 
 #include <iostream>
 
-#include <src/km2/translation_unit/translation_unit.h>
+#include <src/km2/backend/unit/unit.h>
+#include <src/km2/backend/unit/capabilities/constants_capability.h>
 
-#include <src/km2/translation_unit/capabilities/constants_capability.h>
+#include "../backend/entities/value.h"
 
 std::string km2::arg_node::type_string(const type &t) {
     switch (t) {
@@ -31,7 +32,7 @@ km2::arg_node::arg_node(
       m_value_node(value_node) {}
 
 wall_e::gram::argument km2::arg_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
-    std::cout << "km2::arg_node::create: " << args << std::endl;
+    if(debug) std::cout << "km2::arg_node::create: " << args << std::endl;
     if(args.size() > 0) {
         if(args[0].contains_type<wall_e::lex::token>()) {
             const auto token = args[0].value<wall_e::lex::token>();
@@ -63,6 +64,7 @@ km2::ast_token_type km2::arg_node::token_type() const {
     case ValueNode: return wall_e::enums::max_value<ast_token_type>();
     case Undefined: return wall_e::enums::max_value<ast_token_type>();
     }
+    return wall_e::enums::max_value<ast_token_type>();
 }
 
 std::string km2::arg_node::hover() const {
@@ -74,35 +76,39 @@ std::string km2::arg_node::hover() const {
     case ValueNode: return "";
     case Undefined: return "";
     }
+    return {};
 }
 
 wall_e::either<
     wall_e::error,
-    llvm::Value *
-> km2::arg_node::generate_llvm(const std::shared_ptr<km2::translation_unit> &unit) {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    km2::backend::value*
+> km2::arg_node::generate_backend_value(const std::shared_ptr<backend::unit> &unit) {
+    if(debug) std::cout << __PRETTY_FUNCTION__ << std::endl;
     if(m_type == IntLiteral) {
         try {
-            return wall_e::right<llvm::Value *>(unit->cap<constants_capability>()->uintptr(std::stoi(m_text)));
+            const auto& r = unit->cap<backend::constants_capability>()->uintptr(std::stoi(m_text));
+            return wall_e::right<backend::value*>(r);
         }  catch (std::exception e) {
             return wall_e::left(wall_e::error(m_text + " is not a integer"));
         }
     } else if(m_type == FloatLiteral) {
         try {
-            return wall_e::right<llvm::Value *>(unit->cap<constants_capability>()->float64(std::stod(m_text)));
+            const auto& r = unit->cap<backend::constants_capability>()->float64(std::stod(m_text));
+            return wall_e::right<backend::value*>(r);
         }  catch (std::exception e) {
             return wall_e::left(wall_e::error(m_text + " is not a floating point number"));
         }
     } else if(m_type == StringLiteral) {
-        unit->setup_insert_point();
-        return wall_e::right<llvm::Value *>(unit->cap<constants_capability>()->string_cstr(
+        //unit->setup_insert_point();
+        const auto& r = unit->cap<backend::constants_capability>()->string_cstr(
                                                 "arg_" + std::to_string(reinterpret_cast<uintptr_t>(this)),
                                                 m_text
-                                                ));
+                                                );
+        return wall_e::right<backend::value*>(r);
     } else if(m_type == Id) {
-        unit->setup_insert_point();
+        //unit->setup_insert_point();
         if(const auto a = unit->arg(m_text)) {
-            return wall_e::right<llvm::Value *>(a);
+            return wall_e::right<backend::value*>(a);
         } else {
             return wall_e::left(wall_e::error(
                                     "variable " + m_text + " not found in current context",
@@ -114,8 +120,9 @@ wall_e::either<
         }
     } else if(m_type == ValueNode) {
         if(m_value_node) {
-            unit->setup_insert_point();
-            return m_value_node->generate_llvm(unit);
+            //unit->setup_insert_point();
+            const auto& r = m_value_node->generate_backend_value(unit);
+            return r;
         } else {
             return wall_e::left(wall_e::error("empty value node"));
         }

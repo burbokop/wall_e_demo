@@ -3,9 +3,9 @@
 
 #include <iostream>
 
-#include <src/km2/translation_unit/translation_unit.h>
+#include <src/km2/backend/unit/unit.h>
 
-#include <src/km2/translation_unit/capabilities/namespace_capability.h>
+#include <src/km2/backend/unit/capabilities/namespace_capability.h>
 
 
 km2::namespace_node::namespace_node(
@@ -26,7 +26,7 @@ km2::namespace_node::namespace_node(
 
 km2::abstract_node::factory km2::namespace_node::create(const std::string &name_token) {
     return [name_token](const wall_e::gram::arg_vector &args, const wall_e::index& index) -> wall_e::gram::argument {
-        std::cout << wall_e::type_name<namespace_node>() << "::create: " << args << std::endl;
+        if(debug) std::cout << wall_e::type_name<namespace_node>() << "::create: " << args << std::endl;
         if (args.size() > 2) {
             if(const auto& keyword_token = args[0].option<wall_e::lex::token>()) {
                 if(const auto& name_with_ob = args[1].option<wall_e::gram::arg_vector>()) {
@@ -44,20 +44,22 @@ km2::abstract_node::factory km2::namespace_node::create(const std::string &name_
     };
 }
 
-
-wall_e::either<wall_e::error, llvm::Value *> km2::namespace_node::generate_llvm(const std::shared_ptr<km2::translation_unit> &unit) {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+wall_e::either<
+    wall_e::error,
+    km2::backend::value*
+> km2::namespace_node::generate_backend_value(const std::shared_ptr<km2::backend::unit> &unit) {
+    if(debug) std::cout << __PRETTY_FUNCTION__ << std::endl;
     if(m_block_node) {
-        unit->cap<namespace_capability>()->begin_namespace(full_name());
+        unit->cap<backend::namespace_capability>()->begin_namespace(full_name());
 
-        if(const auto result = m_block_node->generate_llvm(unit)) {
+        if(const auto result = m_block_node->generate_backend_value(unit)) {
         } else {
             return result.left();
         }
 
-        return wall_e::right<llvm::Value *>(unit->cap<namespace_capability>()->end_namespace());
+        return wall_e::right<backend::value*>(unit->cap<backend::namespace_capability>()->end_namespace());
     }
-    return wall_e::right<llvm::Value *>(nullptr);
+    return wall_e::right<backend::value*>(nullptr);
 }
 
 void km2::namespace_node::print(size_t level, std::ostream &stream) const {
@@ -80,7 +82,7 @@ std::string km2::namespace_node::name() const {
     return m_name;
 }
 
-wall_e::list<std::string> km2::namespace_node::full_name() const {
+wall_e::str_list km2::namespace_node::full_name() const {
     if(const auto ns = nearest_ancestor<namespace_node>()) {
         auto result = ns->full_name();
         result.push_back(m_name);
@@ -90,7 +92,7 @@ wall_e::list<std::string> km2::namespace_node::full_name() const {
     }
 }
 
-const km2::context &km2::namespace_node::context() const {
+const km2::backend::context &km2::namespace_node::context() const {
     return m_context;
 }
 

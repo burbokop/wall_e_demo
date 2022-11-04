@@ -26,7 +26,7 @@ public:
 
     // abstract_value_node interface
 public:
-    virtual wall_e::either<wall_e::error, llvm::Value *> generate_llvm(const std::shared_ptr<translation_unit> &unit) override;
+    virtual wall_e::either<wall_e::error, backend::value*> generate_backend_value(const std::shared_ptr<backend::unit> &unit) override;
 
     // abstract_node interface
 public:

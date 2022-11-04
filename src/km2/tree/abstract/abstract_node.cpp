@@ -4,17 +4,17 @@
 #include <execution>
 
 
-std::vector<km2::context> km2::abstract_node::contexts(const children_t &children) {
-    std::vector<km2::context> result;
+std::vector<km2::backend::context> km2::abstract_node::contexts(const children_t &children) {
+    std::vector<backend::context> result;
     transform(children.begin(), children.end(), back_inserter(result), [](const std::shared_ptr<abstract_node> &n){
-        return n ? n->ctx() : km2::context();
+        return n ? n->ctx() : backend::context();
     });
     return result;
 }
 
 km2::abstract_node::abstract_node(const wall_e::index &index, const children_t &children, const wall_e::text_segment &segment)
     : m_index(index),
-      m_context(km2::context::sum(contexts(children))),
+      m_context(backend::context::sum(contexts(children))),
       m_segment(segment) {
     for(const auto& c : children) {
         if(c) { c->m_parent = this; }
@@ -38,6 +38,6 @@ std::vector<std::shared_ptr<km2::abstract_node>> km2::abstract_node::children() 
     return m_children;
 }
 
-const km2::context &km2::abstract_node::ctx() const { return m_context; }
+const km2::backend::context &km2::abstract_node::ctx() const { return m_context; }
 const wall_e::index &km2::abstract_node::index() const { return m_index; }
 

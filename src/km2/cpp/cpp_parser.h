@@ -1,8 +1,8 @@
 #ifndef CPP_PARSER_H
 #define CPP_PARSER_H
 
+#ifdef CLANG_ENABLED
 #include "clang_namespace_node.h"
-
 
 
 class cpp_parser {
@@ -18,5 +18,7 @@ public:
 
     result parse(const std::string &code, const std::string& file_name);
 };
+
+#endif
 
 #endif // CPP_PARSER_H

@@ -12,6 +12,7 @@ target_include_directories(km2_tests PRIVATE ${PARENT_LIST_DIR})
 target_link_libraries(km2_tests
     wall_e
     km2
+    km2_interpreter_backend
     )
 
 

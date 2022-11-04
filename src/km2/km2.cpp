@@ -1,5 +1,5 @@
-#include "translation_unit/translation_unit.h"
 #include "km2.h"
+#include "backend/unit/unit.h"
 
 #include <regex>
 #include <list>
@@ -17,17 +17,17 @@
 #include <src/km2/utility/function.h>
 #include <wall_e/src/utility/token_tools.h>
 #include <wall_e/src/private/gram_smp.h>
-#include <src/km2/tree/namespace_node.h>
-#include <src/km2/tree/call_node.h>
-#include <src/km2/tree/function_node.h>
-#include <src/km2/tree/arg_node.h>
-#include <src/km2/tree/proto_node.h>
-#include <src/km2/tree/type_node.h>
-#include <src/km2/tree/decl_arg_node.h>
-#include <src/km2/tree/const_node.h>
+#include "tree/namespace_node.h"
+#include "tree/call_node.h"
+#include "tree/function_node.h"
+#include "tree/arg_node.h"
+#include "tree/proto_node.h"
+#include "tree/type_node.h"
+#include "tree/decl_arg_node.h"
+#include "tree/const_node.h"
 #include <wall_e/src/color.h>
 
-//#include <llvm-12/llvm/IR/Value.h>
+#include "backend/backend.h"
 
 struct __km2_flags_private {
     bool verbose = false;
@@ -92,25 +92,8 @@ std::list<std::string> km2::key_names() {
     };
 }
 
-void aaa(std::string && a) {
-    a.resize(10);
-    std::cout << __PRETTY_FUNCTION__ << ": " << a << "\n";
-}
-
-void aaa(const std::string &a) {
-    auto copy = a;
-    copy.resize(10);
-    std::cout << __PRETTY_FUNCTION__ << ": " << a << "\n";
-}
-
-km2::compilation_result km2::compile(const std::string &input, const km2::flags &flags) {
-    std::string a = "const&";
-
-    aaa(a);
-    aaa("tmp");
-
+km2::compilation_result km2::compile(const backend::backend* b, const std::string &input, const km2::flags &flags) {
     using namespace wall_e::gram::literals;
-
 
     const auto __flags = __km2_parse_flags(flags);
     wall_e::gram::flags_list gram_flags;
@@ -234,7 +217,6 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
         std::cout << "\n -------------- GRAM END --------------\n\n";
     }
 
-
     if(right.contains_type<std::shared_ptr<km2::namespace_node>>()) {
         if(const auto node = right.value<std::shared_ptr<km2::namespace_node>>()) {
             const auto errors = node->errors();
@@ -249,15 +231,19 @@ km2::compilation_result km2::compile(const std::string &input, const km2::flags 
             std::cout << "AST:" << std::endl;
             node->print(0, std::cout);
 
+            std::cout << "BACKEND: " << b << std::endl;
+            if(!b) {
+                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, nullptr, nullptr, {});
+            }
 
-            std::cout << "LLVM:"<< std::endl;
-            const auto unit = std::make_shared<km2::translation_unit>();
-            if(const auto gen_result = node->generate_llvm(unit)) {
-                llvm::Value* llvm_value = gen_result.right_value();
+            std::cout << "USING BACKEND: " << b->name() << std::endl;
 
+            const auto unit = b->create_unit();
+            if(const auto gen_result = node->generate_backend_value(unit)) {
+                backend::value* backend_value = gen_result.right_value();
+                unit->print_functions();
                 unit->print();
-
-                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, unit, llvm_value, {});
+                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, unit, backend_value, {});
             } else {
                 std::cout << wall_e::color::Red << "FOUND ERRORS OF LEVEL 2: " << gen_result.left_value() << wall_e::color::reset() << std::endl;
                 return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, unit, {}, { gen_result.left_value() });

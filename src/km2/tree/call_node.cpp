@@ -3,9 +3,9 @@
 
 #include <wall_e/src/utility/token_tools.h>
 #include <iostream>
-#include <src/km2/translation_unit/translation_unit.h>
-#include <src/km2/translation_unit/capabilities/namespace_capability.h>
-
+#include <src/km2/backend/unit/unit.h>
+#include <src/km2/backend/unit/capabilities/namespace_capability.h>
+#include <src/km2/backend/entities/value.h>
 
 
 km2::call_node::call_node(const wall_e::index &index,
@@ -19,7 +19,7 @@ km2::call_node::call_node(const wall_e::index &index,
 }
 
 wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
-    std::cout << "km2::call_node::create" << std::endl;
+    if(debug) std::cout << "km2::call_node::create" << std::endl;
     if(args.size() > 2) {
         const auto function_name_token = args[0].value<wall_e::lex::token>();
         const auto function_name_end_token = args[1].value<wall_e::lex::token>();
@@ -47,9 +47,9 @@ wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &ar
 
 wall_e::either<
     wall_e::error,
-    llvm::Value *
-> km2::call_node::generate_llvm(const std::shared_ptr<km2::translation_unit> &unit) {
-    std::cout << __PRETTY_FUNCTION__ << "name: " << m_name << std::endl;
+    km2::backend::value*
+> km2::call_node::generate_backend_value(const std::shared_ptr<km2::backend::unit> &unit) {
+    if(debug) std::cout << __PRETTY_FUNCTION__ << "name: " << m_name << std::endl;
 
     wall_e::list<std::string> namepace_name;
     if(const auto ns = nearest_ancestor<namespace_node>()) {
@@ -57,19 +57,20 @@ wall_e::either<
     }
 
     if(const auto block_node = nearest_ancestor<km2::block_node>()) {
-        std::cout << __PRETTY_FUNCTION__ << "find: " << namepace_name << "::" << m_name << std::endl;
+        if(debug) std::cout << __PRETTY_FUNCTION__ << "find: " << namepace_name << "::" << m_name << std::endl;
         if(const auto& overload = block_node->find_overload_in_whole_tree(namepace_name, m_name)) {
-            std::vector<llvm::Value*> args;
-            std::vector<llvm::Type*> arg_types;
-            std::vector<wall_e::text_segment> arg_segments;
+            wall_e::vec<backend::value*> args;
+            wall_e::vec<backend::type*> arg_types;
+            wall_e::vec<wall_e::text_segment> arg_segments;
             args.reserve(m_args.size());
             arg_types.reserve(m_args.size());
+
             for(const auto& arg : m_args) {
                 if (arg) {
-                    if(const auto arg_value = arg->generate_llvm(unit)) {
+                    if(const auto arg_value = arg->generate_backend_value(unit)) {
                         const auto& argr = arg_value.right_value();
                         args.push_back(argr);
-                        arg_types.push_back(argr->getType());
+                        arg_types.push_back(argr->value_type());
                         arg_segments.push_back(arg->segment());
                     } else {
                         return arg_value.left();
@@ -82,8 +83,8 @@ wall_e::either<
             }
 
             if(const auto& func = overload->find(arg_types, nullptr)) {
-                unit->setup_insert_point();
-                return wall_e::right<llvm::Value *>(unit->llvm_builder()->CreateCall(func, args));
+                //unit->setup_insert_point();
+                return wall_e::right<backend::value*>(unit->create_call(func, args));
             } else {
                 return wall_e::left(wall_e::error(
                                         "function '" + m_name + "' not defined for specific arg types",

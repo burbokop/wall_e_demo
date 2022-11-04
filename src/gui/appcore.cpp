@@ -5,8 +5,10 @@
 #include <QTextBlock>
 #include <QThread>
 #include <QtConcurrent>
-#include <src/km2/translation_unit/translation_unit.h>
+#include <src/km2/backend/unit/unit.h>
 #include <src/km2/tree/abstract/abstract_node.h>
+#include <src/km2/backend/entities/function.h>
+#include <src/km2/backend/backend.h>
 
 void AppCore::recompile() {
     km2::flags flags;
@@ -19,14 +21,14 @@ void AppCore::recompile() {
     }
 
     if(m_firstCompilation) {
-        completeCompilation(km2::compile(code().toStdString(), flags));
+        completeCompilation(km2::compile(backendFactory()->currentBackend().data_ptr().get(), code().toStdString(), flags));
         m_firstCompilation = false;
     } else {
         if(m_currentFutureWatcher.isStarted()) {
             m_currentFutureWatcher.cancel();
             m_currentFuture.cancel();
         }
-        m_currentFuture = QtConcurrent::run(km2::compile, code().toStdString(), flags);
+        m_currentFuture = QtConcurrent::run(km2::compile, backendFactory()->currentBackend().data_ptr().get(), code().toStdString(), flags);
         m_currentFutureWatcher.setFuture(m_currentFuture);
     }
 }
@@ -47,12 +49,15 @@ QString AppCore::makeExecutable(const QString &path) {
 void AppCore::completeCompilation(const km2::compilation_result &cresult) {
     setTokens(QString::fromStdString(wall_e::lex::to_string(cresult.tokens())));
 
-    setAstTokens(QString());
     if(cresult.root_node()) {
         const auto& tokens = cresult.root_node()->tokens();
         if(tokens.size() > 0) {
             setAstTokens(QString::fromStdString(km2::to_string(tokens)));
+        } else {
+            setAstTokens("can not get ast tokens: empty list");
         }
+    } else {
+        setAstTokens("can not get ast tokens: root node is nullptr");
     }
 
     setGramatic(QString::fromStdString(cresult.rules()));
@@ -80,6 +85,7 @@ AppCore::AppCore(QObject *parent) : QObject(parent) {
     connect(this, &AppCore::codeChanged, this, &AppCore::recompile);
     connect(this, &AppCore::onlyTreeChanged, this, &AppCore::recompile);
     connect(this, &AppCore::verboseChanged, this, &AppCore::recompile);
+    connect(backendFactory(), &BackendFactory::currentBackendChanged, this, &AppCore::recompile);
     connect(this, &AppCore::codeDocumentChanged, this, [this](QQuickTextDocument *v) {
         if(higlighter == nullptr) {
             higlighter = new Highlighter(v->textDocument());
@@ -100,7 +106,7 @@ AppCore::AppCore(QObject *parent) : QObject(parent) {
 
 Either AppCore::startExecuting() {
     if(prevResult) {
-        if(const auto& f = static_cast<llvm::Function*>(prevResult->llvm_value())) {
+        if(const auto& f = dynamic_cast<km2::backend::function*>(prevResult->backend_value())) {
             return executor()->start(prevResult->unit(), f);
         }
         return Either::newLeft("llvm value is not a function");
@@ -126,3 +132,4 @@ int my_test_func() {
     return 0;
 }
 }
+

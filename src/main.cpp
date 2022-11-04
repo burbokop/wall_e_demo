@@ -16,7 +16,7 @@
 
 #include <sproc/src/environment.h>
 #include <fstream>
-#include <src/km2/translation_unit/translation_unit.h>
+#include <src/km2/backend/unit/unit.h>
 #include <type_traits>
 #include <src/km2/tree/block_node.h>
 #include <src/km2/tree/call_node.h>
@@ -38,16 +38,8 @@ struct Helicopter : Aircraft {
 
 #include <src/km2/lsp/service.h>
 
-int main(int argc, char **argv) {
-
-
-    std::cout << "wall_e compiled with: " << wall_e::cxx_info << std::endl;
-    std::cout << "km2 compiled with: " << wall_e::inline_cxx_info << std::endl;
-
-    const bool additional_log = false;
-
-    using namespace std::chrono_literals;
-
+void do_clang() {
+#ifdef CLANG_ENABLED
     cpp_parser ppp(argc, argv);
 
     const auto cppcode = "\
@@ -79,6 +71,19 @@ int main(int argc, char **argv) {
         }
         std::cout << "SOURCE CODE END" << std::endl;
     }
+#endif
+}
+
+int main(int argc, char **argv) {
+
+
+    std::cout << "wall_e compiled with: " << wall_e::cxx_info << std::endl;
+    std::cout << "km2 compiled with: " << wall_e::inline_cxx_info << std::endl;
+
+    const bool additional_log = false;
+
+    using namespace std::chrono_literals;
+    do_clang();
 
     //return clang_result.status;
 
@@ -120,7 +125,6 @@ int main(int argc, char **argv) {
     wall_e::flag_provider flag_provider(argc, argv);
 
     std::cout << flag_provider << "\n";
-
 
     std::cout << flag_provider.value_flag(std::pair { 'i', "input" }, "input", "def_in") << "\n";
     std::cout << flag_provider.value_flag('o', "output", "def_out") << "\n";
@@ -206,7 +210,10 @@ int main(int argc, char **argv) {
 
     std::cout << "++++\n";
 
-    qmlRegisterType<KGramTreeView>("Km2", 1, 0, wall_e::type_name<KGramTreeView>().c_str());
+    qmlRegisterType<KGramTreeView>("Km2", 1, 0, "KGramTreeView");
+    qmlRegisterUncreatableType<BackendFactory>("Km2", 1, 0, "BackendFactory", "created in appcore");
+    qmlRegisterUncreatableType<JitExecutor>("Km2", 1, 0, "JitExecutor", "created in appcore");
+
     QCoreApplication::setOrganizationName("burbokop");
     QCoreApplication::setOrganizationDomain("io.github.burbokop");
 

@@ -24,9 +24,9 @@ wall_e::gram::argument km2::asm_node::create(const wall_e::gram::arg_vector &arg
 
 wall_e::either<
     wall_e::error,
-    llvm::Value *
-> km2::asm_node::generate_llvm(const std::shared_ptr<translation_unit> &unit) {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    km2::backend::value*
+> km2::asm_node::generate_backend_value(const std::shared_ptr<backend::unit> &unit) {
+    if(debug) std::cout << __PRETTY_FUNCTION__ << std::endl;
     return wall_e::left(wall_e::error("asm_node not implemented"));
 }
 

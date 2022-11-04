@@ -6,7 +6,8 @@
 namespace km2 {
 
 class jit_spec {
-    static void jit_test0(); wall_e_test(jit_spec, jit_test0)
+    static void llvm_jit_test() wall_e_test(jit_spec, llvm_jit_test);
+    static void interpreter_jit_test() wall_e_test(jit_spec, interpreter_jit_test);
 };
 
 }

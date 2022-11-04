@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include <src/km2/translation_unit/translation_unit.h>
+#include <src/km2/backend/unit/unit.h>
 #include "arg_node.h"
 
 km2::const_node::const_node(
@@ -18,7 +18,7 @@ km2::const_node::const_node(
       m_value(value) {}
 
 wall_e::gram::argument km2::const_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
-    std::cout << "km2::const_node::create: " << args << std::endl;
+    if(debug) std::cout << "km2::const_node::create: " << args << std::endl;
     if(args.size() > 3) {
         if(const auto id = args[1].option<wall_e::lex::token>()) {
             if(const auto value = args[3].option_cast<std::shared_ptr<arg_node>>()) {
@@ -45,14 +45,14 @@ wall_e::list<wall_e::error> km2::const_node::errors() const {
     return {};
 }
 
-wall_e::either<wall_e::error, llvm::Value *> km2::const_node::generate_llvm(const std::shared_ptr<translation_unit> &unit) {
-    if(const auto value = m_value->generate_llvm(unit)) {
+wall_e::either<wall_e::error, km2::backend::value*> km2::const_node::generate_backend_value(const std::shared_ptr<backend::unit> &unit) {
+    if(const auto value = m_value->generate_backend_value(unit)) {
         const auto status = unit->set_arg(m_id, value.right_value());
-        if(status == translation_unit::ArgSettingSuccess) {
+        if(status == backend::unit::ArgSettingSuccess) {
             return value.right();
-        } else if(status == translation_unit::ArgSettingDublicates) {
+        } else if(status == backend::unit::ArgSettingDublicates) {
             return wall_e::left(wall_e::error("ArgSettingDublicates"));
-        } else if(status == translation_unit::ArgSettingEmptyStack) {
+        } else if(status == backend::unit::ArgSettingEmptyStack) {
             return wall_e::left(wall_e::error("ArgSettingEmptyStack"));
         } else {
             return wall_e::left(wall_e::error("ArgSettingUnknownStatus"));
