@@ -1,5 +1,6 @@
 #include "internal_block_node.h"
 #include <iostream>
+#include "wall_e/src/macro.h"
 
 km2::internal_block_node::internal_block_node(const wall_e::index &index, std::shared_ptr<stmt_node> stmt, std::shared_ptr<internal_block_node> next_node)
     : km2::abstract_value_node(index, cast_to_children(std::vector { stmt }, std::vector { next_node })),
@@ -25,7 +26,7 @@ wall_e::either<
     wall_e::error,
     km2::backend::value*
 > km2::internal_block_node::generate_backend_value(const std::shared_ptr<backend::unit> &unit) {
-    if(debug) std::cout << __PRETTY_FUNCTION__ << std::endl;
+    if(debug) std::cout << wall_e_this_function << std::endl;
     if(m_stmt) {
         if(const auto cmd_result = m_stmt->generate_backend_value(unit)) {
         } else {

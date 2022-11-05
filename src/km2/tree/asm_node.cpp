@@ -1,4 +1,5 @@
 #include "asm_node.h"
+#include "wall_e/src/macro.h"
 
 #include <iostream>
 
@@ -26,7 +27,7 @@ wall_e::either<
     wall_e::error,
     km2::backend::value*
 > km2::asm_node::generate_backend_value(const std::shared_ptr<backend::unit> &unit) {
-    if(debug) std::cout << __PRETTY_FUNCTION__ << std::endl;
+    if(debug) std::cout << wall_e_this_function << std::endl;
     return wall_e::left(wall_e::error("asm_node not implemented"));
 }
 

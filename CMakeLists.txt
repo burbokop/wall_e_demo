@@ -13,6 +13,19 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+if(WIN32)
+    set(LINK_ALL_STATIC ON)
+endif()
+
+if(MSVC)
+    message("CURRENT COMPILER MSVC")
+    add_compile_options("/MT")
+#  target_compile_options(<target> PUBLIC "/ZI")
+#  target_link_options(<target> PUBLIC "/INCREMENTAL")
+endif()
+#/MD, /MT, /LD
+
+
 set(LLVM_LINK_COMPONENTS support)
 
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
@@ -259,10 +272,11 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/backendfactory.h
     )
 
-add_library(km2 SHARED
-    ${KM2_SOURCES}
-    ${KM2_HEADERS}
-    )
+if(LINK_ALL_STATIC)
+    add_library(km2 STATIC ${KM2_SOURCES} ${KM2_HEADERS})
+else()
+    add_library(km2 SHARED ${KM2_SOURCES} ${KM2_HEADERS})
+endif()
 
 set_property(TARGET km2 PROPERTY AUTOMOC OFF)
 set_property(TARGET km2 PROPERTY AUTOUIC OFF)
@@ -272,7 +286,13 @@ add_executable(km2ide
     ${HEADERS}
 )
 
-add_library(km2ide_resources SHARED resources.qrc)
+
+if(LINK_ALL_STATIC)
+    add_library(km2ide_resources STATIC resources.qrc)
+else()
+    add_library(km2ide_resources SHARED resources.qrc)
+endif()
+
 
 find_package(Qt6 REQUIRED COMPONENTS Core Quick Qml Concurrent)
 
@@ -280,18 +300,21 @@ target_link_libraries(km2ide_resources Qt::Core)
 
 
 
+if(LINK_ALL_STATIC)
+    add_library(km2_interpreter_backend STATIC ${KM2_INTERPRETER_BACKEND_SOURCES} ${KM2_INTERPRETER_BACKEND_HEADERS})
+else()
+    add_library(km2_interpreter_backend SHARED ${KM2_INTERPRETER_BACKEND_SOURCES} ${KM2_INTERPRETER_BACKEND_HEADERS})
+endif()
 
-add_library(km2_interpreter_backend SHARED
-    ${KM2_INTERPRETER_BACKEND_SOURCES}
-    ${KM2_INTERPRETER_BACKEND_HEADERS}
-)
 
 if(LLVM_ENABLED)
 
-    add_library(km2_llvm_backend SHARED
-        ${KM2_LLVM_BACKEND_SOURCES}
-        ${KM2_LLVM_BACKEND_HEADERS}
-    )
+    if(LINK_ALL_STATIC)
+        add_library(km2_llvm_backend STATIC ${KM2_LLVM_BACKEND_SOURCES} ${KM2_LLVM_BACKEND_HEADERS})
+    else()
+        add_library(km2_llvm_backend SHARED ${KM2_LLVM_BACKEND_SOURCES} ${KM2_LLVM_BACKEND_HEADERS})
+    endif()
+
 
     find_package(LLVM REQUIRED)
     add_definitions(${LLVM_DEFINITIONS})
@@ -382,23 +405,26 @@ target_link_libraries(km2
 )
 
 target_link_libraries(km2_interpreter_backend
-    km2
     wall_e
+    km2
 )
 
 target_link_libraries(km2ide
     PRIVATE
+    sproc
+    wall_e
     km2
     km2_interpreter_backend
     km2ide_resources
-    wall_e
-    sproc
-    pthread
     Qt::Core
     Qt::Qml
     Qt::Quick
     Qt::Concurrent
 )
+
+if(NOT MSVC)
+    target_link_libraries(km2ide PRIVATE pthread)
+endif()
 
 include(tests/km2_tests.cmake)
 
@@ -410,6 +436,11 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/km2"
         PATTERN "*.h"
 )
 
-SET(CPACK_GENERATOR "DEB")
-SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "KK") #required
+if (WIN32)
+    SET(CPACK_GENERATOR "NSIS")
+elseif (UNIX)
+    SET(CPACK_GENERATOR "DEB")
+    SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "KK") #required
+endif()
+
 INCLUDE(CPack)

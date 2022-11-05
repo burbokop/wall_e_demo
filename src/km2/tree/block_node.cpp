@@ -1,6 +1,7 @@
 #include "block_node.h"
 #include  <iostream>
 #include "../backend/models/function_ref.h"
+#include "wall_e/src/macro.h"
 
 km2::block_node::block_node(const wall_e::index &index, const std::shared_ptr<stmt_node> &stmt, const std::shared_ptr<block_node> &next_node)
     : km2::abstract_value_node(index, cast_to_children(std::vector { stmt }, std::vector { next_node })),
@@ -33,7 +34,7 @@ wall_e::either<
     wall_e::error,
     km2::backend::value*
 > km2::block_node::generate_backend_value(const std::shared_ptr<km2::backend::unit> &unit) {
-    if(debug) std::cout << __PRETTY_FUNCTION__ << std::endl;
+    if(debug) std::cout << wall_e_this_function << std::endl;
     if(m_stmt) {
         if(const auto cmd_result = m_stmt->generate_backend_value(unit)) {
         } else {

@@ -1,7 +1,9 @@
 #include "asmexecutor.h"
 
 #include <fstream>
-#include <unistd.h>
+
+//#include <unistd.h> TODO wrap into ifdef because not availebel in MSVC
+
 AsmExecutor::AsmExecutor(QObject *parent) : QObject(parent) {
     connect(&process, &QProcess::readyReadStandardOutput, this, [this](){
         emit message(QString::fromUtf8(process.readAllStandardOutput()), false);

@@ -7,6 +7,7 @@
 
 #include <src/km2/backend/unit/unit.h>
 #include "../backend/models/function_ref.h"
+#include "wall_e/src/macro.h"
 
 km2::proto_node::proto_node(const wall_e::index& index,
         const std::string &name,
@@ -48,7 +49,7 @@ wall_e::either<
     wall_e::error,
     km2::backend::value*
 > km2::proto_node::generate_backend_value(const std::shared_ptr<km2::backend::unit> &unit) {
-    if(debug) std::cout << __PRETTY_FUNCTION__ << std::endl;
+    if(debug) std::cout << wall_e_this_function << std::endl;
     wall_e::vec<backend::type*> arg_types;
     bool is_var_arg = false;
     for(const auto& arg : m_args) {

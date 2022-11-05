@@ -1,5 +1,6 @@
 #include "appcore.h"
 #include "highlighter.h"
+#include "wall_e/src/macro.h"
 #include <src/km2/km2.h>
 #include <QTimer>
 #include <QTextBlock>
@@ -97,7 +98,7 @@ AppCore::AppCore(QObject *parent) : QObject(parent) {
     });
 
     connect(&m_currentFutureWatcher, &QFutureWatcher<km2::compilation_result>::finished, this, [this](){
-        qDebug() << __PRETTY_FUNCTION__;
+        qDebug() << wall_e_this_function;
         this->completeCompilation(m_currentFutureWatcher.result());
     });
 

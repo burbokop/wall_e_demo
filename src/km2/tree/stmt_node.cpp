@@ -2,6 +2,7 @@
 #include "stmt_node.h"
 #include "proto_node.h"
 
+#include "wall_e/src/macro.h"
 #include <iostream>
 
 km2::stmt_node::stmt_node(const wall_e::index &index, std::shared_ptr<abstract_value_node> node)
@@ -22,7 +23,7 @@ wall_e::gram::argument km2::stmt_node::create(const wall_e::gram::arg_vector &ar
 }
 
 wall_e::either<wall_e::error, km2::backend::value*> km2::stmt_node::generate_backend_value(const std::shared_ptr<backend::unit> &unit) {
-    if(debug) std::cout << __PRETTY_FUNCTION__ << std::endl;
+    if(debug) std::cout << wall_e_this_function << std::endl;
     if(m_node) {
         return m_node->generate_backend_value(unit);
     }

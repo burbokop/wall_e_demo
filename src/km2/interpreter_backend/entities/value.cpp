@@ -10,6 +10,7 @@ km2::interpreter_backend::value *km2::interpreter_backend::value::downcast(km2::
     } else if(auto v = dynamic_cast<argument*>(t)) {
         return v;
     }
+    return nullptr;
 }
 
 km2::backend::type *km2::interpreter_backend::value::value_type() const {

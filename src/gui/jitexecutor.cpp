@@ -3,9 +3,6 @@
 #include <QThread>
 #include <QTimer>
 
-#include <llvm/IR/Function.h>
-
-
 #include <src/km2/backend/unit/unit.h>
 #include <wall_e/src/color.h>
 

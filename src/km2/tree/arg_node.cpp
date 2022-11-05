@@ -6,6 +6,7 @@
 #include <src/km2/backend/unit/capabilities/constants_capability.h>
 
 #include "../backend/entities/value.h"
+#include "wall_e/src/macro.h"
 
 std::string km2::arg_node::type_string(const type &t) {
     switch (t) {
@@ -83,7 +84,7 @@ wall_e::either<
     wall_e::error,
     km2::backend::value*
 > km2::arg_node::generate_backend_value(const std::shared_ptr<backend::unit> &unit) {
-    if(debug) std::cout << __PRETTY_FUNCTION__ << std::endl;
+    if(debug) std::cout << wall_e_this_function << std::endl;
     if(m_type == IntLiteral) {
         try {
             const auto& r = unit->cap<backend::constants_capability>()->uintptr(std::stoi(m_text));

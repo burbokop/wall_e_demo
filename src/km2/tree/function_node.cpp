@@ -9,6 +9,7 @@
 #include <src/km2/backend/unit/unit.h>
 #include <src/km2/backend/unit/capabilities/type_capability.h>
 #include <src/km2/backend/models/function_ref.h>
+#include "wall_e/src/macro.h"
 
 wall_e::gram::argument km2::function_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
     if(debug) std::cout << "km2::function_node::create: " << args << std::endl;
@@ -51,7 +52,7 @@ wall_e::either<
     wall_e::error,
     km2::backend::value *
 > km2::function_node::generate_backend_value(const std::shared_ptr<km2::backend::unit> &unit) {
-    if(debug) std::cout << __PRETTY_FUNCTION__ << std::endl;
+    if(debug) std::cout << wall_e_this_function << std::endl;
     wall_e::vec<backend::type*> arg_types;
     wall_e::vec<std::string> arg_names;
     for(const auto& arg : m_args) {

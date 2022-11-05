@@ -1,10 +1,7 @@
 #ifndef KM2_H
 #define KM2_H
 
-#include "error.h"
-
 #include <string>
-
 
 #if __has_include(<wall_e/src/models/variant.h>)
     #include <wall_e/src/models/variant.h>

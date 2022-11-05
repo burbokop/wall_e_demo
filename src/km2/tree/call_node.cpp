@@ -6,6 +6,7 @@
 #include <src/km2/backend/unit/unit.h>
 #include <src/km2/backend/unit/capabilities/namespace_capability.h>
 #include <src/km2/backend/entities/value.h>
+#include "wall_e/src/macro.h"
 
 
 km2::call_node::call_node(const wall_e::index &index,
@@ -49,7 +50,7 @@ wall_e::either<
     wall_e::error,
     km2::backend::value*
 > km2::call_node::generate_backend_value(const std::shared_ptr<km2::backend::unit> &unit) {
-    if(debug) std::cout << __PRETTY_FUNCTION__ << "name: " << m_name << std::endl;
+    if(debug) std::cout << wall_e_this_function << "name: " << m_name << std::endl;
 
     wall_e::list<std::string> namepace_name;
     if(const auto ns = nearest_ancestor<namespace_node>()) {
@@ -57,7 +58,7 @@ wall_e::either<
     }
 
     if(const auto block_node = nearest_ancestor<km2::block_node>()) {
-        if(debug) std::cout << __PRETTY_FUNCTION__ << "find: " << namepace_name << "::" << m_name << std::endl;
+        if(debug) std::cout << wall_e_this_function << "find: " << namepace_name << "::" << m_name << std::endl;
         if(const auto& overload = block_node->find_overload_in_whole_tree(namepace_name, m_name)) {
             wall_e::vec<backend::value*> args;
             wall_e::vec<backend::type*> arg_types;

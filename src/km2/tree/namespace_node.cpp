@@ -6,6 +6,7 @@
 #include <src/km2/backend/unit/unit.h>
 
 #include <src/km2/backend/unit/capabilities/namespace_capability.h>
+#include "wall_e/src/macro.h"
 
 
 km2::namespace_node::namespace_node(
@@ -48,7 +49,7 @@ wall_e::either<
     wall_e::error,
     km2::backend::value*
 > km2::namespace_node::generate_backend_value(const std::shared_ptr<km2::backend::unit> &unit) {
-    if(debug) std::cout << __PRETTY_FUNCTION__ << std::endl;
+    if(debug) std::cout << wall_e_this_function << std::endl;
     if(m_block_node) {
         unit->cap<backend::namespace_capability>()->begin_namespace(full_name());
 
