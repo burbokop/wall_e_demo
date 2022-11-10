@@ -6,125 +6,118 @@
 #include <QTextBlock>
 #include <QThread>
 #include <QtConcurrent>
-#include <src/km2/backend/unit/unit.h>
-#include <src/km2/tree/abstract/abstract_node.h>
 #include <src/km2/backend/entities/function.h>
 #include <src/km2/backend/backend.h>
 
-void AppCore::recompile() {
-    km2::flags flags;
-    if(verbose()) {
-        flags.push_back(km2::verbose);
-    }
-
-    if(onlyTree()) {
-        flags.push_back(km2::only_tree);
-    }
-
-    if(m_firstCompilation) {
-        completeCompilation(km2::compile(backendFactory()->currentBackend().data_ptr().get(), code().toStdString(), flags));
-        m_firstCompilation = false;
-    } else {
-        if(m_currentFutureWatcher.isStarted()) {
-            m_currentFutureWatcher.cancel();
-            m_currentFuture.cancel();
-        }
-        m_currentFuture = QtConcurrent::run(km2::compile, backendFactory()->currentBackend().data_ptr().get(), code().toStdString(), flags);
-        m_currentFutureWatcher.setFuture(m_currentFuture);
-    }
+static QDir projDir() {
+    return QDir("../../examples").absolutePath();
 }
 
-QString AppCore::makeExecutable(const QString &path) {
-    if(prevResult) {
-        if(prevResult->unit()) {
-            if(const auto err = prevResult->unit()->make_executable(path.toStdString()).left()) {
-                return errToString(err.value());
-            }
-            return {};
+QList<ProjFile *> AppCore::scanProjFiles(QObject *parent) {
+    QList<ProjFile *> result;
+    const auto d = projDir();
+    qDebug() << "scanning proj dir: " << d;
+    QDirIterator it(d, QDirIterator::IteratorFlag::Subdirectories);
+    while(it.hasNext()) {
+        it.next();
+        const auto info = it.fileInfo();
+        if(info.isFile()) {
+            result.push_back(new ProjFile(
+                                 info.absoluteFilePath(),
+                                 d.relativeFilePath(info.absoluteFilePath()),
+                                 parent
+                                 ));
         }
-        return "empty module";
-    } else {
-        return "not compiled yet";
+
     }
+    return result;
 }
-void AppCore::completeCompilation(const km2::compilation_result &cresult) {
-    setTokens(QString::fromStdString(wall_e::lex::to_string(cresult.tokens())));
 
-    if(cresult.root_node()) {
-        const auto& tokens = cresult.root_node()->tokens();
-        if(tokens.size() > 0) {
-            setAstTokens(QString::fromStdString(km2::to_string(tokens)));
-        } else {
-            setAstTokens("can not get ast tokens: empty list");
+
+CompilationError AppCore::makeExecutable(const QString &path) {
+    if(unit().valid()) {
+        if(const auto err = unit().data()->make_executable(path.toStdString()).left()) {
+            return CompilationError(err.value());
         }
-    } else {
-        setAstTokens("can not get ast tokens: root node is nullptr");
+        return {};
     }
-
-    setGramatic(QString::fromStdString(cresult.rules()));
-    setTree(cresult.token_tree());
-
-    qDebug() << "COMPILATION COMPLETE";
-    if(cresult.unit()) {
-        setAsmCode(QString::fromStdString(cresult.unit()->llvm_assembly()));
-    } else {
-        setAsmCode("err: empty module");
-    }
-    setErrors(QList<wall_e::error>(cresult.errors().begin(), cresult.errors().end()));
-
-    if(higlighter) {
-        higlighter->setErrors(errors());
-    }
-
-    prevResult = cresult;
-    emit compilationCompleated();
+    return CompilationError(wall_e::error("empty module"));
 }
 
 AppCore::AppCore(QObject *parent) : QObject(parent) {
     qRegisterMetaType<Either>();
 
-    connect(this, &AppCore::codeChanged, this, &AppCore::recompile);
-    connect(this, &AppCore::onlyTreeChanged, this, &AppCore::recompile);
-    connect(this, &AppCore::verboseChanged, this, &AppCore::recompile);
-    connect(backendFactory(), &BackendFactory::currentBackendChanged, this, &AppCore::recompile);
-    connect(this, &AppCore::codeDocumentChanged, this, [this](QQuickTextDocument *v) {
-        if(higlighter == nullptr) {
-            higlighter = new Highlighter(v->textDocument());
-            higlighter->setErrors(errors());
-            connect(higlighter, &Highlighter::highlightingCompleated, this, [this](){
-                emit presentationCompleated();
-            });
+
+    m_projectFiles = scanProjFiles(this);
+}
+
+AppCore::~AppCore() {
+    if(m_currentFile) {
+        if(m_currentFile->isOpen()) {
+            m_currentFile->close();
         }
-    });
-
-    connect(&m_currentFutureWatcher, &QFutureWatcher<km2::compilation_result>::finished, this, [this](){
-        qDebug() << wall_e_this_function;
-        this->completeCompilation(m_currentFutureWatcher.result());
-    });
-
-    recompile();
+        delete m_currentFile;
+    }
 }
 
 Either AppCore::startExecuting() {
-    if(prevResult) {
-        if(const auto& f = dynamic_cast<km2::backend::function*>(prevResult->backend_value())) {
-            return executor()->start(prevResult->unit(), f);
+    if(backendFactory()->currentBackend().valid()) {
+        if(unit().valid()) {
+            if(const auto& f = dynamic_cast<km2::backend::function*>(entry().data())) {
+                return executor()->start(unit().data(), f, verbose());
+            }
+            return Either::newLeft("backend value is not a function");
         }
-        return Either::newLeft("llvm value is not a function");
+        return Either::newLeft("no compilation proceeded yet");
+    } else {
+        return Either::newLeft("no backend assigned");
     }
-    return Either::newLeft("no compilation proceeded yet");
 }
 
-QString AppCore::errToString(const wall_e::error &err) const {
-    return QString::fromStdString(err.message());
+
+void AppCore::loadFile(ProjFile *f, const QString &codeToWrite) {
+    qDebug() << wall_e_this_function << f;
+    if(m_currentFile) {
+        writeToCurrentFile(codeToWrite);
+        delete m_currentFile;
+    }
+
+    m_currentFile = new QFile(f->fullPath());
+    if(m_currentFile->open(QFile::ReadOnly)) {
+        const auto& content = QString::fromUtf8(m_currentFile->readAll());
+        m_currentFile->close();
+        emit codeLoaded(content);
+        setOpenedProjFile(f);
+        setCodeEdited(false);
+    } else {
+        qWarning() << "can not open file" << f->fullPath() << m_currentFile->errorString();
+        delete m_currentFile;
+    }
 }
 
-int AppCore::errBegin(const wall_e::error &err) const {
-    return err.segment().begin();
+void AppCore::writeToCurrentFile(const QString &codeToWrite) {
+    if(m_currentFile && !m_currentFile->isOpen()) {
+        if(m_currentFile->open(QFile::WriteOnly)) {
+            m_currentFile->write(codeToWrite.toUtf8());
+            if(m_currentFile->error()) {
+                qWarning() << "error writing file:" << m_currentFile->error();
+            } else {
+                setCodeEdited(false);
+            }
+            m_currentFile->close();
+        }
+    }
 }
 
-int AppCore::errEnd(const wall_e::error &err) const {
-    return err.segment().end();
+QString AppCore::readFromCurrentFile() {
+    if(m_currentFile && !m_currentFile->isOpen()) {
+        if(m_currentFile->open(QFile::ReadOnly)) {
+            const auto& r = m_currentFile->readAll();
+            m_currentFile->close();
+            return r;
+        }
+    }
+    return QString();
 }
 
 extern "C" {

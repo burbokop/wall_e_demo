@@ -9,7 +9,8 @@ km2::interpreter_backend::type *km2::interpreter_backend::type_capability::born_
 }
 
 km2::interpreter_backend::type_capability::type_capability(km2::backend::unit *unit)
-    : km2::backend::type_capability(unit) {}
+    : km2::backend::type_capability(unit),
+      m_void_type(wall_e::box<type>::make(type::Unit, 0)) {}
 
 km2::backend::type* km2::interpreter_backend::type_capability::int32() {
     return born_type(
@@ -44,11 +45,7 @@ km2::backend::type* km2::interpreter_backend::type_capability::custom_int(std::s
 }
 
 km2::backend::type* km2::interpreter_backend::type_capability::void_type() {
-    return born_type(
-                type::Unit,
-                0
-                //llvm::Type::getVoidTy(*unit()->as<class unit>()->p()->context)
-                );
+    return m_void_type.get();
 }
 
 km2::backend::type* km2::interpreter_backend::type_capability::cstr() {

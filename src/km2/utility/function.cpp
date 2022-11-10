@@ -1,8 +1,7 @@
 #include "function.h"
-namespace wall_e {
 
 
-std::string function::produce_name(const std::string &name, const std::vector<std::string> &typenames) {
+std::string km2::function::produce_name(const std::string &name, const std::vector<std::string> &typenames) {
     std::string result = name;
     for(auto t : typenames) {
         result += "_" + t;
@@ -10,11 +9,11 @@ std::string function::produce_name(const std::string &name, const std::vector<st
     return result;
 }
 
-std::vector<std::string> function::argTypes() const {
+std::vector<std::string> km2::function::argTypes() const {
     return m_argTypes;
 }
 
-function function::choose_overload(const std::list<function> &overloads, const wall_e::variant_vector &args, const std::function<bool (const std::string&, const wall_e::variant&)> &matchRule) {
+km2::function km2::function::choose_overload(const std::list<function> &overloads, const wall_e::variant_vector &args, const std::function<bool (const std::string&, const wall_e::variant&)> &matchRule) {
     for(auto o : overloads) {
         const auto types = o.argTypes();
         if(types.size() == args.size()) {
@@ -28,7 +27,7 @@ function function::choose_overload(const std::list<function> &overloads, const w
     return function();
 }
 
-std::list<function> function::find_overloads(const std::string &name, const std::list<function> &functions) {
+std::list<km2::function> km2::function::find_overloads(const std::string &name, const std::list<function> &functions) {
     std::list<function> result;
     for(auto f : functions) {
         if(f.originalName() == name) {
@@ -38,21 +37,21 @@ std::list<function> function::find_overloads(const std::string &name, const std:
     return result;
 }
 
-std::string function::fullName() const {
+std::string km2::function::fullName() const {
     return m_fullName;
 }
 
-std::string function::originalName() const {
+std::string km2::function::originalName() const {
     return m_originalName;
 }
 
-function::function(const std::string &name, const std::vector<std::string> &typenames) {
+km2::function::function(const std::string &name, const std::vector<std::string> &typenames) {
     m_originalName = name;
     m_argTypes = typenames;
     m_fullName = produce_name(name, typenames);
 }
 
-function::function(const std::string &name, const std::vector<std::pair<wall_e::lex::token, wall_e::lex::token> > &typenames) {
+km2::function::function(const std::string &name, const std::vector<std::pair<wall_e::lex::token, wall_e::lex::token> > &typenames) {
     std::vector<std::string> tn;
     tn.resize(typenames.size());
     for(size_t i = 0, count = typenames.size(); i < count; ++i) {
@@ -64,12 +63,11 @@ function::function(const std::string &name, const std::vector<std::pair<wall_e::
     m_fullName = produce_name(name, tn);
 }
 
-std::ostream &operator<<(std::ostream &stream, const function &function) {
+std::ostream &km2::operator<<(std::ostream &stream, const km2::function &function) {
     stream << function.fullName();
     return stream;
 }
 
-bool operator==(const function &function0, const function &function1) {
+bool km2::operator==(const km2::function &function0, const km2::function &function1) {
     return function0.fullName() == function1.fullName();
-}
 }

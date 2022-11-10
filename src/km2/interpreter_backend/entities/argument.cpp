@@ -3,6 +3,8 @@
 #include "type.h"
 #include "function.h"
 #include "../instructions/instruction.h"
+#include "../instructions/dyn_value.h"
+#include "block.h"
 
 km2::backend::function *km2::interpreter_backend::argument::func() const {
     return m_func;
@@ -20,5 +22,9 @@ std::ostream &km2::interpreter_backend::argument::print(std::ostream &stream) co
 }
 
 std::shared_ptr<km2::interpreter_backend::dyn_value> km2::interpreter_backend::argument::dyn() const {
-    return dyn_value::from_stack_ptr(m_index);
+    if(m_func->downcasted_blocks().size() > 0) {
+        return dyn_value::from_stack_ptr(m_func->downcasted_blocks().front()->stack_offset() + m_index);
+    } else {
+        return  nullptr;
+    }
 }

@@ -4,6 +4,7 @@
 
 #include <src/gui/appcore.h>
 #include <src/gui/kgramtreeview.h>
+#include <src/gui/presentor.h>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -121,41 +122,41 @@ int main(int argc, char **argv) {
     */
 
 
-
     wall_e::flag_provider flag_provider(argc, argv);
 
-    std::cout << flag_provider << "\n";
+    std::cout << flag_provider << std::endl;
 
-    std::cout << flag_provider.value_flag(std::pair { 'i', "input" }, "input", "def_in") << "\n";
-    std::cout << flag_provider.value_flag('o', "output", "def_out") << "\n";
-    std::cout << flag_provider.bool_flag('f', "flag") << "\n";
-    std::cout << flag_provider.bool_flag(std::pair { 'g', "gog" }, "goga") << "\n";
-    std::cout << flag_provider.value_flag('a', "A", "AAA") << "\n";
+    std::cout << flag_provider.value_flag(std::pair { 'i', "input" }, "input", "def_in") << std::endl;
+    std::cout << flag_provider.value_flag('o', "output", "def_out") << std::endl;
+    std::cout << flag_provider.bool_flag('f', "flag") << std::endl;
+    std::cout << flag_provider.bool_flag(std::pair { 'g', "gog" }, "goga") << std::endl;
+    std::cout << flag_provider.value_flag('a', "A", "AAA") << std::endl;
 
     flag_provider.finish(std::cout);
 
     wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Conjunction, '&');
     wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Disjunction, '|');
 
+    std::cout << "A" << std::endl;
 
 
     if(additional_log) {
-        std::cout << "before wall_e::gram::rule_from_str\n";
+        std::cout << "before wall_e::gram::rule_from_str" << std::endl;
         const auto r0 = (wall_e::gram::rule("decl_arg") & (wall_e::gram::rule("EP") | (wall_e::gram::rule("COMA") & "decl_arg_list")));
-        std::cout << "after wall_e::gram::rule_from_str\n";
+        std::cout << "after wall_e::gram::rule_from_str" << std::endl;
         const auto r1 = ((wall_e::gram::rule("cmd") & "SEMICOLON") & (wall_e::gram::rule("EB") | "internal_block"));
 
 
         wall_e::write_graph(std::cout, r0.to_graph());
 
-        std::cout << r0 << "\n";
+        std::cout << r0 << std::endl;
         wall_e::write_graph(std::cout, r0.to_graph());
-        std::cout << "sm: " << wall_e::gram::simplify_rule_default(r0) << "\n";
+        std::cout << "sm: " << wall_e::gram::simplify_rule_default(r0) << std::endl;
         wall_e::write_graph(std::cout, wall_e::gram::simplify_rule_default(r0).to_graph());
 
-        std::cout << r1 << "\n";
+        std::cout << r1 << std::endl;
         wall_e::write_graph(std::cout, r1.to_graph());
-        std::cout << "sm: " << wall_e::gram::simplify_rule_default(r1) << "\n";
+        std::cout << "sm: " << wall_e::gram::simplify_rule_default(r1) << std::endl;
         wall_e::write_graph(std::cout, wall_e::gram::simplify_rule_default(r1).to_graph());
 
         std::filesystem::create_directory("app_out");
@@ -166,9 +167,10 @@ int main(int argc, char **argv) {
         to_pdf(wall_e::gram::simplify_rule_default(r1).to_relation_list(), "./app_out/r1_s");
         to_pdf(wall_e::smp::cc(r1).to_relation_list(), "./app_out/r1_s2");
 
-        std::cout << "\n";
-        std::cout << "____\n";
+        std::cout << std::endl;
+        std::cout << "____" << std::endl;
     }
+    std::cout << "B" << std::endl;
 
     // /home/borys/projects/cpp/example.cpp --
     //std::cout << "r0: " << r0 << " : " << smp::simplify(r0) << '\n';
@@ -196,8 +198,9 @@ int main(int argc, char **argv) {
         }
         lastArg = arg;
     }
+    std::cout << "C: " << input << std::endl;
 
-    if(!textInputMode) {
+    if(!textInputMode && false) {
         std::ifstream inpf(input, std::ios::in);
         input.clear();
         while (!inpf.eof()) {
@@ -207,12 +210,21 @@ int main(int argc, char **argv) {
         }
         inpf.close();
     }
+    std::cout << "D" << std::endl;
 
-    std::cout << "++++\n";
+    std::cout << "++++" << std::endl;
 
     qmlRegisterType<KGramTreeView>("Km2", 1, 0, "KGramTreeView");
     qmlRegisterUncreatableType<BackendFactory>("Km2", 1, 0, "BackendFactory", "created in appcore");
     qmlRegisterUncreatableType<JitExecutor>("Km2", 1, 0, "JitExecutor", "created in appcore");
+    qmlRegisterType<ProjFile>("Km2", 1, 0, "ProjFile");
+
+    qmlRegisterType<Compiler>("Km2", 1, 0, "Compiler");
+    qmlRegisterType<Presentor>("Km2", 1, 0, "Presentor");
+
+    qmlRegisterUncreatableType<TokenTree>("Km2", 1, 0, "TokenTree", "created in compiler");
+
+
 
     QCoreApplication::setOrganizationName("burbokop");
     QCoreApplication::setOrganizationDomain("io.github.burbokop");

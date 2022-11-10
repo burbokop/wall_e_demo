@@ -39,10 +39,10 @@ class compilation_result {
     std::shared_ptr<backend::unit> m_unit;
     backend::value* m_backend_value;
 
-    std::list<wall_e::error> m_errors;
+    wall_e::list<wall_e::error> m_errors;
 
     mutable wall_e::opt<km2::ast_token_list> m_ast_tokens;
-    mutable wall_e::opt<std::map<wall_e::text_segment, std::string>> m_hovers;
+    mutable wall_e::opt<std::map<wall_e::text_segment, markup_string>> m_hovers;
 public:
     compilation_result(
             const wall_e::lex::token_vec& tokens,
@@ -51,7 +51,7 @@ public:
             const std::shared_ptr<km2::abstract_node>& root_node,
             const std::shared_ptr<backend::unit>& unit,
             backend::value*const backend_value,
-            const std::list<wall_e::error>& errors
+            const wall_e::list<wall_e::error>& errors
             )
         : m_tokens(tokens),
           m_rules(rules),
@@ -68,23 +68,25 @@ public:
     const std::shared_ptr<backend::unit>& unit() const { return m_unit; }
     backend::value*const backend_value() const { return m_backend_value; }
 
-    const std::list<wall_e::error>& errors() const { return m_errors; }
+    const wall_e::list<wall_e::error>& errors() const { return m_errors; }
 
     const km2::ast_token_list& ast_tokens() const;
-    const std::map<wall_e::text_segment, std::string>& hovers() const;
+    const std::map<wall_e::text_segment, markup_string>& hovers() const;
 };
 
 enum flag {
     only_tree,
-    verbose,
-    generate_lsp_info
+    verbose
 };
 
 typedef std::list<flag> flags;
 
-std::list<std::string> key_names();
-
 compilation_result compile(const backend::backend* b, const std::string &input, const flags &flags = {});
+compilation_result compile(const backend::backend* b, std::istream &input, const flags &flags = {});
+inline compilation_result compile(const backend::backend* b, std::istream &&input, const flags &flags = {}) {
+    std::istream& i = input;
+    return compile(b, i, flags);
+}
 //inline compilation_result compile(const std::shared_ptr<const backend::backend>& b, const std::string &input, const flags &flags = {}) {
 //    const std::shared_ptr<const backend::backend> b_copy = b;
 //    return compile(b_copy.get(), input, flags);

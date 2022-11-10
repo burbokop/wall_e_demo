@@ -6,6 +6,7 @@
 #include "../../entities/type.h"
 #include "type_capability.h"
 #include "../../instructions/instruction.h"
+#include "../../instructions/dyn_value.h"
 
 km2::interpreter_backend::constant *km2::interpreter_backend::constants_capability::born_constant(
         type* data,

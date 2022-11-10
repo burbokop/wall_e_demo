@@ -5,10 +5,12 @@
 #endif
 #include "../../src/km2/interpreter_backend/interpreter_backend.h"
 
-const BackendSharedPtr emptyBackend = BackendSharedPtr::newEmpty("no backend");
+static const BackendSharedPtr& emptyBackend() {
+    static const auto result = BackendSharedPtr::newEmpty("no backend");
+    return result;
+}
 
-BackendFactory::BackendFactory(QObject *parent)
-    : QObject{parent} {
+BackendFactory::BackendFactory(QObject *parent) : QObject { parent } {
     register_backends();
     connect(this, &BackendFactory::currentBackendNameChanged, this, [this](const QString& name) {
         for(const auto& b : m_backends) {
@@ -17,11 +19,11 @@ BackendFactory::BackendFactory(QObject *parent)
                 return;
             }
         }
-        setCurrentBackend(emptyBackend);
+        setCurrentBackend(emptyBackend());
     });
     QMetaObject::invokeMethod(this, [this](){
         emit currentBackendNameChanged(currentBackendName());
-    });
+    }, Qt::QueuedConnection);
 }
 
 void BackendFactory::register_backends() {
@@ -30,7 +32,7 @@ void BackendFactory::register_backends() {
         BackendSharedPtr(std::make_shared<km2::llvm_backend::backend>()),
     #endif
         BackendSharedPtr(std::make_shared<km2::interpreter_backend::backend>()),
-        emptyBackend
+        emptyBackend()
     };
 
 

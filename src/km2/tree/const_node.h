@@ -9,6 +9,8 @@ namespace km2 {
 class arg_node;
 
 class const_node : public km2::abstract_value_node {
+    const std::string m_keyword_text;
+    const wall_e::text_segment m_keyword_segment;
     const std::string m_id;
     const wall_e::text_segment m_id_segment;
     const std::shared_ptr<arg_node> m_value;
@@ -17,6 +19,8 @@ public:
 
     const_node(
             const wall_e::index &index,
+            const std::string& keyword_text,
+            const wall_e::text_segment& keyword_segment,
             const std::string &id,
             const wall_e::text_segment& id_segment,
             const std::shared_ptr<arg_node>& value = nullptr

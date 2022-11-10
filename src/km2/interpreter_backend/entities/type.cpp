@@ -11,3 +11,7 @@ bool km2::interpreter_backend::type::eq(const km2::backend::type *other) const {
 
     return a && b;
 }
+
+std::ostream &km2::interpreter_backend::type::print(std::ostream &stream) const {
+    return stream << wall_e::enums::to_string(m_id);
+}

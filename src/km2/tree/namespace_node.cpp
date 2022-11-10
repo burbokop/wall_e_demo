@@ -9,14 +9,13 @@
 #include "wall_e/src/macro.h"
 
 
-km2::namespace_node::namespace_node(
-        const wall_e::index &index,
+km2::namespace_node::namespace_node(const wall_e::index &index,
         const std::string &keyword,
         const wall_e::text_segment &keyword_segment,
         const std::string &name,
         const wall_e::text_segment &name_segment,
         const std::shared_ptr<block_node>& block_node
-        )
+        , const bool exp)
     : abstract_value_node(index, { block_node }),
       m_keyword(keyword),
       m_keyword_segment(keyword_segment),
@@ -28,17 +27,38 @@ km2::namespace_node::namespace_node(
 km2::abstract_node::factory km2::namespace_node::create(const std::string &name_token) {
     return [name_token](const wall_e::gram::arg_vector &args, const wall_e::index& index) -> wall_e::gram::argument {
         if(debug) std::cout << wall_e::type_name<namespace_node>() << "::create: " << args << std::endl;
-        if (args.size() > 2) {
-            if(const auto& keyword_token = args[0].option<wall_e::lex::token>()) {
-                if(const auto& name_with_ob = args[1].option<wall_e::gram::arg_vector>()) {
+        if (args.size() > 3) {
+            const auto exp = args[0].option<wall_e::lex::token>()
+                    .exists([](const wall_e::lex::token& t) { return t.name == "TOK_EXP"; });
+
+            if(const auto& keyword_token = args[1].option<wall_e::lex::token>()) {
+                if(const auto& name_with_ob = args[2].option<wall_e::gram::arg_vector>()) {
                     if(name_with_ob->size() > 0) {
-                        const auto& name_or_ob = (*name_with_ob)[0].option<wall_e::lex::token>();
+                        const auto& name_or_ob = (*name_with_ob)[1].option<wall_e::lex::token>();
                         if(name_with_ob->size() > 1 && name_or_ob->name == name_token) {
-                            return std::make_shared<namespace_node>(index, keyword_token->text, keyword_token->segment(), name_or_ob->text, name_or_ob->segment(), args[2].value<std::shared_ptr<block_node>>());
+                            return std::make_shared<namespace_node>(
+                                        index,
+                                        keyword_token->text,
+                                        keyword_token->segment(),
+                                        name_or_ob->text,
+                                        name_or_ob->segment(),
+                                        args[3].value<std::shared_ptr<block_node>>(),
+                                        exp
+                                    );
                         }
                     }
                 }
-                return std::make_shared<namespace_node>(index, keyword_token->text, keyword_token->segment(), std::string(), wall_e::text_segment(), args[2].value<std::shared_ptr<block_node>>());
+                if(const auto& block = args[3].option<std::shared_ptr<block_node>>()) {
+                    return std::make_shared<namespace_node>(
+                                index,
+                                keyword_token->text,
+                                keyword_token->segment(),
+                                std::string(),
+                                wall_e::text_segment(),
+                                *block,
+                                exp
+                                );
+                }
             }
         }
         return std::make_shared<namespace_node>(index, std::string(), wall_e::text_segment());
@@ -102,7 +122,8 @@ void km2::namespace_node::short_print(std::ostream &stream) const {
 }
 
 km2::ast_token_list km2::namespace_node::tokens() const {
-    const std::string hover = m_name.empty() ? "<b>anonimus namespace</b>" : "<b>namespace</b> " + m_name;
+    using namespace km2::literals;
+    const auto hover = m_name.empty() ? "**anonimus namespace**"_md : "**namespace** "_md + m_name;
     return ast_token_list {
         ast_token {
             .type = AstKeyword,

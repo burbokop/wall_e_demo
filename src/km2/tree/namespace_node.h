@@ -25,7 +25,8 @@ public:
             const wall_e::text_segment& keyword_segment,
             const std::string &name = {},
             const wall_e::text_segment& name_segment = {},
-            const std::shared_ptr<block_node>& block_node = nullptr
+            const std::shared_ptr<block_node>& block_node = nullptr,
+            const bool exp = false
             );
 
     static factory create(const std::string& name_token);

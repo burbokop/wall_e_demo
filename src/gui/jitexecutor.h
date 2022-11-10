@@ -29,7 +29,7 @@ public:
 
 
     explicit JitExecutor(QObject *parent = nullptr);
-    Either start(const std::shared_ptr<km2::backend::unit> &unit, km2::backend::function *entry);
+    Either start(const std::shared_ptr<km2::backend::unit> &unit, km2::backend::function *entry, bool verbose);
     void abort();
 
 signals:

@@ -140,8 +140,8 @@ public:
     std::list<wall_e::error> change_content(const std::string& uri, const std::string& content);
     std::vector<wall_e::lex::token> tokens(const std::string& uri) const;
     std::vector<semantic_token> semantic_tokens(const std::string& uri) const;
-    std::optional<std::string> hover(const std::string& uri, const wall_e::text_segment::predicate& predicate);
-    inline std::optional<std::string> hover(const std::string& uri, std::size_t offset) {
+    std::optional<markup_string> hover(const std::string& uri, const wall_e::text_segment::predicate& predicate);
+    inline std::optional<markup_string> hover(const std::string& uri, std::size_t offset) {
         return hover(uri, wall_e::text_segment::offset_predicate(offset));
     }
     std::list<std::string> complete(const std::string& uri, const wall_e::text_segment::predicate& predicate);

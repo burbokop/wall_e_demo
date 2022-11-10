@@ -11,6 +11,7 @@ namespace interpreter_backend {
 
 class type_capability : public km2::backend::type_capability {
     wall_e::box_list<type> m_types;
+    wall_e::box<type> m_void_type;
     type* born_type(type::id id, size_t bits);
 public:
     type_capability(km2::backend::unit* unit);

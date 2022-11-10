@@ -10,15 +10,8 @@
 
 KGramTreeView::KGramTreeView(QQuickItem *parent) : QQuickPaintedItem(parent) {
     setAcceptedMouseButtons(Qt::LeftButton);
-    connect(this, &KGramTreeView::treeChanged, this, &KGramTreeView::displayTree);
+    connect(this, &KGramTreeView::treeChanged, this, [this]{ update(); });
 }
-
-
-void KGramTreeView::displayTree(const wall_e::variant &var) {
-    m_var = var;
-    update();
-}
-
 
 void KGramTreeView::paint(QPainter *painter) {
     painter->setPen(QPen(QColor(Qt::black), 4));
@@ -31,14 +24,16 @@ void KGramTreeView::paint(QPainter *painter) {
     //auto oy = currentMouseY;
 
     painter->translate(ox, oy);
-    painter->scale(scaleMultiplier, scaleMultiplier);
+    painter->scale(m_scaleMultiplier, m_scaleMultiplier);
     painter->translate(-ox, -oy);
 
-    painter->drawRect(treeX - 5, treeY - 5, 10, 10);
-    print_branch(m_var, treeX, treeY, painter);
+    painter->drawRect(m_treeX - 5, m_treeY - 5, 10, 10);
+    if(tree()) {
+        drawBranch(tree()->data(), m_treeX, m_treeY, painter);
+    }
 }
 
-int KGramTreeView::string_radius(const std::string &string) {
+int KGramTreeView::stringRadius(const std::string &string) {
     int bnc = 1;
     for(size_t i = 0; i < string.size(); ++i) {
         if(string[i] == '\n') {
@@ -48,9 +43,9 @@ int KGramTreeView::string_radius(const std::string &string) {
     return string.size() / bnc;
 }
 
-void KGramTreeView::print_branch(const wall_e::variant &branch, int x, int y, QPainter *painter) {
+void KGramTreeView::drawBranch(const wall_e::variant &branch, int x, int y, QPainter *painter) {
     const auto cellMargins = 5;
-    const auto cellRadius = painter->font().pointSize() * branch_width(branch, true) / 2 + cellMargins;
+    const auto cellRadius = painter->font().pointSize() * branchWidth(branch, true) / 2 + cellMargins;
     const auto spacingX = 50;
     const auto spacingY = branch.contains_type<wall_e::variant_vector>() ? 100 : 50 + cellRadius;
 
@@ -63,8 +58,8 @@ void KGramTreeView::print_branch(const wall_e::variant &branch, int x, int y, QP
 
         int pos = 0;
         for(size_t i = 0, cnt = vec.size(); i < cnt; ++i) {
-            const int w = (branch_width(vec[i]) + 1) * spacingX;
-            print_branch(vec[i], x + pos, y + spacingY, painter);
+            const int w = (branchWidth(vec[i]) + 1) * spacingX;
+            drawBranch(vec[i], x + pos, y + spacingY, painter);
             if(i == vec.size() - 1) {
                 painter->drawLine(QLine(x, y + spacingY, x + pos, y + spacingY));
             }
@@ -87,7 +82,7 @@ void KGramTreeView::print_branch(const wall_e::variant &branch, int x, int y, QP
     }
 }
 
-int KGramTreeView::branch_width(const wall_e::variant &branch, bool onlyCells) {
+int KGramTreeView::branchWidth(const wall_e::variant &branch, bool onlyCells) {
     if(branch.contains_type<wall_e::variant_vector>()) {
         if(onlyCells)
             return 0;
@@ -95,17 +90,17 @@ int KGramTreeView::branch_width(const wall_e::variant &branch, bool onlyCells) {
         auto vec = branch.value<wall_e::variant_vector>();
         int count = 0;
         for(size_t i = 0, cnt = vec.size(); i < cnt; ++i) {
-            count += branch_width(vec[i], onlyCells);
+            count += branchWidth(vec[i], onlyCells);
         }
         return count;
     } else if(branch.contains_type<wall_e::lex::token>()) {
-        return string_radius(branch.value<wall_e::lex::token>().text);
+        return stringRadius(branch.value<wall_e::lex::token>().text);
     } else if(branch.contains_type<std::string>()) {
-        return string_radius(branch.value<std::string>());
+        return stringRadius(branch.value<std::string>());
     } else if(branch.contains_type<int>()) {
         return std::to_string(branch.value<int>()).size();
     } else if(branch.inherited_by<km2::abstract_node*>()) {
-        return string_radius(branch.type());
+        return stringRadius(branch.type());
     } else {
         return 3;
     }
@@ -113,25 +108,25 @@ int KGramTreeView::branch_width(const wall_e::variant &branch, bool onlyCells) {
 
 void KGramTreeView::mousePressEvent(QMouseEvent *event) {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    startMouseX = event->x();
-    startMouseY = event->y();
+    m_startMouseX = event->x();
+    m_startMouseY = event->y();
 #else
-    startMouseX = event->position().x();
-    startMouseY = event->position().y();
+    m_startMouseX = event->position().x();
+    m_startMouseY = event->position().y();
 #endif
-    startTreeX = treeX;
-    startTreeY = treeY;
+    m_startTreeX = m_treeX;
+    m_startTreeY = m_treeY;
 
     event->accept();
 }
 
 void KGramTreeView::mouseMoveEvent(QMouseEvent *event) {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    treeX = startTreeX + (event->x() - startMouseX) / scaleMultiplier;
-    treeY = startTreeY + (event->y() - startMouseY) / scaleMultiplier;
+    m_treeX = m_startTreeX + (event->x() - m_startMouseX) / m_scaleMultiplier;
+    m_treeY = m_startTreeY + (event->y() - m_startMouseY) / m_scaleMultiplier;
 #else
-    treeX = startTreeX + (event->position().x() - startMouseX) / scaleMultiplier;
-    treeY = startTreeY + (event->position().y() - startMouseY) / scaleMultiplier;
+    m_treeX = m_startTreeX + (event->position().x() - m_startMouseX) / m_scaleMultiplier;
+    m_treeY = m_startTreeY + (event->position().y() - m_startMouseY) / m_scaleMultiplier;
 #endif
     update();
     event->accept();
@@ -141,15 +136,15 @@ void KGramTreeView::mouseMoveEvent(QMouseEvent *event) {
 void KGramTreeView::wheelEvent(QWheelEvent *event) {
     QPoint numDegrees = event->angleDelta() / 8;
 
-    currentMouseX = event->position().x();
-    currentMouseY = event->position().y();
+    m_currentMouseX = event->position().x();
+    m_currentMouseY = event->position().y();
 
     if (!numDegrees.isNull()) {
         QPoint numSteps = numDegrees / 15;
         if(numSteps.y() > 0) {
-            scaleMultiplier *= 1.5;
+            m_scaleMultiplier *= 1.5;
         } else if(numSteps.y() < 0) {
-            scaleMultiplier /= 1.5;
+            m_scaleMultiplier /= 1.5;
         }
     }
 

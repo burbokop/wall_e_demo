@@ -17,21 +17,28 @@ Window {
     id: root
     property string mode: ""
 
+    Compiler {
+        id: compiler
+        code: codeArea.text
+        backend: appCore.backendFactory.currentBackend
+    }
+
+    Presentor {
+        id: presentor
+        codeDocument: codeArea.textDocument
+        errors: compiler.errors
+        //onPresentationCompleated: codeArea.updatePresentation()
+    }
+
 
     Connections {
         target: appCore
-        function onCodeChanged() {
-            codeArea.loadText(appCore.code);
-        }
-        function onCompilationCompleated() {
-        }
-        function onPresentationCompleated() {
-            codeArea.updatePresentation()
+        function onCodeLoaded(t) {
+            codeArea.text = t
         }
     }
-    Component.onCompleted: {
-        codeArea.loadText(appCore.code);
-    }
+
+
 
     Connections {
         target: appCore.executor
@@ -124,13 +131,16 @@ Window {
                         Layout.topMargin: 30
                         text: "T"
                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
-                        onCheckedChanged: appCore.onlyTree = checked
+                        onCheckedChanged: compiler.onlyTree = checked
                     }
 
                     ToolBarChackBox {
                         text: "V"
                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
-                        onCheckedChanged: appCore.verbose = checked
+                        onCheckedChanged: {
+                            appCore.verbose = checked
+                            compiler.verbose = checked
+                        }
                     }
 
                     Item {
@@ -153,20 +163,75 @@ Window {
             ColumnLayout {
                 width: 300
                 Layout.fillHeight: true
-                Tile {
-                    internalColor: "#ffffff"
+
+                RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    CodeArea {
-                        id: codeArea
-                        onTextChanged: {
-                            appCore.code = text;
+                    Tile {
+                        implicitWidth: projView.implicitWidth + projView.anchors.margins * 2 + 40
+                        //Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        internalColor: "#ffffff"
+                        ProjectView {
+                            openedFile: appCore.openedProjFile
+                            id: projView
+                            model: appCore.projectFiles
+                            anchors.fill: parent
+                            anchors.margins: 2
+                            onChoosed: f => appCore.loadFile(f, codeArea.text)
                         }
-                        onTextDocumentChanged: {
-                            appCore.codeDocument = textDocument
+                    }
+                    Tile {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+
+                        CodeArea {
+                            id: codeArea
+                            anchors.fill: parent
+                            anchors.margins: 2
+                            onTextChanged: appCore.codeEdited = true
+
+                            property bool ctrlPressed: false
+                            Keys.onPressed: event => {
+                                if(!event.isAutoRepeat) {
+                                    if(codeArea.ctrlPressed) {
+                                        if(event.key === Qt.Key_S) {
+                                            appCore.writeToCurrentFile(codeArea.text)
+                                        } else if(event.key === Qt.Key_L) {
+                                            codeArea.text = appCore.readFromCurrentFile()
+                                            appCore.codeEdited = false;
+                                        }
+                                    } else if(event.key === Qt.Key_Control) {
+                                        codeArea.ctrlPressed = true
+                                    }
+                                }
+                            }
+                            Keys.onReleased: event => {
+                                if(event.key === Qt.Key_Control) {
+                                    codeArea.ctrlPressed = false
+                                }
+                            }
                         }
-                        anchors.fill: parent
-                        anchors.margins: 2
+                        Text {
+                            anchors.right: parent.right
+                            anchors.top: parent.top
+                            anchors.rightMargin: 30
+                            anchors.topMargin: 5
+
+                            visible: appCore.codeEdited
+                            font.pointSize: 14
+                            text: qsTr("*")
+                        }
+                        Text {
+                            anchors.right: parent.right
+                            anchors.top: parent.top
+                            anchors.rightMargin: 60
+                            anchors.topMargin: 5
+
+                            visible: codeArea.ctrlPressed
+                            font.pointSize: 14
+                            text: qsTr("ctrl")
+                        }
                     }
                 }
                 Tile {
@@ -179,7 +244,7 @@ Window {
                     property int currentErr: -1
                     ListView {
                         anchors.fill: parent
-                        model: appCore.errors
+                        model: compiler.errors
                         delegate: Rectangle {
                             color: (errTile.currentErr === index) ? "#88888888" : "#00000000"
                             id: errRect
@@ -187,8 +252,8 @@ Window {
                             height: (errTile.currentErr === index) ? 48 : 24
                             Text {
                                 text: (errTile.currentErr === index)
-                                      ? appCore.errToString(modelData) + "\nat fragment: " +  codeArea.textFragmentForError(modelData)
-                                      : appCore.errToString(modelData)
+                                      ? modelData.toString() + "\nat fragment: " +  codeArea.textFragmentForError(modelData)
+                                      : modelData.toString()
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.left: parent.left
                                 anchors.leftMargin: 4
@@ -197,7 +262,7 @@ Window {
                                 id: errMouseArea
                                 anchors.fill: parent
                                 onClicked: {
-                                    codeArea.goToPosition(appCore.errBegin(modelData))
+                                    codeArea.goToPosition(modelData.begin)
                                     errTile.currentErr = index
                                 }
                             }
@@ -210,7 +275,7 @@ Window {
                     Layout.fillHeight: true
 
                     KGramTreeView {
-                        tree: appCore.tree
+                        tree: compiler.tree
                         id: treeWiev
                         focus: true
                         anchors.fill: parent
@@ -224,18 +289,18 @@ Window {
                         id: infoArea
                         text: {
                             if(appCore.mode === AppCore.ModeTokens) {
-                                return appCore.tokens;
+                                return compiler.tokens;
                             } else if(appCore.mode === AppCore.ModeGramatic) {
-                                return appCore.gramatic;
+                                return compiler.gramatic;
                             } else if(appCore.mode === AppCore.ModeAsm) {
-                                return appCore.asmCode;
+                                return compiler.asmCode;
                             } else {
                                 return '';
                             }
                         }
                         subtext: {
                             if(appCore.mode === AppCore.ModeTokens) {
-                                return appCore.astTokens;
+                                return compiler.astTokens;
                             } else if(appCore.mode === AppCore.ModeGramatic) {
                                 return '';
                             } else if(appCore.mode === AppCore.ModeAsm) {

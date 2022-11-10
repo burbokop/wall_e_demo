@@ -9,5 +9,6 @@
         <file>resources/ToolBarChackBox.qml</file>
         <file>resources/InfoDialog.qml</file>
         <file>resources/BackendList.qml</file>
+        <file>resources/ProjectView.qml</file>
     </qresource>
 </RCC>

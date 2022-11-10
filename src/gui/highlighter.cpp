@@ -5,13 +5,7 @@
 #include <QAbstractTextDocumentLayout>
 //! [0]
 Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent) {
-    connect(this, &Highlighter::errorsChanged, this, [this, parent](){
-        qDebug() << "UPDATE HIGHLIGHTER";
-        rehighlight();
-        highlightingCompleated();
-        qDebug() << "END UPDATING HIGHLIGHTER";
-        //parent->do
-    });
+    connect(this, &Highlighter::errorsChanged, this, [this, parent](){ rehighlight(); });
 
     parent->setDefaultFont(QFont("Source Code Pro"));
 
@@ -109,21 +103,21 @@ void Highlighter::highlightBlock(const QString &text) {
         startIndex = text.indexOf(commentStartExpression, startIndex + commentLength);
     }
 
-    for(auto err : errors()) {
+    for(const auto &err : errors()) {
         const auto begin = currentBlock().begin();
         if(begin != currentBlock().end()) {
             const auto fragmentStartPos = begin.fragment().position();
 
 
-            if(err.segment().valid_direction()) {
-                const auto relativePos = err.segment().begin() - fragmentStartPos;
-                const auto errLength = err.segment().length();
+            if(err.data().segment().valid_direction()) {
+                const auto relativePos = err.data().segment().begin() - fragmentStartPos;
+                const auto errLength = err.data().segment().length();
                 if(relativePos >= 0 && relativePos + errLength < text.size()) {
                     QTextCharFormat format;
                     format.setFontUnderline(true);
                     format.setUnderlineStyle(QTextCharFormat::UnderlineStyle::SingleUnderline);
-                    format.setUnderlineColor("#ff888800");
-                    format.setForeground(QBrush("#ffff0000"));
+                    format.setUnderlineColor(0xff888800);
+                    format.setForeground(QBrush(0xffff0000));
 
                     qDebug() << "SET FORMAT";
                     setFormat(relativePos, errLength, format);

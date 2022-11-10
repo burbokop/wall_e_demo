@@ -17,10 +17,16 @@ class block : public km2::backend::block {
     std::string m_name;
     function* m_f;
     execution_ctx* m_ctx;
-
     wall_e::vec<instruction*> m_instructions;
+    std::size_t m_stack_offset;
 public:
-    block(execution_ctx* ctx, const std::string& name, function* f);
+    block(
+            execution_ctx* ctx,
+            const std::string& name,
+            function* f,
+            std::size_t stack_offset
+            );
+    std::size_t stack_offset() const { return m_stack_offset; };
 
     void append_instruction(instruction* i) { m_instructions.push_back(i); }
     void append_instructions(const wall_e::vec<instruction*>& i) { m_instructions.append(i); }
@@ -31,18 +37,21 @@ public:
     inline static std::unique_ptr<block> make_uniq(
             execution_ctx* ctx,
             const std::string& name,
-            function* f
-        ) { return std::make_unique<block>(ctx, name, f); }
+            function* f,
+            std::size_t stack_offset
+        ) { return std::make_unique<block>(ctx, name, f, stack_offset); }
 
     inline static wall_e::box<block> make_box(
             execution_ctx* ctx,
             const std::string& name,
-            function* f
-        ) { return wall_e::box<block>::make(ctx, name, f); }
+            function* f,
+            std::size_t stack_offset
+        ) { return wall_e::box<block>::make(ctx, name, f, stack_offset); }
 
     // block interface
 public:
     virtual std::string name() const override;
+    virtual km2::backend::function *func() const override;
 
     // printable interface
 public:

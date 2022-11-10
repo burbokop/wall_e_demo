@@ -27,16 +27,17 @@ wall_e::opt<uint16_t> km2::type_node::parse_integer_type(const std::string &str)
     return std::nullopt;
 }
 
-std::string km2::type_node::hover() const {
+km2::markup_string km2::type_node::hover() const {
+    using namespace km2::literals;
     switch (m_type) {
-    case Unsigned: return "<b>primitive integer type</b> " + m_original_text;
-    case Signed: return "<b>primitive integer type</b> " + m_original_text;
-    case Float: return "<b>primitive float type</b> " + m_original_text;
-    case Double: return "<b>primitive float type</b> " + m_original_text;
-    case String: return "<b>primitive type</b> " + m_original_text;
-    case Undefined: return "<b>undefined type</b> " + m_original_text;
+    case Unsigned: return "**primitive integer type** "_md + m_original_text;
+    case Signed: return "**primitive integer type** "_md + m_original_text;
+    case Float: return "**primitive float type** "_md + m_original_text;
+    case Double: return "**primitive float type** "_md + m_original_text;
+    case String: return "**primitive type** "_md + m_original_text;
+    case Undefined: return "**undefined type** "_md + m_original_text;
     }
-    return "";
+    return ""_md;
 }
 
 km2::type_node::type_node(

@@ -112,13 +112,13 @@ std::vector<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const s
     return std::vector<semantic_token> {};
 }
 
-std::optional<std::string> km2::lsp::service::hover(const std::string &uri, const wall_e::text_segment::predicate &predicate) {
+std::optional<km2::markup_string> km2::lsp::service::hover(const std::string &uri, const wall_e::text_segment::predicate &predicate) {
     const auto cache_it = m_cache.find(uri);
     if(cache_it != m_cache.end() && cache_it->second.compilation_result) {
 
         const auto& hovers = cache_it->second.compilation_result->hovers();
         const auto it = std::find_if(hovers.begin(), hovers.end(), [&predicate, &cache_it](
-                                     const std::pair<wall_e::text_segment, std::string>& pair
+                                     const std::pair<wall_e::text_segment, markup_string>& pair
                                      ){
             return predicate(pair.first, cache_it->second.content);
         });
@@ -143,7 +143,7 @@ std::list<std::string> km2::lsp::service::complete(const std::string &uri, const
     //        return { it->second };
     //    }
     //}
-    return key_names();
+    return { "gogadoda" };
 }
 
 

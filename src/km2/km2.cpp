@@ -11,6 +11,7 @@
 #include <fstream>
 
 #include <wall_e/src/gram.h>
+#include <wall_e/src/macro.h>
 #include <wall_e/src/utility/tree_view_tools.h>
 #include <wall_e/src/lex.h>
 #include <src/km2/utility/math_patterns.h>
@@ -25,6 +26,7 @@
 #include "tree/type_node.h"
 #include "tree/decl_arg_node.h"
 #include "tree/const_node.h"
+#include "tree/imp_node.h"
 #include <wall_e/src/color.h>
 
 #include "backend/backend.h"
@@ -46,50 +48,61 @@ __km2_flags_private __km2_parse_flags(const km2::flags &flags) {
     return result;
 }
 
-const wall_e::lex::pattern_list km2_lexlist = {
-    { std::regex("wait[ \t\n]"), "TOK_WAIT" },
-    { std::regex("asm"), "TOK_ASM" },
-    { std::regex("number"), "TOK_NUMBER" },
-    { std::regex("string"), "TOK_STRING" },
-    { std::regex("const"), "TOK_CONST" },
-    { std::regex("(namespace|nspace)"), "TOK_NAMESPACE" },
-    { std::regex("u[0-9]+"), "TOK_UNSIGNED" },
-    { std::regex("i[0-9]+"), "TOK_SIGNED" },
-    { std::regex("f32"), "TOK_FLOAT" },
-    { std::regex("f64"), "TOK_DOUBLE" },
-    { std::regex("'[^']*'"), "STRING_LITERAL" },
-    { std::regex("[a-zA-Z_][a-zA-Z0-9_]*"), "TOK_ID" },
-    { std::regex("[0-9]+\\.([0-9]+)?"), "FLOAT_LITERAL" },
-    { std::regex("[0-9]+"), "INT_LITERAL" },
-    { std::regex("[(]"), "OP" },
-    { std::regex("[)]"), "EP" },
-    { std::regex("[{]"), "OB" },
-    { std::regex("[}]"), "EB" },
-    { std::regex("=="), "DOUBLE_EQUALS" },
-    { std::regex("="), "EQUALS" },
-    { std::regex("[+]"), "TOK_PLUS" },
-    { std::regex("[-]"), "TOK_MINUS" },
-    { std::regex("[*]"), "TOK_MUL" },
-    { std::regex("[/]"), "TOK_DIV" },
-    { std::regex(";"), "SEMICOLON" },
-    { std::regex(":"), "COLON" },
-    { std::regex(","), "COMA" },
-    { std::regex("\\.\\.\\."), "THREE_DOT" },
 
-    { std::regex("[ \t\n]+"), "ignore" }
-};
 
-std::list<std::string> km2::key_names() {
-    return {
-        "asm",
-        "number",
-        "string",
-        "const",
-        "namespace",
-        "nspace",
-        "f32",
-        "f64"
+
+
+
+
+
+
+static const wall_e::lex::pattern_list& km2_lexlist() {
+    static const wall_e::lex::pattern_list res = {
+        { std::regex("\\/\\/(.*)\n"), wall_e::lex::special::ignore },
+        { std::regex("\\/\\*(.*)\\*\\/"), wall_e::lex::special::ignore },
+        { wall_e::lex::keyword("asm"), "TOK_ASM" },
+        { wall_e::lex::keyword("number"), "TOK_NUMBER" },
+        { wall_e::lex::keyword("string"), "TOK_STRING" },
+        { wall_e::lex::keyword("const"), "TOK_CONST" },
+        { wall_e::lex::keyword("(namespace|nspace)"), "TOK_NAMESPACE" },
+        { wall_e::lex::keyword("exp"), "TOK_EXP" },
+        { wall_e::lex::keyword("imp"), "TOK_IMP" },
+        { std::regex("u[0-9]+"), "TOK_UNSIGNED" },
+        { std::regex("i[0-9]+"), "TOK_SIGNED" },
+        { std::regex("f32"), "TOK_FLOAT" },
+        { std::regex("f64"), "TOK_DOUBLE" },
+        { std::regex("'[^']*'"), "STRING_LITERAL" },
+        { std::regex("[a-zA-Z_][a-zA-Z0-9_]*"), "TOK_ID" },
+        { std::regex("[0-9]+\\.([0-9]+)?"), "FLOAT_LITERAL" },
+        { std::regex("[0-9]+"), "INT_LITERAL" },
+        { std::regex("[(]"), "OP" },
+        { std::regex("[)]"), "EP" },
+        { std::regex("[{]"), "OB" },
+        { std::regex("[}]"), "EB" },
+        { std::regex("=="), "DOUBLE_EQUALS" },
+        { std::regex("="), "EQUALS" },
+        { std::regex("[+]"), "TOK_PLUS" },
+        { std::regex("[-]"), "TOK_MINUS" },
+        { std::regex("[*]"), "TOK_MUL" },
+        { std::regex("[/]"), "TOK_DIV" },
+        { std::regex(";"), "SEMICOLON" },
+        { std::regex("::"), "DOUBLE_COLON" },
+        { std::regex(":"), "COLON" },
+        { std::regex(","), "COMA" },
+        { std::regex("\\.\\.\\."), "THREE_DOT" },
+        { std::regex("[ \t\n]+"), wall_e::lex::special::ignore }
     };
+    return res;
+}
+
+km2::compilation_result km2::compile(const backend::backend *b, std::istream &input, const flags &flags) {
+    return compile(b,
+            std::string(
+                (std::istreambuf_iterator<char>(input)),
+                (std::istreambuf_iterator<char>())
+                ),
+            flags
+            );
 }
 
 km2::compilation_result km2::compile(const backend::backend* b, const std::string &input, const km2::flags &flags) {
@@ -108,14 +121,15 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
     if(__flags.verbose)
         std::cout << ">>> INPUT TEXT <<<\n\n" << input << "\n\n>>> ----- ---- <<<\n";
 
-    const auto tokens = wall_e::lex::make_tokents(input, km2_lexlist);
+    const auto tokens = wall_e::lex::v2::make_tokents(input, km2_lexlist());
 
     if(__flags.verbose) {
         for(const auto& t : tokens)
             std::cout << t.position << " " << t.name << " " << t.text << "\n";
     }
 
-    const auto sorted_tokens = wall_e::lex::sort_tokens(tokens, input);
+    const auto sorted_tokens = tokens;
+    //const auto sorted_tokens = wall_e::lex::sort_tokens(tokens, input);
 
     if(__flags.verbose) {
         std::cout << std::endl;
@@ -123,7 +137,7 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
             std::cout << "sorted: " << t.position << " " << t.name << " " << t.text << "\n";
     }
 
-    std::list<wall_e::error> lex_errors;
+    wall_e::list<wall_e::error> lex_errors;
     for(const auto& st : sorted_tokens) {
         if(const auto& err = st.undef_error()) {
             if(__flags.verbose) {
@@ -139,7 +153,9 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
 
     wall_e::gram::pattern_list gram_list;
 
-    gram_list.push_back("namespace << TOK_NAMESPACE & (TOK_ID & OB | OB) & (EB | block)"_pattern
+    //TOK_EXP
+    //TOK_IMP
+    gram_list.push_back("namespace << (TOK_EXP | -) & TOK_NAMESPACE & (TOK_ID & OB | OB) & (EB | block)"_pattern
         << km2::namespace_node::create("TOK_ID"));
 
     gram_list.push_back("block << (namespace | stmt) & SEMICOLON & (EB | block)"_pattern
@@ -148,8 +164,11 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
     //gram_list.push_back("internal_block << (namespace | stmt) & SEMICOLON & (EB | internal_block)"_pattern
     //    << km2::internal_block_node::create);
 
-    gram_list.push_back("stmt << function_call | function_declaration | proto_declaration | const"_pattern
+    gram_list.push_back("stmt << import | function_call | function_declaration | proto_declaration | const"_pattern
         << km2::stmt_node::create);
+
+    gram_list.push_back("import << TOK_IMP & TOK_ID"_pattern
+        << km2::imp_node::create);
 
     gram_list.push_back("const << TOK_CONST & TOK_ID & EQUALS & arg"_pattern
         << km2::const_node::create);
@@ -168,7 +187,10 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
     gram_list.push_back("type << TOK_UNSIGNED | TOK_SIGNED | TOK_FLOAT | TOK_DOUBLE | TOK_STRING"_pattern
         << km2::type_node::create);
 
-    gram_list.push_back("function_call << TOK_ID & OP & (EP | arg_list)"_pattern
+    gram_list.push_back("namespace_appeal << TOK_ID & DOUBLE_COLON & (namespace_appeal | -)"_pattern
+                        );
+
+    gram_list.push_back("function_call << namespace_appeal & TOK_ID & OP & (EP | arg_list)"_pattern
         << km2::call_node::create);
 
     gram_list.push_back("arg_list << arg & (EP | (COMA & arg_list))"_pattern);
@@ -205,13 +227,20 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
 
     std::cout << "result: " << result << std::endl;
 
+
     if(const auto err = result.left()) {
         return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, {}, {}, {}, { err.value() });
     }
     const auto right = result.right().value();
 
+
     std::cout << "result type: " << right.type() << std::endl;
     std::cout << "result lineage: " << right.lineage() << std::endl;
+
+    std::cout << "--- TREE --- ---" << std::endl;
+    wall_e::print_tree(right, std::cout, wall_e::tree_print_format::Simple);
+    std::cout << "--- TREE END ---" << std::endl;
+
 
     if(__flags.verbose) {
         std::cout << "\n -------------- GRAM END --------------\n\n";
@@ -241,7 +270,6 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
             const auto unit = b->create_unit();
             if(const auto gen_result = node->generate_backend_value(unit)) {
                 backend::value* backend_value = gen_result.right_value();
-                unit->print_functions();
                 unit->print();
                 return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, unit, backend_value, {});
             } else {
@@ -269,10 +297,10 @@ const km2::ast_token_list &km2::compilation_result::ast_tokens() const {
     }
 }
 
-const std::map<wall_e::text_segment, std::string> &km2::compilation_result::hovers() const {
+const std::map<wall_e::text_segment, km2::markup_string> &km2::compilation_result::hovers() const {
     if(m_root_node) {
         if(!m_hovers.has_value()) {
-            std::map<wall_e::text_segment, std::string> result;
+            std::map<wall_e::text_segment, markup_string> result;
             for(const auto& token : ast_tokens()) {
                 result.insert({ token.segment, token.hover });
             }
@@ -280,7 +308,8 @@ const std::map<wall_e::text_segment, std::string> &km2::compilation_result::hove
         }
         return *m_hovers;
     } else {
-        static const std::map<wall_e::text_segment, std::string> result;
+        static const std::map<wall_e::text_segment, markup_string> result;
         return result;
     }
 }
+

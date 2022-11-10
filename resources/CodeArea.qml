@@ -3,43 +3,26 @@ import QtQuick.Controls 2.12
 
 
 Flickable {
-    id: root
-
-    function loadText(text) {
-        area.text = text;
-    }
+    id: localRoot
 
     function goToPosition(pos) {
         area.cursorPosition = pos
     }
 
     function textFragmentForError(err) {
-        const b = appCore.errBegin(err)
-        const e = appCore.errEnd(err)
-        return area.text.substring(b, e)        
+        return area.text.substring(err.begin, err.end)
     }
 
     function updatePresentation() {
         area.append("")
     }
 
-    property variant textDocument: area.textDocument
+    property alias textDocument: area.textDocument
+    property alias text: area.text
 
     flickableDirection: Flickable.VerticalFlick
 
-    readonly property string text: area.text
-
-    //Timer {
-    //    interval: 500
-    //    running: true
-    //    repeat: true
-    //    onTriggered: {
-    //        area.update()
-    //    }
-    //}
-
     TextArea.flickable: TextArea {
-        //textFormat: TextEdit.RichText
         id: area
         wrapMode: TextArea.Wrap
     }

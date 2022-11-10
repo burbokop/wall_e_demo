@@ -1,0 +1,7 @@
+exp namespace goga {
+	namespace aaaa {
+		pow = (a f64, b f64) f64;
+	};
+
+	aaaa::bbb::pow(2., 2.);
+}

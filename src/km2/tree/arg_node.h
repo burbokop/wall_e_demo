@@ -5,6 +5,8 @@
 
 #include <wall_e/src/gram.h>
 
+#include <src/km2/utility/markup_string.h>
+
 namespace km2 {
 
 class arg_node : public km2::abstract_value_node {
@@ -38,7 +40,7 @@ public:
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
 
     ast_token_type token_type() const;
-    std::string hover() const;
+    markup_string hover() const;
 
     // node interface
 public:

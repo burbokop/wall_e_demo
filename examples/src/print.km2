@@ -4,6 +4,7 @@ namespace goga {
     const my_cst = 'asas';
 
     pow = (a f64, b f64) f64;
+    const mc = pow(2., 2.);
 
     fn2 = (num f64) {};
 
@@ -12,4 +13,5 @@ namespace goga {
     };
 
     print(444.);
+    print(mc);
 }

@@ -41,14 +41,14 @@ JitExecutor::JitExecutor(QObject *parent) : QObject(parent) {
     });
 }
 
-Either JitExecutor::start(const std::shared_ptr<km2::backend::unit> &unit, km2::backend::function *entry) {
+Either JitExecutor::start(const std::shared_ptr<km2::backend::unit> &unit, km2::backend::function *entry, bool verbose) {
     if(!unit) return Either::newLeft("unit is null");
     if(!entry) return Either::newLeft("entry is null");
 
     if(sproc::capabilities::fork) {
         if(!executing()) {
-            process = sproc::non_blocking::fork([unit, entry, this](){
-                if(const auto result = unit->run_jit(entry)) {
+            process = sproc::non_blocking::fork([unit, entry, this, verbose](){
+                if(const auto result = unit->run_jit(entry, verbose)) {
                     return result.right_value();
                 } else {
                     return -1;
@@ -62,7 +62,7 @@ Either JitExecutor::start(const std::shared_ptr<km2::backend::unit> &unit, km2::
         return Either::newLeft("already executing");
     } else {
         emit message("warn: fork not available. running in current process (see output on native console)", Warn, true);
-        if(const auto& result = unit->run_jit(entry)) {
+        if(const auto& result = unit->run_jit(entry, verbose)) {
             emit message("finished with code: " + QString::number(result.right().value()), Trace, true);
         } else {
             emit message("finished with error: " + QString::fromStdString(result.left().value()), Err, true);

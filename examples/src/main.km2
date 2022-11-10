@@ -1,0 +1,26 @@
+namespace goga {
+
+    	imp module;
+
+	namespace aaaa {
+		pow = (a f64, b f64) f64;
+
+	};
+
+	aaaa::pow(2., 2.)
+
+    	//module::goga::print_hello();
+	printf = (format string, args ...) u32;
+	const my_cst = 'asas';
+	pow = (a f64, b f64) f64;
+    	const mc = pow(2., 2.);
+
+    	fn2 = (num f64) {};
+
+   	print = (num f64) {
+        		printf('gogadoda: %f\n', pow(num, 2.));
+    	};
+
+    	print(444.);
+    	print(mc);
+}

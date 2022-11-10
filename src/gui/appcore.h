@@ -8,9 +8,8 @@
 #include "klibcore/kmacro.h"
 #include "backendfactory.h"
 #include "either.h"
-#include "highlighter.h"
+#include "compiler.h"
 #include "jitexecutor.h"
-#include <QQuickTextDocument>
 #include <thread>
 #include <future>
 #include <QFuture>
@@ -23,62 +22,71 @@ extern "C" {
 int my_test_func();
 }
 
-
-
+class ProjFile : public QObject {
+    Q_OBJECT
+    K_CONST_PROPERTY(QString, fullPath, {})
+    K_CONST_PROPERTY(QString, relativePath, {})
+public:
+    ProjFile(
+            const QString& fullPath = {},
+            const QString& relativePath = {},
+            QObject* parent = nullptr
+            )
+    : QObject(parent),
+      m_fullPath(fullPath),
+      m_relativePath(relativePath) {}
+};
 
 class AppCore : public QObject {
     Q_OBJECT
     K_QML_TYPE(AppCore)
-    K_READONLY_PROPERTY(QString, tokens, tokens, setTokens, tokensChanged, QString())
-    K_READONLY_PROPERTY(QString, astTokens, astTokens, setAstTokens, astTokensChanged, QString())
-    K_READONLY_PROPERTY(QString, gramatic, gramatic, setGramatic, gramaticChanged, QString())
-    K_READONLY_PROPERTY(QString, asmCode, asmCode, setAsmCode, asmCodeChanged, QString())
-    K_READONLY_PROPERTY(wall_e::variant, tree, tree, setTree, treeChanged, wall_e::variant())
+    QList<ProjFile*> m_projectFiles;
+    Q_PROPERTY(QQmlListProperty<ProjFile> projectFiles READ projectFiles NOTIFY projectFilesChanged)
+
     K_META_TYPE(wall_e::error)
+    K_AUTO_PROPERTY(UnitSharedPtr, unit, unit, setUnit, unitChanged, UnitSharedPtr())
+    K_AUTO_PROPERTY(BackendValuePtr, entry, entry, setEntry, entryChanged, BackendValuePtr())
+
+    static QList<ProjFile*> scanProjFiles(QObject* parent);
 
     //std::thread *m_compileThread = nullptr;
 
-
-    QFutureWatcher<km2::compilation_result> m_currentFutureWatcher;
-    QFuture<km2::compilation_result> m_currentFuture;
-
-    Highlighter *higlighter = nullptr;
-    K_READONLY_PROPERTY(QList<wall_e::error>, errors, errors, setErrors, errorsChanged, QList<wall_e::error>());
 public:
     enum Mode { ModeTokens, ModeGramatic, ModeTree, ModeAsm, ModeExec };
 private:
     K_CONST_PROPERTY(JitExecutor*, executor, new JitExecutor(this));
     K_CONST_PROPERTY(BackendFactory*, backendFactory, new BackendFactory(this));
-    wall_e::opt<km2::compilation_result> prevResult;
     Q_ENUM(Mode)
     K_AUTO_PROPERTY(Mode, mode, mode, setMode, modeChanged, ModeTree)
-    K_AUTO_PROPERTY(QQuickTextDocument*, codeDocument, codeDocument, setCodeDocument, codeDocumentChanged, nullptr)
 
-    K_SAVED_PROPERTY(QString, code, code, setCode, codeChanged, QString())
-    K_AUTO_PROPERTY(bool, onlyTree, onlyTree, setOnlyTree, onlyTreeChanged, false)
+    K_AUTO_PROPERTY(ProjFile*, openedProjFile, openedProjFile, setOpenedProjFile, openedProjFileChanged, nullptr)
+    K_AUTO_PROPERTY(bool, codeEdited, codeEdited, setCodeEdited, codeEditedChanged, false)
     K_AUTO_PROPERTY(bool, verbose, verbose, setVerbose, verboseChanged, false)
 
-    bool m_firstCompilation = true;
-    void recompile();
+    QFile *m_currentFile = nullptr;
 
 
-private slots:
-    void completeCompilation(const km2::compilation_result&cresult);
 
 public:
     explicit AppCore(QObject *parent = nullptr);
+    ~AppCore();
+
+    QQmlListProperty<ProjFile> projectFiles() {
+        return QQmlListProperty<ProjFile>(this, &m_projectFiles);
+    }
 
 public slots:
-    QString makeExecutable(const QString& path);
+    CompilationError makeExecutable(const QString& path);
 
     Either startExecuting();
-    QString errToString(const wall_e::error& err) const;
-    int errBegin(const wall_e::error& err) const;
-    int errEnd(const wall_e::error& err) const;
+
+    void loadFile(ProjFile *f, const QString& codeToWrite);
+    void writeToCurrentFile(const QString& codeToWrite);
+    QString readFromCurrentFile();
 
 signals:
-    void compilationCompleated();
-    void presentationCompleated();
+    void projectFilesChanged();
+    void codeLoaded(const QString&);
 };
 
 

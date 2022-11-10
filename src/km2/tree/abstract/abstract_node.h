@@ -19,7 +19,7 @@ struct abstract_node {
     typedef std::function<wall_e::gram::argument(const wall_e::gram::arg_vector &, const wall_e::index&)> factory;
     typedef std::vector<std::shared_ptr<abstract_node>> children_t;
 
-    static constexpr bool debug = false;
+    static constexpr bool debug = true;
 
 private:
 

@@ -346,6 +346,9 @@ class KAutoPropertySaver {
     QString m_id;
 public:
     KAutoPropertySaver(T *pointer, std::function<void(T)> setter, QString id) {
+#ifdef _WIN32
+        id.replace("*", "_");
+#endif
         m_pointer = pointer;
         m_id = id;
         QFile file(id);
@@ -355,6 +358,8 @@ public:
             T tmp;
             stream >> tmp;
             setter(tmp);
+        } else {
+            qWarning() << "Can not load property" << id << ":" << file.errorString();
         }
     }
 
@@ -383,6 +388,8 @@ public:
                 stream << *m_pointer;
             }
             file.write(KSavedProperty::encoder()(ba));
+        } else {
+            qWarning() << "Can not save property" << m_id << ":" << file.errorString();
         }
     }
 };

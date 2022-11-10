@@ -5,9 +5,9 @@
 
 #include <src/km2/backend/unit/unit.h>
 #include "arg_node.h"
+#include <src/km2/backend/entities/value.h>
 
-km2::const_node::const_node(
-        const wall_e::index& index,
+km2::const_node::const_node(const wall_e::index& index, const std::string &keyword_text, const wall_e::text_segment &keyword_segment,
         const std::string &id,
         const wall_e::text_segment &id_segment,
         const std::shared_ptr<arg_node> &value
@@ -20,15 +20,18 @@ km2::const_node::const_node(
 wall_e::gram::argument km2::const_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
     if(debug) std::cout << "km2::const_node::create: " << args << std::endl;
     if(args.size() > 3) {
-        if(const auto id = args[1].option<wall_e::lex::token>()) {
-            if(const auto value = args[3].option_cast<std::shared_ptr<arg_node>>()) {
-                return std::make_shared<const_node>(index, id->text, id->segment(), *value);
-            } else {
-                return std::make_shared<const_node>(index, id->text, id->segment());
+        if(const auto& keyword_token = args[0].option<wall_e::lex::token>()) {
+            if(const auto id = args[1].option<wall_e::lex::token>()) {
+                if(const auto value = args[3].option_cast<std::shared_ptr<arg_node>>()) {
+                    return std::make_shared<const_node>(index, keyword_token->text, keyword_token->segment(), id->text, id->segment(), *value);
+                } else {
+                    return std::make_shared<const_node>(index, keyword_token->text, keyword_token->segment(), id->text, id->segment());
+                }
             }
+            return std::make_shared<const_node>(index, keyword_token->text, keyword_token->segment(), std::string(), wall_e::text_segment());
         }
     }
-    return std::make_shared<const_node>(index, std::string(), wall_e::text_segment());
+    return std::make_shared<const_node>(index, std::string(), wall_e::text_segment(), std::string(), wall_e::text_segment());
 }
 
 void km2::const_node::print(size_t level, std::ostream &stream) const {
@@ -47,6 +50,7 @@ wall_e::list<wall_e::error> km2::const_node::errors() const {
 
 wall_e::either<wall_e::error, km2::backend::value*> km2::const_node::generate_backend_value(const std::shared_ptr<backend::unit> &unit) {
     if(const auto value = m_value->generate_backend_value(unit)) {
+        std::cout << "const node id: " << m_id << " -> " << value << std::endl;
         const auto status = unit->set_arg(m_id, value.right_value());
         if(status == backend::unit::ArgSettingSuccess) {
             return value.right();
@@ -67,11 +71,20 @@ void km2::const_node::short_print(std::ostream &stream) const {
 }
 
 wall_e::list<km2::ast_token> km2::const_node::tokens() const {
+    using namespace km2::literals;
+    const auto hover = "**constant** "_md + m_id;
     return wall_e::list<km2::ast_token> {
+        ast_token {
+            .type = AstKeyword,
+            .node_type = wall_e::type_name<const_node>(),
+            .hover = hover,
+            .text = m_keyword_text,
+            .segment = m_keyword_segment
+        },
         ast_token {
             .type = AstVariable,
             .node_type = wall_e::type_name<const_node>(),
-            .hover = "<b>constant</b> " + m_id,
+            .hover = hover,
             .text = m_id,
             .segment = m_id_segment
         }

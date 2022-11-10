@@ -44,6 +44,7 @@ public:
           m_native_function_provider(native_function_provider) {}
 
     std::shared_ptr<dyn_function> dyn() const;
+    const wall_e::list<block*>& downcasted_blocks() const { return m_blocks; };
 
     inline static std::unique_ptr<function> make_uniq(
             const std::string& name,

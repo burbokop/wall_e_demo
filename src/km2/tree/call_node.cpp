@@ -11,7 +11,7 @@
 
 km2::call_node::call_node(const wall_e::index &index,
         const std::string &name,
-        const std::vector<std::shared_ptr<km2::abstract_value_node>>& args,
+        const wall_e::vec<std::shared_ptr<abstract_value_node> > &args,
         const wall_e::text_segment& name_segment
         ) : km2::abstract_value_node(index, cast_to_children(args)) {
     m_name = name;
@@ -20,29 +20,42 @@ km2::call_node::call_node(const wall_e::index &index,
 }
 
 wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
-    if(debug) std::cout << "km2::call_node::create" << std::endl;
-    if(args.size() > 2) {
-        const auto function_name_token = args[0].value<wall_e::lex::token>();
-        const auto function_name_end_token = args[1].value<wall_e::lex::token>();
-        const auto constrained_args = args[2].constrain();
-        const auto function_args = wall_e::remove_tokens(constrained_args, { "EP" });
+    if(debug) std::cout << "km2::call_node::create: " << args << std::endl;
+    if(args.size() > 3) {
+        const auto namespaces = args[0].constrain();
+        const auto function_name_token = args[1].option<wall_e::lex::token>();
+        const auto function_name_end_token = args[2].option<wall_e::lex::token>();
+        if(function_name_token && function_name_end_token) {
+            const auto constrained_args = args[3].constrain();
+            const auto function_args = wall_e::remove_tokens(constrained_args, { "EP" });
 
-        std::vector<std::shared_ptr<abstract_value_node>> funcArgs;
-        funcArgs.reserve(function_args.size());
-        for(const auto& arg : function_args) {
-            if (arg.value_or<wall_e::lex::token>().name != "COMA") {
-                funcArgs.push_back(arg.cast_or<std::shared_ptr<abstract_value_node>>());
+            wall_e::str_list namespace_stack;
+            for(const auto& n : namespaces) {
+                if(const auto& nt = n.option<wall_e::lex::token>()) {
+                    if(nt->name == "TOK_ID") {
+                        namespace_stack.push_back(nt->text);
+                    }
+                }
             }
-        }
+            std::cout << "namespace_stack: " << namespace_stack << std::endl;
 
-        return std::make_shared<call_node>(
-                    index,
-                    function_name_token.text,
-                    funcArgs,
-                    function_name_token.segment()
-                    );
+            wall_e::vec<std::shared_ptr<abstract_value_node>> funcArgs;
+            funcArgs.reserve(function_args.size());
+            for(const auto& arg : function_args) {
+                if (arg.value_or<wall_e::lex::token>().name != "COMA") {
+                    funcArgs.push_back(arg.cast_or<std::shared_ptr<abstract_value_node>>());
+                }
+            }
+
+            return std::make_shared<call_node>(
+                        index,
+                        function_name_token->text,
+                        funcArgs,
+                        function_name_token->segment()
+                        );
+        }
     }
-    return nullptr;
+    return std::make_shared<call_node>(index, std::string(), wall_e::vec<std::shared_ptr<km2::abstract_value_node>>(), wall_e::text_segment());
 }
 
 
@@ -139,11 +152,12 @@ void km2::call_node::short_print(std::ostream &stream) const {
 }
 
 km2::ast_token_list km2::call_node::tokens() const {
+    using namespace km2::literals;
     return ast_token_list {
         ast_token {
             .type = AstFunction,
             .node_type = wall_e::type_name<call_node>(),
-            .hover = "<b>function</b> " + m_name,
+            .hover = "**function** "_md + m_name,
             .text = m_name,
             .segment = m_name_segment
         },

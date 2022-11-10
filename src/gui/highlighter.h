@@ -4,7 +4,8 @@
 #include <QSyntaxHighlighter>
 #include <QTextCharFormat>
 #include <QRegularExpression>
-#include <src/km2/km2.h>
+
+#include "compiler.h"
 #include "klibcore/kmacro.h"
 
 QT_BEGIN_NAMESPACE
@@ -14,7 +15,7 @@ QT_END_NAMESPACE
 //! [0]
 class Highlighter : public QSyntaxHighlighter {
     Q_OBJECT
-    K_AUTO_PROPERTY(QList<wall_e::error>, errors, errors, setErrors, errorsChanged, QList<wall_e::error>());
+    K_AUTO_PROPERTY(QList<CompilationError>, errors, errors, setErrors, errorsChanged, QList<CompilationError>());
 public:
     Highlighter(QTextDocument *parent = 0);
 
@@ -43,8 +44,6 @@ private:
     QTextCharFormat quotationFormat;
     QTextCharFormat functionFormat;
 
-signals:
-    void highlightingCompleated();
 };
 //! [0]
 

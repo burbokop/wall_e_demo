@@ -44,11 +44,12 @@ void km2::asm_node::short_print(std::ostream &stream) const {
 }
 
 wall_e::list<km2::ast_token> km2::asm_node::tokens() const {
+    using namespace km2::literals;
     return {
         ast_token {
             .type = AstKeyword,
             .node_type = wall_e::type_name<asm_node>(),
-            .hover = "<b>assembly code</b> ( not implemented )",
+            .hover = "**assembly code** ( not implemented )"_md,
             .text = m_text,
             .segment = this->segment()
         }

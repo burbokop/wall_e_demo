@@ -21,11 +21,11 @@ void km2::interpreter_backend::instruction::index::force_eval_offset(execution_c
 }
 
 void km2::interpreter_backend::instruction::index::eval_offset(execution_ctx *ctx) {
-    if(offset == null_offset) force_eval_offset(ctx);
+    if(offset == null_size_t_ptr) force_eval_offset(ctx);
 }
 
 km2::interpreter_backend::instruction::index km2::interpreter_backend::instruction::index::next(execution_ctx *ctx) const {
-    if(offset != null_offset) {
+    if(offset != null_size_t_ptr) {
         index i { .offset = offset + 1, .ptr = nullptr };
         i.eval_ptr(ctx);
         return i;
@@ -36,16 +36,3 @@ km2::interpreter_backend::instruction::index km2::interpreter_backend::instructi
     }
 }
 
-const wall_e::variant &km2::interpreter_backend::dyn_value::value(execution_ctx *ctx) const {
-    if(m_stack_ptr != std::numeric_limits<std::size_t>::max()) {
-        if(const auto& sf = ctx->call_stack_top()) {
-            if(m_stack_ptr < sf->values.size()) {
-                return sf->values[m_stack_ptr]->value(ctx);
-            }
-        }
-        static const wall_e::variant r;
-        return r;
-    } else {
-        return m_value;
-    }
-}

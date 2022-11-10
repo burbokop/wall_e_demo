@@ -18,6 +18,7 @@
 #include "../instructions/execution_ctx.h"
 #include <math.h>
 #include "../instructions/call_instruction.h"
+#include "../instructions/dyn_value.h"
 
 namespace km2 {
 namespace interpreter_backend {
@@ -56,10 +57,13 @@ dyn_function::native_func __plug_native_function_provider::native_func(const std
             "pow",
             [](execution_ctx* ctx, const wall_e::vec<dyn_value::ptr>& args) -> dyn_value::ptr {
                 assert(args.size() == 2);
-                return dyn_value::from_variant(std::pow(
-                    args[0]->value(ctx).value<double>(),
-                    args[1]->value(ctx).value<double>()
-                ));
+                const auto& a = args[0]->value(ctx).option<double>();
+                const auto& b = args[1]->value(ctx).option<double>();
+                if(a && b) {
+                    return dyn_value::from_variant(std::pow(*a, *b));
+                } else {
+                    return 0;
+                }
             }
         }
     };
@@ -84,8 +88,8 @@ km2::interpreter_backend::unit::unit(const backend::backend *b) : backend::unit(
 //}
 
 km2::backend::unit::ArgSettingStatus km2::interpreter_backend::unit::set_arg(const std::string &name, backend::value *value) {
-    if(m_stack.size() > 0) {
-        auto& args = m_stack.top().args;
+    if(!m_stack.empty()) {
+        auto& args = m_stack.top_args();
         const auto it = args.find(name);
         if (it == args.end()) {
             args[name] = value;
@@ -97,7 +101,7 @@ km2::backend::unit::ArgSettingStatus km2::interpreter_backend::unit::set_arg(con
 }
 
 km2::backend::value *km2::interpreter_backend::unit::arg(const std::string &name) const {
-    if(m_stack.size() > 0) {
+    if(!m_stack.empty()) {
         const auto& args = m_stack.top().args;
         const auto it = args.find(name);
         if (it != args.end()) {
@@ -106,28 +110,15 @@ km2::backend::value *km2::interpreter_backend::unit::arg(const std::string &name
     }
     return nullptr;
 }
-/*
-begin_block in km2_main_block : { name: km2_main_block, instructions: [] }
-    begin_block in fn2_block : { name: fn2_block, instructions: [] }
-        create_void_return in fn2_block
-    end_block: { name: fn2_block, instructions: [ 0x1a78f0c76a0 ] }
-    begin_block in print_block : { name: print_block, instructions: [] }
-        create_call in print_block: pow [ km2::interpreter_backend::argument { type: 0x1a78f0c7020, dyn: stack_ptr(0) }, km2::interpreter_backend::constant { type: 0x1a78f039d20, dyn: 0x1a78f0397e0 } ]
-        create_call in print_block: printf [ km2::interpreter_backend::constant { type: 0x1a78f039dc0, dyn: 0x1a78f0396b0 }, km2::interpreter_backend::constant { type: 0x1a78f0c7600, dyn: 0x1a78f0bf040 } ]
-        create_void_return in print_block
-    end_block: { name: print_block, instructions: [ 0x1a78f08b9b0, 0x1a78f08b370, 0x1a78f03a000 ] }
 
-    create_call in print_block: print [ km2::interpreter_backend::constant { type: 0x1a78f039fa0, dyn: 0x1a78f04e030 } ]
-    create_return in print_block
-end_block: { name: km2_main_block, instructions: [] }
-*/
+
 km2::backend::block *km2::interpreter_backend::unit::begin_block(
         const std::string &name,
         backend::function *func,
         const wall_e::str_vec &arg_names
         ) {
 
-    auto entry_block = born_block(m_ctx.get(), name, func->as<function>());
+    auto entry_block = born_block(m_ctx.get(), name, func->as<function>(), m_stack.offset() + 1 /** ret */);
     std::cout << "begin_block in " << name << " : " << entry_block << std::endl;
 
     std::map<std::string, backend::value*> args_map;
@@ -147,26 +138,18 @@ km2::backend::block *km2::interpreter_backend::unit::begin_block(
     }
 
     if(entry_block) {
-        m_stack.push(ctx { .block = entry_block, .args = args_map, .offset = args_map.size() });
-        setup_insert_point();
+        m_stack.push_frame(entry_block, args_map);
         return entry_block;
     }
     return nullptr;
 }
 
 void km2::interpreter_backend::unit::end_block() {
-    if(m_stack.size() > 0) {
+    if(!m_stack.empty()) {
         std::cout << "end_block: " << m_stack.top().block << std::endl;
-        m_stack.pop();
+        m_stack.pop_frame();
     } else {
         std::cout << "end_block: warning: empty stack" << std::endl;
-    }
-    setup_insert_point();
-}
-
-void km2::interpreter_backend::unit::setup_insert_point() {
-    if(m_stack.size() > 0) {
-        m_insert_point = m_stack.top().block;
     }
 }
 
@@ -317,51 +300,45 @@ km2::backend::function *km2::interpreter_backend::unit::proto(const std::string&
 }
 
 void km2::interpreter_backend::unit::create_void_return() {
-    if(m_insert_point) {
-        std::cout << "create_void_return in " << m_insert_point->name() << std::endl;
-    } else {
-        std::cout << "create_void_return in null" << std::endl;
-    }
-
-    if(m_insert_point) {
-        m_insert_point->append_instruction(new ret_instruction(m_ctx.get()));
+    if(!m_stack.empty()) {
+        m_stack.top().block->append_instruction(new ret_instruction(
+                                                    m_ctx.get(),
+                                                    m_stack.top().offset - 1
+                                                    ));
     }
 }
 
 void km2::interpreter_backend::unit::create_return(km2::backend::value *val) {
-    if(m_insert_point) {
-        std::cout << "create_return in " << m_insert_point->name() << std::endl;
-    } else {
-        std::cout << "create_return in null" << std::endl;
-    }
-
-    if(m_insert_point) {
-        m_insert_point->append_instruction(new ret_instruction(m_ctx.get()));
+    if(!m_stack.empty()) {
+        m_stack.top().block->append_instruction(new ret_instruction(
+                                                    m_ctx.get(),
+                                                    m_stack.top().offset - 1
+                                                    ));
     }
 }
 
 km2::backend::value *km2::interpreter_backend::unit::create_call(backend::function *func, const wall_e::vec<backend::value*> &args) {
-    if(m_insert_point) {
-        std::cout << "create_call in " << m_insert_point->name() << ": " << func->name() << " " << args << std::endl;
-    } else {
-        std::cout << "create_call in null" << std::endl;
-    }
-
-    if(m_insert_point) {
+    if(!m_stack.empty()) {
         if(const auto& dyn = func->as<function>()->dyn()) {
-            m_insert_point->append_instruction(new call_instruction(
+            m_stack.top().block->append_instruction(new call_instruction(
                                                    m_ctx.get(),
                                                    dyn,
                                                    args
                                                         .map<value*>(value::downcast)
-                                                        .map<dyn_value::ptr>(&value::dyn)
+                                                        .map<dyn_value::ptr>(&value::dyn),
+                                                        func->name(),
+                                                        m_stack.offset()
                                                    ));
-            return born_constant(
+            const auto& res = born_constant(
                         func->return_type()->as<type>(),
                         !m_stack.empty()
-                        ? dyn_value::from_stack_ptr(m_stack.top().offset++)
+                        ? dyn_value::from_stack_ptr(m_stack.offset())
                         : dyn_value::ptr()
                           );
+            if(!func->return_type()->eq(cap<km2::backend::type_capability>()->void_type())) {
+                m_stack.push();
+            }
+            return res;
         } else {
             std::cerr << "err: dyn function not ready yet (func: " << func->name() << ")" << std::endl;
         }
@@ -414,9 +391,6 @@ void km2::interpreter_backend::unit::print() {
 
     link();
     m_ctx->print(std::cout);
-
-
-    //llvm::outs() << llvm::raw_ostream::CYAN << "\nMODULE:\n" << llvm::raw_ostream::YELLOW << *m_p->module.get() << llvm::raw_ostream::RESET;
 }
 
 void km2::interpreter_backend::unit::print_functions() {
@@ -438,12 +412,12 @@ std::string km2::interpreter_backend::unit::llvm_assembly() const {
     return result;
 }
 
-wall_e::either<std::string, int> km2::interpreter_backend::unit::run_jit(backend::function *entry_point) {
+wall_e::either<std::string, int> km2::interpreter_backend::unit::run_jit(backend::function *entry_point, bool verbose) {
     if(entry_point) {
 
 
         link();
-        //m_ctx->set_verbose(true);
+        m_ctx->set_verbose(verbose);
         if(m_ctx->verbose()) {
             entry_point->print(std::cout << "running jit. entry: ") << std::endl;
         }
@@ -542,9 +516,10 @@ wall_e::either<std::string, int> km2::interpreter_backend::unit::make_executable
 km2::interpreter_backend::block* km2::interpreter_backend::unit::born_block(
         execution_ctx* ctx,
         const std::string& name,
-        function* f
+        function* f,
+        std::size_t stack_offset
         ) {
-    return m_blocks.make(ctx, name, f);
+    return m_blocks.make(ctx, name, f, stack_offset);
 }
 
 km2::interpreter_backend::function* km2::interpreter_backend::unit::born_function(

@@ -19,6 +19,12 @@
     #include <wall_e/utility/collections.h>
 #endif
 
+#if __has_include(<src/km2/utility/markup_string.h>)
+    #include <src/km2/utility/markup_string.h>
+#else
+    #include <km2/utility/markup_string.h>
+#endif
+
 namespace km2 {
 
 wall_e_enum(ast_token_type,
@@ -50,7 +56,7 @@ wall_e_enum(ast_token_type,
 struct ast_token {
     ast_token_type type;
     std::string node_type;
-    std::string hover;
+    markup_string hover;
     std::string text;
     wall_e::text_segment segment;
 

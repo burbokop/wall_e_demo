@@ -7,6 +7,8 @@
 
 #include "../backend/entities/value.h"
 #include "wall_e/src/macro.h"
+#include "wall_e/src/color.h"
+
 
 std::string km2::arg_node::type_string(const type &t) {
     switch (t) {
@@ -68,14 +70,15 @@ km2::ast_token_type km2::arg_node::token_type() const {
     return wall_e::enums::max_value<ast_token_type>();
 }
 
-std::string km2::arg_node::hover() const {
+km2::markup_string km2::arg_node::hover() const {
+    using namespace km2::literals;
     switch (m_type) {
-    case Id: return "<b>veriable</b> " + m_text;
-    case IntLiteral: return "<b>integer</b> " + m_text;
-    case FloatLiteral: return "<b>float</b> " + m_text;
-    case StringLiteral: return "<b>string</b> '" + wall_e::lex::encode_special_syms(m_text) + "'";
-    case ValueNode: return "";
-    case Undefined: return "";
+    case Id: return "**veriable** "_md + m_text;
+    case IntLiteral: return "**integer** "_md + m_text;
+    case FloatLiteral: return "**float** "_md + m_text;
+    case StringLiteral: return "**string** '"_md + wall_e::lex::encode_special_syms(m_text) + "'";
+    case ValueNode: return markup_string();
+    case Undefined: return markup_string();
     }
     return {};
 }

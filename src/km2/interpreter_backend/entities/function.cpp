@@ -23,7 +23,7 @@ std::shared_ptr<km2::interpreter_backend::dyn_function> km2::interpreter_backend
         if(const auto& b = m_blocks.front_opt()) {
             if(const auto& i = (*b)->instructions().front_opt()) {
                 m_dyn = std::make_shared<dyn_function>(instruction::index {
-                    .offset = instruction::index::null_offset,
+                    .offset = null_size_t_ptr,
                     .ptr = *i
                 });
             }

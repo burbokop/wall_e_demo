@@ -33,6 +33,10 @@ public:
     // type interface
 public:
     virtual bool eq(const km2::backend::type *other) const override;
+
+    // printable interface
+public:
+    virtual std::ostream &print(std::ostream &) const override;
 };
 
 }

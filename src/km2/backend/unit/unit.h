@@ -96,7 +96,7 @@ public:
     virtual void print_functions() = 0;
     virtual std::string llvm_assembly() const = 0;
     virtual wall_e::either<std::string, int> compile(const std::string &output_path) = 0;
-    virtual wall_e::either<std::string, int> run_jit(function* entry_point) = 0;
+    virtual wall_e::either<std::string, int> run_jit(function* entry_point, bool verbose = false) = 0;
 
     /**
      * @brief make_executable

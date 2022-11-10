@@ -59,6 +59,7 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/ast_token.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/math_patterns.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/function.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/markup_string.cpp
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/lsp/service.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/lsp/tables.service.cpp
@@ -78,6 +79,7 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/type_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/decl_arg_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/const_node.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/imp_node.cpp
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/backend.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/unit/unit.cpp
@@ -102,6 +104,7 @@ set(KM2_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/ast_token.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/math_patterns.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/function.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/markup_string.h
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/lsp/service.h
 
@@ -120,6 +123,7 @@ set(KM2_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/type_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/decl_arg_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/const_node.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/imp_node.h
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/backend.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/as.h
@@ -187,6 +191,7 @@ set(KM2_INTERPRETER_BACKEND_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/math_instructions.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/call_instruction.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/execution_ctx.cpp    
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/dyn_value.cpp
 )
 
 set(KM2_INTERPRETER_BACKEND_HEADERS
@@ -207,6 +212,8 @@ set(KM2_INTERPRETER_BACKEND_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/math_instructions.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/call_instruction.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/execution_ctx.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/dyn_value.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/interpreter_backend/instructions/size_t_ptr.h
 )
 
 if(CLANG_ENABLED)
@@ -241,6 +248,15 @@ if(CLANG_ENABLED)
     )
 endif()
 
+
+set(KM2C_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2c/main.cpp
+)
+set(KM2C_HEADERS
+
+)
+
+
 set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/to_pdf.cpp
@@ -255,6 +271,8 @@ set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/highlighter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/jitexecutor.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/backendfactory.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/compiler.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentor.cpp
 )
 set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/to_pdf.h
@@ -270,6 +288,8 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/highlighter.h
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/jitexecutor.h
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/backendfactory.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/compiler.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentor.h
     )
 
 if(LINK_ALL_STATIC)
@@ -280,6 +300,11 @@ endif()
 
 set_property(TARGET km2 PROPERTY AUTOMOC OFF)
 set_property(TARGET km2 PROPERTY AUTOUIC OFF)
+
+add_executable(km2c
+    ${KM2C_SOURCES}
+    ${KM2C_HEADERS}
+)
 
 add_executable(km2ide
     ${SOURCES}
@@ -409,6 +434,12 @@ target_link_libraries(km2_interpreter_backend
     km2
 )
 
+target_link_libraries(km2c
+    wall_e
+    km2
+    km2_interpreter_backend
+)
+
 target_link_libraries(km2ide
     PRIVATE
     sproc
@@ -429,6 +460,13 @@ endif()
 include(tests/km2_tests.cmake)
 
 install(TARGETS km2 DESTINATION lib)
+install(TARGETS km2c DESTINATION bin)
+
+install(DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/installfiles/Modules"
+        DESTINATION lib/cmake
+)
+
+
 
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/km2"
         DESTINATION include

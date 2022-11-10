@@ -12,7 +12,7 @@ public:
 
     // instruction interface
 public:
-    virtual exec_result exec(const wall_e::vec<dyn_value::ptr>&) override;
+    virtual exec_result exec(const wall_e::vec<std::shared_ptr<dyn_value>>&) override;
 };
 
 }

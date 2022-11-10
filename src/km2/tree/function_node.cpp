@@ -129,11 +129,12 @@ void km2::function_node::short_print(std::ostream &stream) const {
 }
 
 km2::ast_token_list km2::function_node::tokens() const {
+    using namespace km2::literals;
     return ast_token_list {
         km2::ast_token {
             .type = AstFunction,
             .node_type = wall_e::type_name<function_node>(),
-            .hover = "<b>function</b> " + m_name,
+            .hover = "**function** "_md + m_name,
             .text = m_name,
             .segment = m_name_segment
         },

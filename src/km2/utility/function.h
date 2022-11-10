@@ -8,7 +8,7 @@
 #include "wall_e/src/lex.h"
 
 
-namespace wall_e {
+namespace km2 {
 
 class function {
     static std::string produce_name(const std::string &name, const std::vector<std::string> &typenames);
@@ -28,7 +28,6 @@ public:
 };
 
 std::ostream &operator<<(std::ostream &stream, const function &function);
-
 bool operator==(const function &function0, const function &function1);
 
 }

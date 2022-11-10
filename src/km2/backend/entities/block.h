@@ -8,11 +8,14 @@
 namespace km2 {
 namespace backend {
 
+class function;
+
 class block : public printable {
     km2_backend_decl_as
 public:
     block() {}
     virtual std::string name() const = 0;
+    virtual function* func() const = 0;
 };
 
 }

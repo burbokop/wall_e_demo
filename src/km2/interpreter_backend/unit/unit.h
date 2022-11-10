@@ -24,6 +24,41 @@ class argument;
 class native_function_provider;
 class dyn_value;
 
+class call_stack {
+    std::size_t m_offset = 0;
+    struct frame {
+        typedef std::map<std::string, km2::backend::value*> arguments;
+        interpreter_backend::block* block;
+        arguments args;
+        std::size_t offset;
+    };
+    std::stack<frame> m_stack;
+public:
+    call_stack() {}
+    bool empty() const { return m_stack.empty(); }
+    const frame& top() const { return m_stack.top(); }
+    frame::arguments& top_args() { return m_stack.top().args; }
+    void push_frame(
+            interpreter_backend::block* block,
+            const std::map<std::string, km2::backend::value*>& args
+            ) {
+        const auto delta = args.size() + 1;
+        m_stack.push(frame { .block = block, .args = args, .offset = delta });
+        m_offset += delta;
+    }
+    void pop_frame() {
+        m_offset -= m_stack.top().offset;
+        m_stack.pop();
+    }
+    std::size_t offset() const { return m_offset; }
+
+    void push(std::size_t n = 1) {
+        m_stack.top().offset += n;
+        m_offset += n;
+    }
+
+};
+
 class unit : public km2::backend::unit {
     wall_e::box_list<block> m_blocks;
     wall_e::box_list<function> m_functions;
@@ -31,16 +66,14 @@ class unit : public km2::backend::unit {
 
     std::shared_ptr<execution_ctx> m_ctx;
 
-    struct ctx {
-        interpreter_backend::block* block;
-        std::map<std::string, km2::backend::value*> args;
-        std::size_t offset = 0;
-    };
-    std::stack<ctx> m_stack;
+    call_stack m_stack;
 
-    interpreter_backend::block* m_insert_point = nullptr;
-
-    block* born_block(execution_ctx* ctx, const std::string& name, function* f);
+    block* born_block(
+            execution_ctx* ctx,
+            const std::string& name,
+            function* f,
+            std::size_t stack_offset
+            );
     function* born_function(
             const std::string& name,
             type* return_type,
@@ -61,7 +94,6 @@ public:
     virtual km2::backend::block *begin_block(const std::string& name, km2::backend::function *func, const wall_e::str_vec& arg_names) override;
 
     virtual void end_block() override;
-    void setup_insert_point() /** should not be virtual in case of error with 'fn2' */;
     virtual km2::backend::function* begin_entry(const std::string& name) override;
 
     /**
@@ -92,7 +124,7 @@ public:
     virtual void print_functions() override;
     virtual std::string llvm_assembly() const override;
     virtual wall_e::either<std::string, int> compile(const std::string &output_path) override;
-    virtual wall_e::either<std::string, int> run_jit(km2::backend::function* entry_point) override;
+    virtual wall_e::either<std::string, int> run_jit(km2::backend::function* entry_point, bool verbose = false) override;
 
     /**
      * @brief make_executable
