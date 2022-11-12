@@ -268,11 +268,13 @@ set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/klibcore/kdelegatechooser.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/klibcore/klibinfo.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/asmexecutor.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/gui/highlighter.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentation/highlighter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/jitexecutor.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/backendfactory.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/compiler.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentor.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentation/presentor.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentation/theme.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentation/lspservice.cpp
 )
 set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/to_pdf.h
@@ -285,11 +287,13 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/klibcore/kmacro.h
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/klibcore/klibinfo.h
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/asmexecutor.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/gui/highlighter.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentation/highlighter.h
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/jitexecutor.h
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/backendfactory.h
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/compiler.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentor.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentation/presentor.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentation/theme.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentation/lspservice.h
     )
 
 if(LINK_ALL_STATIC)

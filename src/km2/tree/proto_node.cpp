@@ -123,6 +123,7 @@ km2::ast_token_list km2::proto_node::tokens() const {
     return ast_token_list {
         ast_token {
             .type = AstFunction,
+            .modifier = AstDefinition,
             .node_type = wall_e::type_name<proto_node>(),
             .hover = "**function** "_md + m_name + " (prototype)",
             .text = m_name,

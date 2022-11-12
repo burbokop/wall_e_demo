@@ -4,7 +4,7 @@
 
 #include <src/gui/appcore.h>
 #include <src/gui/kgramtreeview.h>
-#include <src/gui/presentor.h>
+#include <src/gui/presentation/presentor.h>
 #include <filesystem>
 #include <fstream>
 #include <iostream>

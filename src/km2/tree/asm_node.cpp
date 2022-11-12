@@ -48,6 +48,7 @@ wall_e::list<km2::ast_token> km2::asm_node::tokens() const {
     return {
         ast_token {
             .type = AstKeyword,
+            .modifier = wall_e::enums::max_value<ast_token_modifier>(),
             .node_type = wall_e::type_name<asm_node>(),
             .hover = "**assembly code** ( not implemented )"_md,
             .text = m_text,

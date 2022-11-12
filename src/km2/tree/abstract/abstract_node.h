@@ -19,7 +19,7 @@ struct abstract_node {
     typedef std::function<wall_e::gram::argument(const wall_e::gram::arg_vector &, const wall_e::index&)> factory;
     typedef std::vector<std::shared_ptr<abstract_node>> children_t;
 
-    static constexpr bool debug = true;
+    static constexpr bool debug = false;
 
 private:
 
@@ -129,7 +129,14 @@ public:
     const wall_e::index &index() const;
 
     inline friend std::ostream& operator<<(std::ostream& stream, const abstract_node* node) { node->short_print(stream); return stream; }
-    inline friend std::ostream& operator<<(std::ostream& stream, const std::shared_ptr<abstract_node>& node) { node->short_print(stream); return stream; }
+    inline friend std::ostream& operator<<(std::ostream& stream, const std::shared_ptr<abstract_node>& node) {
+        if(node) {
+            node->short_print(stream);
+            return stream;
+        } else {
+            return stream << "null_node";
+        }
+    }
 };
 
 } // namespace km2

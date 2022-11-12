@@ -128,11 +128,12 @@ void km2::function_node::short_print(std::ostream &stream) const {
     stream << "function_node { name: " << m_name << ", args: " << m_args << " }";
 }
 
-km2::ast_token_list km2::function_node::tokens() const {
+km2::ast_token_list km2::function_node::tokens() const {    
     using namespace km2::literals;
     return ast_token_list {
         km2::ast_token {
             .type = AstFunction,
+            .modifier = AstDeclaration,
             .node_type = wall_e::type_name<function_node>(),
             .hover = "**function** "_md + m_name,
             .text = m_name,

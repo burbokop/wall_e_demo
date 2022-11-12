@@ -30,11 +30,15 @@ km2::lsp::semantic_tokens_legend km2::lsp::service::register_semantic_tokens(con
     m_semantic_token_types_map.clear();
 
     const auto& all_token_types = wall_e::enums::reflect_names<semantic_token_type>();
+    const auto& all_token_modifiers = wall_e::enums::reflect_names<semantic_token_modifier>();
 
     m_semantic_token_types_map = default_semantic_token_types_map();
     m_ast_semantic_token_types_map = default_ast_semantic_token_types_map();
 
-    std::vector<semantic_token_type> legent_types;
+    m_semantic_token_modifiers_map = default_semantic_token_modifiers_map();
+    m_ast_semantic_token_modifiers_map = default_ast_semantic_token_modifiers_map();
+
+    wall_e::vec<semantic_token_type> legent_types;
     legent_types.reserve(all_token_types.size());
     for(std::size_t i = 0; i < all_token_types.size(); ++i) {
         const auto type = semantic_token_type(i);
@@ -45,22 +49,51 @@ km2::lsp::semantic_tokens_legend km2::lsp::service::register_semantic_tokens(con
         }
     }
 
+    wall_e::vec<semantic_token_modifier> legent_modifiers;
+    legent_modifiers.reserve(all_token_modifiers.size());
+    for(std::size_t i = 0; i < all_token_modifiers.size(); ++i) {
+        const auto modifier = semantic_token_modifier(i);
+        if(std::find(client_cap.token_modifiers.begin(), client_cap.token_modifiers.end(), modifier) != client_cap.token_modifiers.end()) {
+            legent_modifiers.push_back(modifier);
+        } else {
+            legent_modifiers.push_back(wall_e::enums::max_value<semantic_token_modifier>());
+        }
+    }
+
     return semantic_tokens_legend {
         .token_types = legent_types,
-        .token_modifiers = {}
+        .token_modifiers = legent_modifiers
     };
+}
+
+bool km2::lsp::service::ast_tokens_ready(const std::string &uri) const {
+    const auto cache_it = m_cache.find(uri);
+    if(cache_it != m_cache.end() && cache_it->second.compilation_result) {
+        if(cache_it->second.compilation_result->root_node() && m_ast_semantic_token_types_map.size() > 0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void km2::lsp::service::initialize(const std::string &uri) {}
 
-std::list<wall_e::error> km2::lsp::service::change_content(const std::string &uri, const std::string &content) {
+#include <iostream>
+wall_e::list<wall_e::error> km2::lsp::service::change_content(const std::string &uri, const std::string &content) {
     auto& ref = m_cache[uri];
     ref.content = content;
     ref.compilation_result = km2::compile(nullptr, content, ref.flags);
+
+    if(ref.compilation_result) {
+        std::cout << "ref.compilation_result: "
+                  << ref.compilation_result->ast_tokens() << std::endl;
+    }
+
+
     return ref.compilation_result->errors();
 }
 
-std::vector<wall_e::lex::token> km2::lsp::service::tokens(const std::string &uri) const {
+wall_e::vec<wall_e::lex::token> km2::lsp::service::tokens(const std::string &uri) const {
     const auto cache_it = m_cache.find(uri);
     if(cache_it != m_cache.end() && cache_it->second.compilation_result) {
         return cache_it->second.compilation_result->tokens();
@@ -68,20 +101,23 @@ std::vector<wall_e::lex::token> km2::lsp::service::tokens(const std::string &uri
     return {};
 }
 
-std::vector<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const std::string &uri) const {
+wall_e::vec<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const std::string &uri) const {
     const auto cache_it = m_cache.find(uri);
     if(cache_it != m_cache.end() && cache_it->second.compilation_result) {
         if(cache_it->second.compilation_result->root_node() && m_ast_semantic_token_types_map.size() > 0) {
             const auto& tokens = cache_it->second.compilation_result->ast_tokens();
             if(!tokens.empty()) {
-                std::vector<semantic_token> result;
+                wall_e::vec<semantic_token> result;
                 result.reserve(tokens.size());
                 for(const auto& t : tokens) {
                     const auto& ttype_it = m_ast_semantic_token_types_map.find(t.type);
                     if(ttype_it != m_ast_semantic_token_types_map.end()) {
                         result.push_back(semantic_token {
                             .type = ttype_it->second,
-                            .modifier = wall_e::enums::max_value<semantic_token_modifier>(),
+                            .modifier = m_ast_semantic_token_modifiers_map.get_or(
+                                             t.modifier,
+                                             wall_e::enums::max_value<semantic_token_modifier>()
+                                             ),
                             .segment = t.segment,
                             .position = text_wide_position::from_text_segment(t.segment, cache_it->second.content)
                         });
@@ -91,16 +127,19 @@ std::vector<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const s
             }
         }
 
-        {
+        /** if ast tokens not ready calculating semantic tokens from lex tokens */ {
             const auto& tokens = cache_it->second.compilation_result->tokens();
-            std::vector<semantic_token> result;
+            wall_e::vec<semantic_token> result;
             result.reserve(tokens.size());
             for(const auto& t : tokens) {
                 const auto& ttype_it = m_semantic_token_types_map.find(t.name);
                 if(ttype_it != m_semantic_token_types_map.end()) {
                     result.push_back(semantic_token {
                         .type = ttype_it->second,
-                        .modifier = wall_e::enums::max_value<semantic_token_modifier>(),
+                        .modifier = m_semantic_token_modifiers_map.get_or(
+                                         t.name,
+                                         wall_e::enums::max_value<semantic_token_modifier>()
+                                         ),
                         .segment = t.segment(),
                         .position = text_wide_position::from_text_segment(t.segment(), cache_it->second.content)
                     });
@@ -109,10 +148,10 @@ std::vector<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const s
             return result;
         }
     }
-    return std::vector<semantic_token> {};
+    return wall_e::vec<semantic_token> {};
 }
 
-std::optional<km2::markup_string> km2::lsp::service::hover(const std::string &uri, const wall_e::text_segment::predicate &predicate) {
+wall_e::opt<km2::markup_string> km2::lsp::service::hover(const std::string &uri, const wall_e::text_segment::predicate &predicate) {
     const auto cache_it = m_cache.find(uri);
     if(cache_it != m_cache.end() && cache_it->second.compilation_result) {
 
@@ -129,7 +168,7 @@ std::optional<km2::markup_string> km2::lsp::service::hover(const std::string &ur
     return std::nullopt;
 }
 
-std::list<std::string> km2::lsp::service::complete(const std::string &uri, const wall_e::text_segment::predicate &predicate) {
+wall_e::list<std::string> km2::lsp::service::complete(const std::string &uri, const wall_e::text_segment::predicate &predicate) {
     //const auto cache_it = m_cache.find(uri);
     //if(cache_it != m_cache.end()) {
 //

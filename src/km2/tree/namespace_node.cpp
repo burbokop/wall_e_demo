@@ -24,17 +24,17 @@ km2::namespace_node::namespace_node(const wall_e::index &index,
       m_block_node(block_node),
       m_context({}) {}
 
-km2::abstract_node::factory km2::namespace_node::create(const std::string &name_token) {
-    return [name_token](const wall_e::gram::arg_vector &args, const wall_e::index& index) -> wall_e::gram::argument {
+km2::abstract_node::factory km2::namespace_node::create(const std::string& exp_token, const std::string &name_token) {
+    return [name_token, exp_token](const wall_e::gram::arg_vector &args, const wall_e::index& index) -> wall_e::gram::argument {
         if(debug) std::cout << wall_e::type_name<namespace_node>() << "::create: " << args << std::endl;
         if (args.size() > 3) {
             const auto exp = args[0].option<wall_e::lex::token>()
-                    .exists([](const wall_e::lex::token& t) { return t.name == "TOK_EXP"; });
+                    .exists([exp_token](const wall_e::lex::token& t) { return t.name == exp_token; });
 
             if(const auto& keyword_token = args[1].option<wall_e::lex::token>()) {
                 if(const auto& name_with_ob = args[2].option<wall_e::gram::arg_vector>()) {
                     if(name_with_ob->size() > 0) {
-                        const auto& name_or_ob = (*name_with_ob)[1].option<wall_e::lex::token>();
+                        const auto& name_or_ob = (*name_with_ob)[0].option<wall_e::lex::token>();
                         if(name_with_ob->size() > 1 && name_or_ob->name == name_token) {
                             return std::make_shared<namespace_node>(
                                         index,
@@ -124,9 +124,10 @@ void km2::namespace_node::short_print(std::ostream &stream) const {
 km2::ast_token_list km2::namespace_node::tokens() const {
     using namespace km2::literals;
     const auto hover = m_name.empty() ? "**anonimus namespace**"_md : "**namespace** "_md + m_name;
-    return ast_token_list {
+    const auto r = ast_token_list {
         ast_token {
             .type = AstKeyword,
+            .modifier = wall_e::enums::max_value<ast_token_modifier>(),
             .node_type = wall_e::type_name<namespace_node>(),
             .hover = hover,
             .text = m_keyword,
@@ -135,10 +136,14 @@ km2::ast_token_list km2::namespace_node::tokens() const {
     } + (m_name.empty() ? ast_token_list {} : ast_token_list {
         ast_token {
             .type = AstNamespace,
+            .modifier = AstDeclaration,
             .node_type = wall_e::type_name<namespace_node>(),
             .hover = hover,
             .text = m_name,
             .segment = m_name_segment
         }
     }) + (m_block_node ? m_block_node->tokens() : ast_token_list {});
+
+    std::cout << "namespace '" << m_name << "' >>> " << r << std::endl;
+    return r;
 }

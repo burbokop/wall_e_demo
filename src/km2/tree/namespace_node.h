@@ -29,7 +29,7 @@ public:
             const bool exp = false
             );
 
-    static factory create(const std::string& name_token);
+    static factory create(const std::string& exp_token, const std::string& name_token);
 
     // node interface
 public:

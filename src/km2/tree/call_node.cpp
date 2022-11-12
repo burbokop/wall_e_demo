@@ -156,6 +156,7 @@ km2::ast_token_list km2::call_node::tokens() const {
     return ast_token_list {
         ast_token {
             .type = AstFunction,
+            .modifier = wall_e::enums::max_value<ast_token_modifier>(),
             .node_type = wall_e::type_name<call_node>(),
             .hover = "**function** "_md + m_name,
             .text = m_name,

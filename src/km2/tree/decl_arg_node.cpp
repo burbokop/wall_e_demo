@@ -62,6 +62,7 @@ wall_e::list<km2::ast_token> km2::decl_arg_node::tokens() const {
     return wall_e::list<ast_token> {
         ast_token {
             .type = AstParameter,
+            .modifier = AstDefinition,
             .node_type = wall_e::type_name<decl_arg_node>(),
             .hover = m_is_variadic ? "**variadic argument** "_md + m_name : "**argument** "_md + m_name,
             .text = m_name,

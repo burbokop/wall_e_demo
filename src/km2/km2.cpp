@@ -52,6 +52,18 @@ __km2_flags_private __km2_parse_flags(const km2::flags &flags) {
 
 
 
+std::ostream& km2::operator<<(std::ostream& stream, const compilation_result& res) {
+    return stream << "{ tokens: " << res.tokens()
+                  << ", rules: " << res.rules()
+                  << ", token_tree: " << res.token_tree()
+                  << ", root_node: " << res.root_node()
+                  << ", unit: " << res.unit()
+                  << ", backend_value: " << res.backend_value()
+                  << ", errors: " << res.errors()
+                  << ", ast_tokens: " << res.ast_tokens()
+                  << ", hovers: " << res.hovers()
+                  << " }";
+}
 
 
 
@@ -156,7 +168,7 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
     //TOK_EXP
     //TOK_IMP
     gram_list.push_back("namespace << (TOK_EXP | -) & TOK_NAMESPACE & (TOK_ID & OB | OB) & (EB | block)"_pattern
-        << km2::namespace_node::create("TOK_ID"));
+        << km2::namespace_node::create("TOK_EXP", "TOK_ID"));
 
     gram_list.push_back("block << (namespace | stmt) & SEMICOLON & (EB | block)"_pattern
         << km2::block_node::create);
@@ -297,10 +309,10 @@ const km2::ast_token_list &km2::compilation_result::ast_tokens() const {
     }
 }
 
-const std::map<wall_e::text_segment, km2::markup_string> &km2::compilation_result::hovers() const {
+const wall_e::map<wall_e::text_segment, km2::markup_string> &km2::compilation_result::hovers() const {
     if(m_root_node) {
         if(!m_hovers.has_value()) {
-            std::map<wall_e::text_segment, markup_string> result;
+            wall_e::map<wall_e::text_segment, markup_string> result;
             for(const auto& token : ast_tokens()) {
                 result.insert({ token.segment, token.hover });
             }
@@ -308,7 +320,7 @@ const std::map<wall_e::text_segment, km2::markup_string> &km2::compilation_resul
         }
         return *m_hovers;
     } else {
-        static const std::map<wall_e::text_segment, markup_string> result;
+        static const wall_e::map<wall_e::text_segment, markup_string> result;
         return result;
     }
 }

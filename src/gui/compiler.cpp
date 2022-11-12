@@ -58,8 +58,6 @@ QList<CompilationError> Compiler::errorsFromWallE(const wall_e::list<wall_e::err
 
 void Compiler::completeCompilation(const km2::compilation_result &cresult) {
     setTokens(QString::fromStdString(wall_e::lex::to_string(cresult.tokens())));
-    qDebug() << "tokens:" << tokens();
-
     if(cresult.root_node()) {
         const auto& tokens = cresult.root_node()->tokens();
         if(tokens.size() > 0) {

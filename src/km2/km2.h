@@ -42,7 +42,7 @@ class compilation_result {
     wall_e::list<wall_e::error> m_errors;
 
     mutable wall_e::opt<km2::ast_token_list> m_ast_tokens;
-    mutable wall_e::opt<std::map<wall_e::text_segment, markup_string>> m_hovers;
+    mutable wall_e::opt<wall_e::map<wall_e::text_segment, markup_string>> m_hovers;
 public:
     compilation_result(
             const wall_e::lex::token_vec& tokens,
@@ -71,8 +71,11 @@ public:
     const wall_e::list<wall_e::error>& errors() const { return m_errors; }
 
     const km2::ast_token_list& ast_tokens() const;
-    const std::map<wall_e::text_segment, markup_string>& hovers() const;
+    const wall_e::map<wall_e::text_segment, markup_string>& hovers() const;
+
 };
+
+std::ostream& operator<<(std::ostream& stream, const compilation_result& res);
 
 enum flag {
     only_tree,

@@ -94,13 +94,13 @@ class Compiler : public QObject {
     bool m_firstCompilation = true;
     void recompile();
 
-    static QList<CompilationError> errorsFromWallE(const wall_e::list<wall_e::error>& lst);
 
 private slots:
     void completeCompilation(const km2::compilation_result&cresult);
 
 public:
     explicit Compiler(QObject *parent = nullptr);
+    static QList<CompilationError> errorsFromWallE(const wall_e::list<wall_e::error>& lst);
 
 public slots:
 

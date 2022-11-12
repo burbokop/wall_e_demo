@@ -52,9 +52,23 @@ wall_e_enum(ast_token_type,
     AstOperator,
     AstDecorator
 )
+wall_e_enum(ast_token_modifier,
+    AstDeclaration = 0,
+    AstDefinition,
+    AstReadonly,
+    AstStatic,
+    AstDeprecated,
+    AstAbstract,
+    AstAsync,
+    AstModification,
+    AstDocumentation,
+    AstDefaultLibrary
+)
+
 
 struct ast_token {
     ast_token_type type;
+    ast_token_modifier modifier;
     std::string node_type;
     markup_string hover;
     std::string text;

@@ -108,6 +108,7 @@ km2::ast_token_list km2::type_node::tokens() const {
     return {
         ast_token {
             .type = AstType,
+            .modifier = wall_e::enums::max_value<ast_token_modifier>(),
             .node_type = wall_e::type_name<type_node>(),
             .hover = hover(),
             .text = m_original_text,

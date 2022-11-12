@@ -76,6 +76,7 @@ wall_e::list<km2::ast_token> km2::const_node::tokens() const {
     return wall_e::list<km2::ast_token> {
         ast_token {
             .type = AstKeyword,
+            .modifier = wall_e::enums::max_value<ast_token_modifier>(),
             .node_type = wall_e::type_name<const_node>(),
             .hover = hover,
             .text = m_keyword_text,
@@ -83,6 +84,7 @@ wall_e::list<km2::ast_token> km2::const_node::tokens() const {
         },
         ast_token {
             .type = AstVariable,
+            .modifier = AstDefinition,
             .node_type = wall_e::type_name<const_node>(),
             .hover = hover,
             .text = m_id,

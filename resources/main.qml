@@ -19,14 +19,14 @@ Window {
 
     Compiler {
         id: compiler
-        code: codeArea.text
+        //code: codeArea.text
         backend: appCore.backendFactory.currentBackend
     }
 
     Presentor {
         id: presentor
         codeDocument: codeArea.textDocument
-        errors: compiler.errors
+        //errors: compiler.errors
         //onPresentationCompleated: codeArea.updatePresentation()
     }
 
@@ -220,7 +220,7 @@ Window {
 
                             visible: appCore.codeEdited
                             font.pointSize: 14
-                            text: qsTr("*")
+                            text: qsTr('*')
                         }
                         Text {
                             anchors.right: parent.right
@@ -230,7 +230,17 @@ Window {
 
                             visible: codeArea.ctrlPressed
                             font.pointSize: 14
-                            text: qsTr("ctrl")
+                            text: qsTr('ctrl')
+                        }
+                        Text {
+                            anchors.right: parent.right
+                            anchors.bottom: parent.bottom
+                            anchors.rightMargin: 30
+                            anchors.bottomMargin: 5
+
+                            visible: presentor.astTokensReady
+                            font.pointSize: 14
+                            text: qsTr('A')
                         }
                     }
                 }
@@ -244,7 +254,7 @@ Window {
                     property int currentErr: -1
                     ListView {
                         anchors.fill: parent
-                        model: compiler.errors
+                        model: presentor.errors// compiler.errors
                         delegate: Rectangle {
                             color: (errTile.currentErr === index) ? "#88888888" : "#00000000"
                             id: errRect

@@ -1,5 +1,4 @@
 #include "appcore.h"
-#include "highlighter.h"
 #include "wall_e/src/macro.h"
 #include <src/km2/km2.h>
 #include <QTimer>
@@ -76,7 +75,6 @@ Either AppCore::startExecuting() {
 
 
 void AppCore::loadFile(ProjFile *f, const QString &codeToWrite) {
-    qDebug() << wall_e_this_function << f;
     if(m_currentFile) {
         writeToCurrentFile(codeToWrite);
         delete m_currentFile;
