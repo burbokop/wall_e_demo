@@ -124,7 +124,7 @@ void km2::namespace_node::short_print(std::ostream &stream) const {
 km2::ast_token_list km2::namespace_node::tokens() const {
     using namespace km2::literals;
     const auto hover = m_name.empty() ? "**anonimus namespace**"_md : "**namespace** "_md + m_name;
-    const auto r = ast_token_list {
+    return ast_token_list {
         ast_token {
             .type = AstKeyword,
             .modifier = wall_e::enums::max_value<ast_token_modifier>(),
@@ -143,7 +143,4 @@ km2::ast_token_list km2::namespace_node::tokens() const {
             .segment = m_name_segment
         }
     }) + (m_block_node ? m_block_node->tokens() : ast_token_list {});
-
-    std::cout << "namespace '" << m_name << "' >>> " << r << std::endl;
-    return r;
 }

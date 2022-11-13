@@ -83,13 +83,6 @@ wall_e::list<wall_e::error> km2::lsp::service::change_content(const std::string 
     auto& ref = m_cache[uri];
     ref.content = content;
     ref.compilation_result = km2::compile(nullptr, content, ref.flags);
-
-    if(ref.compilation_result) {
-        std::cout << "ref.compilation_result: "
-                  << ref.compilation_result->ast_tokens() << std::endl;
-    }
-
-
     return ref.compilation_result->errors();
 }
 

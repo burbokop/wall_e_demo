@@ -68,6 +68,17 @@ public:
     }
 };
 
+class GramLogSharedPtr {
+    Q_GADGET
+    std::shared_ptr<wall_e::gram::log> m_data;
+    Q_PROPERTY(bool valid READ valid)
+public:
+    GramLogSharedPtr(const std::shared_ptr<wall_e::gram::log>& data = nullptr) : m_data(data) {}
+    inline bool valid() const { return m_data ? true : false; }
+    std::shared_ptr<wall_e::gram::log> data() const { return m_data; }
+    inline bool operator==(const GramLogSharedPtr& other) const { return m_data == other.m_data; }
+};
+
 class Compiler : public QObject {
     Q_OBJECT
     K_READONLY_PROPERTY(QString, tokens, tokens, setTokens, tokensChanged, QString())
@@ -77,10 +88,14 @@ class Compiler : public QObject {
     K_READONLY_PROPERTY(TokenTree*, tree, tree, setTree, treeChanged, nullptr)
     K_READONLY_PROPERTY(UnitSharedPtr, unit, unit, setUnit, unitChanged, UnitSharedPtr())
     K_READONLY_PROPERTY(BackendValuePtr, rootBackendValue, rootBackendValue, setRootBackendValue, rootBackendValueChanged, BackendValuePtr())
-
-
+    K_READONLY_PROPERTY(GramLogSharedPtr, log, log, setLog, logChanged, GramLogSharedPtr())
 
     K_READONLY_PROPERTY(QList<CompilationError>, errors, errors, setErrors, errorsChanged, QList<CompilationError>());
+
+    inline void addErrors(const QList<CompilationError>& errs) {
+        m_errors.append(errs);
+        emit errorsChanged(errors());
+    }
 
     QFutureWatcher<km2::compilation_result> m_currentFutureWatcher;
     QFuture<km2::compilation_result> m_currentFuture;

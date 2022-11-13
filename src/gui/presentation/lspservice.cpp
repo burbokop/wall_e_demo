@@ -12,7 +12,6 @@ void LSPService::initialize(const QString &uri, const SemanticTokensClientCapabi
 }
 
 void LSPService::changeContent(const QString &uri, QTextDocument *doc) {
-    qDebug() << wall_e_this_function << QThread::currentThreadId();
     QString wholeText;
     for(auto it = doc->begin(); it != doc->end(); it = it.next()) {
         wholeText += it.text() + '\n';

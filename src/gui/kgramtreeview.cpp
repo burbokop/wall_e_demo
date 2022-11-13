@@ -28,8 +28,11 @@ void KGramTreeView::paint(QPainter *painter) {
     painter->translate(-ox, -oy);
 
     painter->drawRect(m_treeX - 5, m_treeY - 5, 10, 10);
+
+    QVector2D spacingMultiplier = QVector2D(1, 1);
+
     if(tree()) {
-        drawBranch(tree()->data(), m_treeX, m_treeY, painter);
+        drawBranch(tree()->data(), m_treeX, m_treeY, spacingMultiplier, painter);
     }
 }
 
@@ -43,11 +46,11 @@ int KGramTreeView::stringRadius(const std::string &string) {
     return string.size() / bnc;
 }
 
-void KGramTreeView::drawBranch(const wall_e::variant &branch, int x, int y, QPainter *painter) {
+void KGramTreeView::drawBranch(const wall_e::variant &branch, int x, int y, QVector2D spacingMultiplier, QPainter *painter) {
     const auto cellMargins = 5;
     const auto cellRadius = painter->font().pointSize() * branchWidth(branch, true) / 2 + cellMargins;
-    const auto spacingX = 50;
-    const auto spacingY = branch.contains_type<wall_e::variant_vector>() ? 100 : 50 + cellRadius;
+    const auto spacingX = 50 * spacingMultiplier.x();
+    const auto spacingY = (branch.contains_type<wall_e::variant_vector>() ? 100 : 50 + cellRadius) * spacingMultiplier.y();
 
     painter->drawLine(QLine(x, y, x, y + spacingY - cellRadius));
     QRect cellRect(x - cellRadius, y + spacingY - cellRadius, cellRadius * 2, cellRadius * 2);
@@ -59,7 +62,7 @@ void KGramTreeView::drawBranch(const wall_e::variant &branch, int x, int y, QPai
         int pos = 0;
         for(size_t i = 0, cnt = vec.size(); i < cnt; ++i) {
             const int w = (branchWidth(vec[i]) + 1) * spacingX;
-            drawBranch(vec[i], x + pos, y + spacingY, painter);
+            drawBranch(vec[i], x + pos, y + spacingY, spacingMultiplier, painter);
             if(i == vec.size() - 1) {
                 painter->drawLine(QLine(x, y + spacingY, x + pos, y + spacingY));
             }

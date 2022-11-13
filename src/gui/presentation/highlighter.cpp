@@ -54,11 +54,6 @@ void Highlighter::highlightBlock(const QString &text) {
                 fmt = m_legend.tokenFormatModifiers[t.data().modifier]
                         .modify(fmt);
             }
-
-            std::stringstream ss;
-            ss << ":" << t.data().type << ":" << t.data().modifier;
-            qDebug() << ss.str().c_str();
-
             setFormatBySegment(
                         text.size(),
                         t.data().segment,

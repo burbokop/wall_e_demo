@@ -39,9 +39,9 @@ struct __km2_flags_private {
 __km2_flags_private __km2_parse_flags(const km2::flags &flags) {
     __km2_flags_private result;
     for(auto f : flags) {
-        if(f == km2::flag::verbose) {
+        if(f == km2::flag::Verbose) {
             result.verbose = true;
-        } else if(f == km2::flag::only_tree) {
+        } else if(f == km2::flag::OnlyTree) {
             result.tree_mode = true;
         }
     }
@@ -122,13 +122,10 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
 
     const auto __flags = __km2_parse_flags(flags);
     wall_e::gram::flags_list gram_flags;
-    if(__flags.verbose) {
-        gram_flags.push_back(wall_e::gram::verbose);
-    }
     if(__flags.tree_mode) {
-        gram_flags.push_back(wall_e::gram::use_default_parser);
+        gram_flags.push_back(wall_e::gram::UseDefaultParser);
     }
-    gram_flags.push_back(wall_e::gram::unconditional_transition);
+    gram_flags.push_back(wall_e::gram::UnconditionalTransition);
 
     if(__flags.verbose)
         std::cout << ">>> INPUT TEXT <<<\n\n" << input << "\n\n>>> ----- ---- <<<\n";
@@ -160,7 +157,7 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
     }
 
     if(lex_errors.size() > 0) {
-        return compilation_result(sorted_tokens, {}, {}, {}, {}, {}, lex_errors);
+        return compilation_result(sorted_tokens, {}, {}, {}, {}, {}, lex_errors, {});
     }
 
     wall_e::gram::pattern_list gram_list;
@@ -202,7 +199,7 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
     gram_list.push_back("namespace_appeal << TOK_ID & DOUBLE_COLON & (namespace_appeal | -)"_pattern
                         );
 
-    gram_list.push_back("function_call << namespace_appeal & TOK_ID & OP & (EP | arg_list)"_pattern
+    gram_list.push_back("function_call << (namespace_appeal | -) & TOK_ID & OP & (EP | arg_list)"_pattern
         << km2::call_node::create);
 
     gram_list.push_back("arg_list << arg & (EP | (COMA & arg_list))"_pattern);
@@ -222,76 +219,84 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
     //
     //gram_list.push_back("mul_div << arg & (TOK_DIV | TOK_MUL) & term");
 
-
-
-
     if(__flags.verbose) {
         std::cout << "\n -------------- GRAMATIC --------------\n\n";
+        std::cout << "flags: " << gram_flags << std::endl;
     }
 
     gram_list = wall_e::gram::pattern::simplified(gram_list);
 
+    std::shared_ptr<wall_e::gram::log> log;
+    if(__flags.verbose) {
+        log = std::make_shared<wall_e::gram::log>();
+    }
+
     auto result = wall_e::gram::exec(
                 gram_list,
                 sorted_tokens,
-                gram_flags
+                gram_flags, wall_e::smp::simplify,
+                log.get()
                 );
 
-    std::cout << "result: " << result << std::endl;
-
-
     if(const auto err = result.left()) {
-        return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, {}, {}, {}, { err.value() });
+        return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), {}, {}, {}, {}, { err.value() }, log);
     }
     const auto right = result.right().value();
 
 
-    std::cout << "result type: " << right.type() << std::endl;
-    std::cout << "result lineage: " << right.lineage() << std::endl;
-
-    std::cout << "--- TREE --- ---" << std::endl;
-    wall_e::print_tree(right, std::cout, wall_e::tree_print_format::Simple);
-    std::cout << "--- TREE END ---" << std::endl;
-
-
     if(__flags.verbose) {
+        std::cout << "result type: " << right.type() << std::endl;
+        std::cout << "result lineage: " << right.lineage() << std::endl;
+
+        std::cout << "--- TREE --- ---" << std::endl;
+        wall_e::write_tree(right, std::cout, wall_e::tree_print_format::Simple);
+        std::cout << "--- TREE END ---" << std::endl;
+
         std::cout << "\n -------------- GRAM END --------------\n\n";
     }
+
+    wall_e::write_tree(right, std::cout, wall_e::tree_print_format::Graphviz);
 
     if(right.contains_type<std::shared_ptr<km2::namespace_node>>()) {
         if(const auto node = right.value<std::shared_ptr<km2::namespace_node>>()) {
             const auto errors = node->errors();
 
             if(errors.size() > 0) {
-                std::cout << wall_e::color::Red << "FOUND ERRORS OF LEVEL 1: " << errors << wall_e::color::reset() << std::endl;
-                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), right, {}, {}, {}, errors);
+                std::cout << wall_e::red << "FOUND ERRORS OF LEVEL 1: " << errors << wall_e::color::reset() << std::endl;
+                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), right, {}, {}, {}, errors, log);
             } else {
-                std::cout << wall_e::color::Green << "NO ERRORS OF LEVEL 1" << wall_e::color::reset() << std::endl;
+                std::cout << wall_e::green << "NO ERRORS OF LEVEL 1" << wall_e::color::reset() << std::endl;
             }
 
-            std::cout << "AST:" << std::endl;
+            if(__flags.verbose) {
+                std::cout << "AST:" << std::endl;
+            }
             node->print(0, std::cout);
-
-            std::cout << "BACKEND: " << b << std::endl;
-            if(!b) {
-                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, nullptr, nullptr, {});
+            if(__flags.verbose) {
+                std::cout << "BACKEND: " << b << std::endl;
             }
-
-            std::cout << "USING BACKEND: " << b->name() << std::endl;
+            if(!b) {
+                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, nullptr, nullptr, {}, log);
+            }
+            if(__flags.verbose) {
+                std::cout << "USING BACKEND: " << b->name() << std::endl;
+            }
 
             const auto unit = b->create_unit();
             if(const auto gen_result = node->generate_backend_value(unit)) {
                 backend::value* backend_value = gen_result.right_value();
                 unit->print();
-                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, unit, backend_value, {});
+                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, unit, backend_value, {}, log);
             } else {
-                std::cout << wall_e::color::Red << "FOUND ERRORS OF LEVEL 2: " << gen_result.left_value() << wall_e::color::reset() << std::endl;
-                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, unit, {}, { gen_result.left_value() });
+                if(__flags.verbose) {
+                    std::cout << wall_e::red << "FOUND ERRORS OF LEVEL 2: " << gen_result.left_value() << wall_e::color::reset() << std::endl;
+                }
+                return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, unit, {}, { gen_result.left_value() }, log);
             }          
         }
     }
 
-    return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), {}, {}, {}, { wall_e::error("root node is not a namespace") });
+    return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), {}, {}, {}, { wall_e::error("root node is not a namespace") }, log);
 }
 
 

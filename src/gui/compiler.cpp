@@ -21,17 +21,17 @@ Compiler::Compiler(QObject *parent) : QObject { parent } {
 void Compiler::recompile() {
     setErrors({});
     if(!backend().valid()) {
-        setErrors({ CompilationError(wall_e::error("backend not choosed")) });
-        return;
+        addErrors({ CompilationError(wall_e::error("backend not choosed", wall_e::error::warn)) });
     }
+    qDebug() << "RRRRRRRRRRRRRR:" << verbose();
 
     km2::flags flags;
     if(verbose()) {
-        flags.push_back(km2::verbose);
+        flags.push_back(km2::Verbose);
     }
 
     if(onlyTree()) {
-        flags.push_back(km2::only_tree);
+        flags.push_back(km2::OnlyTree);
     }
 
     if(m_firstCompilation) {
@@ -80,9 +80,10 @@ void Compiler::completeCompilation(const km2::compilation_result &cresult) {
     } else {
         setAsmCode("err: empty module");
     }
-    setErrors(errorsFromWallE(cresult.errors()));
+    addErrors(errorsFromWallE(cresult.errors()));
     setUnit(UnitSharedPtr(cresult.unit()));
     setRootBackendValue(BackendValuePtr(cresult.backend_value()));
+    setLog(GramLogSharedPtr(cresult.gram_log()));
 
     m_prevResult = cresult;
     emit compilationCompleated();

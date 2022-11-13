@@ -52,7 +52,7 @@ class AppCore : public QObject {
     //std::thread *m_compileThread = nullptr;
 
 public:
-    enum Mode { ModeTokens, ModeGramatic, ModeTree, ModeAsm, ModeExec };
+    enum Mode { ModeTokens, ModeGramatic, ModeTree, ModeAsm, ModeExec, ModeGramLog };
 private:
     K_CONST_PROPERTY(JitExecutor*, executor, new JitExecutor(this));
     K_CONST_PROPERTY(BackendFactory*, backendFactory, new BackendFactory(this));

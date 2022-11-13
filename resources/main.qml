@@ -19,7 +19,7 @@ Window {
 
     Compiler {
         id: compiler
-        //code: codeArea.text
+        code: codeArea.text
         backend: appCore.backendFactory.currentBackend
     }
 
@@ -55,13 +55,13 @@ Window {
             height: 40
 
             Rectangle {
-                color: "#aaaa00"
+                color: '#aaaa00'
                 Layout.fillWidth: true
                 height: 40
             }
 
             Rectangle {
-                color: "#aaaa00"
+                color: '#aaaa00'
                 Layout.fillWidth: true
                 height: 40
             }
@@ -73,49 +73,56 @@ Window {
             Rectangle {
                 width: 60
                 Layout.fillHeight: true
-                color: "#aaaa00"
+                color: '#aaaa00'
                 ColumnLayout {
                     anchors.fill: parent
 
                     ToolBarButton {
-                        text: "Tree"
+                        text: 'Tree'
                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                         Layout.topMargin: 10
                         onClicked: appCore.mode = AppCore.ModeTree
                     }
 
                     ToolBarButton {
-                        text: "Toks"
+                        text: 'Log'
+                        Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
+                        Layout.topMargin: 10
+                        onClicked: appCore.mode = AppCore.ModeGramLog
+                    }
+
+                    ToolBarButton {
+                        text: 'Toks'
                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                         onClicked: appCore.mode = AppCore.ModeTokens
                     }
 
                     ToolBarButton {
-                        text: "Exex"
+                        text: 'Exex'
                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                         onClicked: appCore.mode = AppCore.ModeExec
                     }
 
                     ToolBarButton {
-                        text: "Gram"
+                        text: 'Gram'
                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                         onClicked: appCore.mode = AppCore.ModeGramatic
                     }
 
                     ToolBarButton {
-                        text: "Asm"
+                        text: 'Asm'
                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                         onClicked: appCore.mode = AppCore.ModeAsm
                     }
 
                     ToolBarButton {
-                        text: "Back"
+                        text: 'Back'
                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                         onClicked: backendList.collapsed = !backendList.collapsed
                     }
 
                     ToolBarButton {
-                        text: "clang\n  ++"
+                        text: 'clang\n  ++'
                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                         onClicked: {
                             const err = appCore.makeExecutable("app_out/module");
@@ -129,17 +136,17 @@ Window {
 
                     ToolBarChackBox {
                         Layout.topMargin: 30
-                        text: "T"
+                        text: 'T'
                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                         onCheckedChanged: compiler.onlyTree = checked
                     }
 
                     ToolBarChackBox {
-                        text: "V"
+                        text: 'V'
                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
                         onCheckedChanged: {
-                            appCore.verbose = checked
                             compiler.verbose = checked
+                            appCore.verbose = checked
                         }
                     }
 
@@ -166,12 +173,15 @@ Window {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.fillHeight: true
+                    Layout.fillHeight: !codeAreaTile.hidden || !projViewTile.hidden
+                    //Layout.minimumHeight: 20
                     Tile {
-                        implicitWidth: projView.implicitWidth + projView.anchors.margins * 2 + 40
+                        id: projViewTile
+                        implicitWidth: projViewTile.hidden ? 20 : projView.implicitWidth + projView.anchors.margins * 2 + 40
                         //Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        internalColor: "#ffffff"
+                        Layout.fillHeight: !projViewTile.hidden
+                        Layout.alignment: Qt.AlignTop | Qt.AlignLeft
+                        internalColor: '#ffffff'
                         ProjectView {
                             openedFile: appCore.openedProjFile
                             id: projView
@@ -182,8 +192,10 @@ Window {
                         }
                     }
                     Tile {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
+                        id: codeAreaTile
+                        Layout.fillWidth: !codeAreaTile.hidden
+                        Layout.fillHeight: !codeAreaTile.hidden
+                        Layout.alignment: Qt.AlignTop | Qt.AlignLeft
 
                         CodeArea {
                             id: codeArea
@@ -245,7 +257,7 @@ Window {
                     }
                 }
                 Tile {
-                    internalColor: "#ffffff"
+                    internalColor: '#ffffff'
                     id: errTile
                     Layout.fillWidth: true
                     Layout.preferredHeight: 80
@@ -256,13 +268,13 @@ Window {
                         anchors.fill: parent
                         model: presentor.errors// compiler.errors
                         delegate: Rectangle {
-                            color: (errTile.currentErr === index) ? "#88888888" : "#00000000"
+                            color: (errTile.currentErr === index) ? '#88888888' : '#00000000'
                             id: errRect
                             width: parent.width
                             height: (errTile.currentErr === index) ? 48 : 24
                             Text {
                                 text: (errTile.currentErr === index)
-                                      ? modelData.toString() + "\nat fragment: " +  codeArea.textFragmentForError(modelData)
+                                      ? modelData.toString() + '\nat fragment: ' +  codeArea.textFragmentForError(modelData)
                                       : modelData.toString()
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.left: parent.left
@@ -280,7 +292,7 @@ Window {
                     }
                 }
                 Tile {
-                    internalColor: "#ffffff"
+                    internalColor: '#ffffff'
                     Layout.fillWidth: true
                     Layout.fillHeight: true
 
@@ -327,6 +339,20 @@ Window {
                         anchors.margins: 2
                         visible: appCore.mode === AppCore.ModeExec
                         onErr: message => infoDialog.openWithMessage(message)
+                    }
+
+                    LogTable {
+                        id: logTable
+                        anchors.fill: parent
+                        anchors.margins: 2
+                        visible: appCore.mode === AppCore.ModeGramLog
+                        log: compiler.log
+
+                        Text {
+                            visible: !compiler.verbose
+                            anchors.centerIn: parent
+                            text: 'Logs only generated if verbose flag set'
+                        }
                     }
                 }
             }

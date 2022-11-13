@@ -23,7 +23,7 @@ class KGramTreeView : public QQuickPaintedItem {
     int m_treeY = 100;
     double m_scaleMultiplier = 1;
     static int stringRadius(const std::string &string);
-    static void drawBranch(const wall_e::variant &branch, int x, int y, QPainter *painter);
+    static void drawBranch(const wall_e::variant &branch, int x, int y, QVector2D spacingMultiplier, QPainter *painter);
     static int branchWidth(const wall_e::variant &branch, bool onlyCells = false);
 public:
     KGramTreeView(QQuickItem *parent = nullptr);

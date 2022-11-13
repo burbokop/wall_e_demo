@@ -31,10 +31,10 @@ int main(int argc, const char** argv) {
 
     km2::flags compile_flags;
     if(verbose_flag.bool_data()) {
-        compile_flags.push_back(km2::verbose);
+        compile_flags.push_back(km2::Verbose);
     }
     if(tree_flag.bool_data()) {
-        compile_flags.push_back(km2::only_tree);
+        compile_flags.push_back(km2::OnlyTree);
     }
 
     if(const auto& backend = backends.find_opt(backend_name_flag.data())) {
@@ -45,7 +45,7 @@ int main(int argc, const char** argv) {
         }
 
         if(tree_flag.bool_data()) {
-            wall_e::print_tree(result.token_tree());
+            wall_e::write_tree(result.token_tree());
         } else if(jit_flag.bool_data()) {
             if(result.unit()) {
                 if(const auto& entry = dynamic_cast<km2::backend::function*>(result.backend_value())) {

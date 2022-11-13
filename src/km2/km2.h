@@ -15,6 +15,12 @@
     #include <wall_e/lex.h>
 #endif
 
+#if __has_include(<wall_e/src/gram.h>)
+    #include <wall_e/src/gram.h>
+#else
+    #include <wall_e/gram.h>
+#endif
+
 #if __has_include(<src/km2/ast_token.h>)
     #include <src/km2/ast_token.h>
 #else
@@ -40,6 +46,7 @@ class compilation_result {
     backend::value* m_backend_value;
 
     wall_e::list<wall_e::error> m_errors;
+    std::shared_ptr<wall_e::gram::log> m_gram_log;
 
     mutable wall_e::opt<km2::ast_token_list> m_ast_tokens;
     mutable wall_e::opt<wall_e::map<wall_e::text_segment, markup_string>> m_hovers;
@@ -51,7 +58,8 @@ public:
             const std::shared_ptr<km2::abstract_node>& root_node,
             const std::shared_ptr<backend::unit>& unit,
             backend::value*const backend_value,
-            const wall_e::list<wall_e::error>& errors
+            const wall_e::list<wall_e::error>& errors,
+            const std::shared_ptr<wall_e::gram::log>& gram_log
             )
         : m_tokens(tokens),
           m_rules(rules),
@@ -59,7 +67,8 @@ public:
           m_root_node(root_node),
           m_unit(unit),
           m_backend_value(backend_value),
-          m_errors(errors) {}
+          m_errors(errors),
+          m_gram_log(gram_log) {}
 
     const wall_e::lex::token_vec& tokens() const { return m_tokens; }
     const std::string& rules() const { return m_rules; }
@@ -72,14 +81,16 @@ public:
 
     const km2::ast_token_list& ast_tokens() const;
     const wall_e::map<wall_e::text_segment, markup_string>& hovers() const;
+    const std::shared_ptr<wall_e::gram::log>& gram_log() const { return m_gram_log; }
 
 };
 
 std::ostream& operator<<(std::ostream& stream, const compilation_result& res);
 
 enum flag {
-    only_tree,
-    verbose
+    OnlyTree = 1,
+    Verbose  = 2
+    ///      = 4
 };
 
 typedef std::list<flag> flags;

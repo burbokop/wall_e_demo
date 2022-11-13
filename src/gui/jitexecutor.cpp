@@ -10,7 +10,7 @@ JitExecutor::JitExecutor(QObject *parent) : QObject(parent) {
     timer = new QTimer(this);
 
     connect(this, &JitExecutor::message, this, [](QString msg, bool isError) {
-        const auto ec = QString::fromStdString(wall_e::color::Red.f());
+        const auto ec = QString::fromStdString(wall_e::red.to_ansi());
         if(isError) {
             qDebug() << "jit:" << (isError ? ec : "") << msg << QString::fromStdString(wall_e::color::reset());
         }

@@ -275,7 +275,9 @@ set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentation/presentor.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentation/theme.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentation/lspservice.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/log/logtablemodel.cpp
 )
+
 set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/to_pdf.h
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/either.h
@@ -294,6 +296,7 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentation/presentor.h
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentation/theme.h
     ${CMAKE_CURRENT_LIST_DIR}/src/gui/presentation/lspservice.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/gui/log/logtablemodel.h
     )
 
 if(LINK_ALL_STATIC)

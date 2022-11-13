@@ -8,7 +8,7 @@ import Km2
 
 Rectangle {
     id: localRoot
-    color: "#444444"
+    color: "#070606"
 
     function pushMessage(mess, type, isSystem) {
         listModel.append({ message: mess, type: type, isSystem: isSystem });

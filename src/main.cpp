@@ -24,19 +24,7 @@
 #include <src/km2/cpp/cpp_parser.h>
 #include <wall_e/src/models/compiler_info.h>
 #include <wall_e/src/stack.h>
-
-struct Vehicle {
-public:
-    std::string m_id;
-};
-struct Aircraft : Vehicle { typedef Vehicle super_type; };
-struct Helicopter : Aircraft {
-    typedef Aircraft super_type;
-    Helicopter(std::string id) {
-        m_id = id;
-    }
-};
-
+#include <src/gui/log/logtablemodel.h>
 #include <src/km2/lsp/service.h>
 
 void do_clang() {
@@ -122,23 +110,8 @@ int main(int argc, char **argv) {
     */
 
 
-    wall_e::flag_provider flag_provider(argc, argv);
-
-    std::cout << flag_provider << std::endl;
-
-    std::cout << flag_provider.value_flag(std::pair { 'i', "input" }, "input", "def_in") << std::endl;
-    std::cout << flag_provider.value_flag('o', "output", "def_out") << std::endl;
-    std::cout << flag_provider.bool_flag('f', "flag") << std::endl;
-    std::cout << flag_provider.bool_flag(std::pair { 'g', "gog" }, "goga") << std::endl;
-    std::cout << flag_provider.value_flag('a', "A", "AAA") << std::endl;
-
-    flag_provider.finish(std::cout);
-
     wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Conjunction, '&');
     wall_e::gram::rule::assignTypeSymbol(wall_e::gram::rule_type::Disjunction, '|');
-
-    std::cout << "A" << std::endl;
-
 
     if(additional_log) {
         std::cout << "before wall_e::gram::rule_from_str" << std::endl;
@@ -170,61 +143,15 @@ int main(int argc, char **argv) {
         std::cout << std::endl;
         std::cout << "____" << std::endl;
     }
-    std::cout << "B" << std::endl;
-
-    // /home/borys/projects/cpp/example.cpp --
-    //std::cout << "r0: " << r0 << " : " << smp::simplify(r0) << '\n';
-    //std::cout << "r1: " << r1 << " : " << smp::simplify(r1) << '\n';
-
-    //return 0;
-
-    std::string lastArg;
-    std::string outputFilePath;
-    std::string input;
-    bool textInputMode = true;
-    bool onlyTree = false;
-    for(int i = 0; i < argc; ++i) {
-        std::string arg(argv[i]);
-        if(lastArg == "-t") {
-            textInputMode = true;
-            input = arg;
-        } else if(lastArg == "-o") {
-            outputFilePath = arg;
-        } else if(arg == "--tree") {
-            onlyTree = true;
-        } else if(arg != "-t" && arg != "-o") {
-            textInputMode = false;
-            input = arg;
-        }
-        lastArg = arg;
-    }
-    std::cout << "C: " << input << std::endl;
-
-    if(!textInputMode && false) {
-        std::ifstream inpf(input, std::ios::in);
-        input.clear();
-        while (!inpf.eof()) {
-            char c;
-            inpf.read(&c, 1);
-            input.push_back(c);
-        }
-        inpf.close();
-    }
-    std::cout << "D" << std::endl;
-
-    std::cout << "++++" << std::endl;
 
     qmlRegisterType<KGramTreeView>("Km2", 1, 0, "KGramTreeView");
-    qmlRegisterUncreatableType<BackendFactory>("Km2", 1, 0, "BackendFactory", "created in appcore");
-    qmlRegisterUncreatableType<JitExecutor>("Km2", 1, 0, "JitExecutor", "created in appcore");
     qmlRegisterType<ProjFile>("Km2", 1, 0, "ProjFile");
-
     qmlRegisterType<Compiler>("Km2", 1, 0, "Compiler");
     qmlRegisterType<Presentor>("Km2", 1, 0, "Presentor");
-
+    qmlRegisterType<LogTableModel>("Km2", 1, 0, "LogTableModel");
+    qmlRegisterUncreatableType<BackendFactory>("Km2", 1, 0, "BackendFactory", "created in appcore");
+    qmlRegisterUncreatableType<JitExecutor>("Km2", 1, 0, "JitExecutor", "created in appcore");
     qmlRegisterUncreatableType<TokenTree>("Km2", 1, 0, "TokenTree", "created in compiler");
-
-
 
     QCoreApplication::setOrganizationName("burbokop");
     QCoreApplication::setOrganizationDomain("io.github.burbokop");
@@ -236,8 +163,6 @@ int main(int argc, char **argv) {
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("appCore", &appCore);
     engine.load("qrc:/resources/main.qml");
-
-
 
     return app.exec();
 }
