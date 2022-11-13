@@ -5,6 +5,7 @@
 #include <list>
 #include <functional>
 #include <wall_e/src/private/gram_private.h>
+#include <wall_e/src/utility/tree_stream.h>
 #include "../../backend/models/context.h"
 #include "../../ast_token.h"
 
@@ -42,6 +43,10 @@ private:
         return result;
     }
 public:
+    enum write_format {
+        Simple,
+        TreeWriter
+    };
     abstract_node(
             const wall_e::index& index,
             const children_t &children,
@@ -106,8 +111,8 @@ public:
     std::map<std::size_t, abstract_node*> ancestor_cache() const;
     children_t children() const;
 
-    virtual void print(size_t level, std::ostream &stream) const = 0;
-    virtual void short_print(std::ostream &stream) const = 0;
+    virtual std::ostream& write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const = 0;
+    virtual std::ostream& short_print(std::ostream &stream) const = 0;
     virtual ast_token_list tokens() const = 0;
 
     //km2::abstract_node

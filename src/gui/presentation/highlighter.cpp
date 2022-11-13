@@ -21,7 +21,7 @@ void Highlighter::setFormatBySegment(const qsizetype &blockTextSize, const wall_
 
 Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent) {
     connect(this, &Highlighter::errorsChanged, this, [this, parent](){ rehighlight(); });
-    parent->setDefaultFont(QFont("Source Code Pro"));
+    parent->setDefaultFont(QFont("Source Code Pro", 10));
     auto defaultTextOption = parent->defaultTextOption();
     defaultTextOption.setTabStopDistance(parent->defaultFont().pointSize() * 3);
     parent->setDefaultTextOption(defaultTextOption);

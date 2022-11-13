@@ -40,4 +40,3 @@ std::vector<std::shared_ptr<km2::abstract_node>> km2::abstract_node::children() 
 
 const km2::backend::context &km2::abstract_node::ctx() const { return m_context; }
 const wall_e::index &km2::abstract_node::index() const { return m_index; }
-

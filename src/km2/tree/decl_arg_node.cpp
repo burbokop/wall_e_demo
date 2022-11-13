@@ -35,21 +35,8 @@ wall_e::gram::argument km2::decl_arg_node::create(const wall_e::gram::arg_vector
     return std::make_shared<decl_arg_node>(index, std::string(), wall_e::text_segment(), nullptr, false);
 }
 
-
-void km2::decl_arg_node::print(size_t level, std::ostream &stream) const {
-    stream << std::string(level, ' ') << "{decl_arg_node}:" << std::endl;
-    stream << std::string(level + 1, ' ') << "name: " << m_name << std::endl;
-    if(m_type_node) {
-        m_type_node->print(level + 1, stream);
-    } else if(m_is_variadic) {
-        stream << std::string(level + 1, ' ') << "is variadic" << std::endl;
-    } else {
-        stream << std::string(level + 1, ' ') << "not variadic & type missing" << std::endl;
-    }
-}
-
-void km2::decl_arg_node::short_print(std::ostream &stream) const {
-    stream << "decl_arg_node { name: " << m_name << ", is_variadic: " << m_is_variadic << " }";
+std::ostream &km2::decl_arg_node::short_print(std::ostream &stream) const {
+    return stream << "decl_arg_node { name: " << m_name << ", is_variadic: " << m_is_variadic << " }";
 }
 
 
@@ -69,4 +56,32 @@ wall_e::list<km2::ast_token> km2::decl_arg_node::tokens() const {
             .segment = m_name_segment
         }
     } + (m_type_node ? m_type_node->tokens() : wall_e::list<ast_token> {});
+}
+
+
+std::ostream &km2::decl_arg_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
+    if(fmt == Simple) {
+        stream << std::string(ctx.level(), ' ') << "{decl_arg_node}:" << std::endl;
+        stream << std::string(ctx.level() + 1, ' ') << "name: " << m_name << std::endl;
+        if(m_type_node) {
+            m_type_node->write(stream, fmt, ctx.new_child("type"));
+        } else if(m_is_variadic) {
+            stream << std::string(ctx.level() + 1, ' ') << "is variadic" << std::endl;
+        } else {
+            stream << std::string(ctx.level() + 1, ' ') << "not variadic & type missing" << std::endl;
+        }
+    } else if(fmt == TreeWriter) {
+        stream << ctx.node_begin()
+               << "decl_arg_node "
+               << "{ name: " << m_name
+               << (m_type_node ? "" : (m_is_variadic ? ", is variadic" : ", not variadic & no type"))
+               << " }"
+               << ctx.node_end()
+               << ctx.edge();
+
+        if(m_type_node) {
+            m_type_node->write(stream, fmt, ctx.new_child("type"));
+        }
+    }
+    return stream;
 }

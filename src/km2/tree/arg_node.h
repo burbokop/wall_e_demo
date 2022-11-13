@@ -13,16 +13,15 @@ class arg_node : public km2::abstract_value_node {
 public:
     typedef abstract_value_node super_type;
 
-    enum type {
+    wall_e_enum_member(type,
         Id,
         IntLiteral,
         FloatLiteral,
         StringLiteral,
         ValueNode,
         Undefined
-    };
+    )
 
-    static std::string type_string(const type& t);
 private:
     type m_type;
     std::string m_text;
@@ -48,13 +47,13 @@ public:
         wall_e::error,
         backend::value*
     > generate_backend_value(const std::shared_ptr<backend::unit> &unit) override;
-    virtual void print(size_t level, std::ostream &stream) const override;
     virtual wall_e::list<wall_e::error> errors() const override;
 
     // abstract_node interface
 public:
-    virtual void short_print(std::ostream &stream) const override;
+    virtual std::ostream &short_print(std::ostream &stream) const override;
     virtual wall_e::list<ast_token> tokens() const override;
+    virtual std::ostream &write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const override;
 };
 
 } // namespace km2

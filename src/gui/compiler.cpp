@@ -23,7 +23,6 @@ void Compiler::recompile() {
     if(!backend().valid()) {
         addErrors({ CompilationError(wall_e::error("backend not choosed", wall_e::error::warn)) });
     }
-    qDebug() << "RRRRRRRRRRRRRR:" << verbose();
 
     km2::flags flags;
     if(verbose()) {

@@ -39,27 +39,12 @@ wall_e::either<
     return wall_e::right<backend::value*>(nullptr);
 }
 
-void km2::internal_block_node::print(size_t level, std::ostream &stream) const {
-    stream << std::string(level, ' ') << "{internal_block_node}:" << std::endl;
-    if(m_stmt) {
-        m_stmt->print(level + 1, stream);
-    } else {
-        stream << std::string(level + 1, ' ') + "stmt not exist" << std::endl;
-    }
-    if(m_next_node) {
-        m_next_node->print(level + 1, stream);
-    } else {
-        stream << std::string(level + 1, ' ') + "next node not exist" << std::endl;
-    }
-}
-
-
 wall_e::list<wall_e::error> km2::internal_block_node::errors() const {
     return { wall_e::error("err not implemented") };
 }
 
-void km2::internal_block_node::short_print(std::ostream &stream) const {
-    stream << "internal_block_node { recursive content }";
+std::ostream &km2::internal_block_node::short_print(std::ostream &stream) const {
+    return stream << "internal_block_node { recursive content }";
 }
 
 
@@ -67,4 +52,37 @@ wall_e::list<km2::ast_token> km2::internal_block_node::tokens() const {
     return
             (m_stmt ? m_stmt->tokens() : wall_e::list<ast_token> {}) +
             (m_next_node ? m_next_node->tokens() : wall_e::list<ast_token> {});
+}
+
+
+std::ostream &km2::internal_block_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
+    if(fmt == Simple) {
+        stream << std::string(ctx.level(), ' ') << "{internal_block_node}:" << std::endl;
+        if(m_stmt) {
+            m_stmt->write(stream, fmt, ctx.new_child("stmt"));
+        } else {
+            stream << std::string(ctx.level(), ' ') + "stmt not exist" << std::endl;
+        }
+        if(m_next_node) {
+            m_next_node->write(stream, fmt, ctx.new_child(""));
+        } else {
+            stream << std::string(ctx.level() + 1, ' ') + "next node not exist" << std::endl;
+        }
+    } else if(fmt == TreeWriter) {
+        stream << ctx.node_begin()
+               << "internal_block_node { "
+               << (m_stmt ? std::string() : std::string("no statement") + (m_next_node ? "" : ", "))
+               << (m_next_node ? "" : "no next node")
+               << " }"
+               << ctx.node_end()
+               << ctx.edge();
+
+        if(m_stmt) {
+            m_stmt->write(stream, fmt, ctx.new_child("stmt"));
+        }
+        if(m_next_node) {
+            m_next_node->write(stream, fmt, ctx.new_child(""));
+        }
+    }
+    return stream;
 }

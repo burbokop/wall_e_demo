@@ -28,6 +28,8 @@ class KGramTreeView : public QQuickPaintedItem {
 public:
     KGramTreeView(QQuickItem *parent = nullptr);
 
+public slots:
+    void openInBrowser();
 
     // QObject interface
 protected:

@@ -91,30 +91,12 @@ wall_e::either<
     }
 }
 
-void km2::proto_node::print(size_t level, std::ostream &stream) const {
-    stream << std::string(level, ' ') << "{proto_node}:" << std::endl;
-    stream << std::string(level + 1, ' ') << "name: " << m_name << std::endl;
-    for(const auto& arg : m_args) {
-        if(arg) {
-            arg->print(level + 1, stream);
-        } else {
-            stream << std::string(level + 1, ' ') << "arg node missing" << std::endl;
-        }
-    }
-    if(m_result_type_node) {
-        m_result_type_node->print(level + 1, stream);
-    } else {
-        stream << std::string(level + 1, ' ') << "result type node missing" << std::endl;
-    }
-}
-
-
 wall_e::list<wall_e::error> km2::proto_node::errors() const {
     return { wall_e::error("err not implemented") };
 }
 
-void km2::proto_node::short_print(std::ostream &stream) const {
-    stream << "proto_node: { name: " << m_name << " }";
+std::ostream &km2::proto_node::short_print(std::ostream &stream) const {
+    return stream << "proto_node: { name: " << m_name << " }";
 }
 
 
@@ -131,4 +113,45 @@ km2::ast_token_list km2::proto_node::tokens() const {
         },
     } + tokens_from_node_list(m_args)
     + (m_result_type_node ? m_result_type_node->tokens() : ast_token_list {});
+}
+
+
+std::ostream &km2::proto_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
+    if(fmt == Simple) {
+        stream << std::string(ctx.level(), ' ') << "{proto_node}:" << std::endl;
+        stream << std::string(ctx.level() + 1, ' ') << "name: " << m_name << std::endl;
+        for(const auto& arg : m_args) {
+            if(arg) {
+                arg->write(stream, fmt, ctx.new_child("arg"));
+            } else {
+                stream << std::string(ctx.level() + 1, ' ') << "arg node missing" << std::endl;
+            }
+        }
+        if(m_result_type_node) {
+            m_result_type_node->write(stream, fmt, ctx.new_child("result type"));
+        } else {
+            stream << std::string(ctx.level() + 1, ' ') << "result type node missing" << std::endl;
+        }
+    } else if(fmt == TreeWriter) {
+        stream << ctx.node_begin()
+               << "proto_node { name: " << m_name << (m_result_type_node ? "" : ", no result type node") << " }"
+               << ctx.node_end()
+               << ctx.edge();
+
+        for(const auto& arg : m_args) {
+            const auto child_ctx = ctx.new_child("arg");
+            if(arg) {
+                arg->write(stream, fmt, child_ctx);
+            } else {
+                stream << child_ctx.node_begin()
+                       << "[null arg]"
+                       << child_ctx.node_end()
+                       << child_ctx.edge();
+            }
+        }
+        if(m_result_type_node) {
+            m_result_type_node->write(stream, fmt, ctx.new_child("result type"));
+        }
+    }
+    return stream;
 }

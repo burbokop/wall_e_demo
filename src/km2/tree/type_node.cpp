@@ -4,17 +4,6 @@
 #include <src/km2/backend/unit/capabilities/constants_capability.h>
 #include <src/km2/backend/unit/capabilities/type_capability.h>
 
-std::string km2::type_node::type_string(type t) {
-    switch (t) {
-    case Unsigned: return "Unsigned";
-    case Signed: return "Signed";
-    case Float: return "Float";
-    case Double: return "Double";
-    case String: return "String";
-    case Undefined: return "Undefined";
-    }
-    return "Undefined";
-}
 
 wall_e::opt<uint16_t> km2::type_node::parse_integer_type(const std::string &str) {
     if(str.size() > 1) {
@@ -89,18 +78,12 @@ wall_e::either<wall_e::error, km2::backend::type*> km2::type_node::generate_back
     return wall_e::left(wall_e::error("unknown type_node type"));
 }
 
-void km2::type_node::print(size_t level, std::ostream &stream) const {
-    stream << std::string(level, ' ') << "{type_node}:" << std::endl;
-    stream << std::string(level + 1, ' ') << "type: " << type_string(m_type) << std::endl;
-    stream << std::string(level + 1, ' ') << "bits: " << m_bits << std::endl;
-}
-
 wall_e::list<wall_e::error> km2::type_node::errors() const {
     return { wall_e::error("err not implemented") };
 }
 
-void km2::type_node::short_print(std::ostream &stream) const {
-    stream << "type_node { type: " << m_type << ", bits: " << m_bits << " }";
+std::ostream &km2::type_node::short_print(std::ostream &stream) const {
+    return stream << "type_node { type: " << m_type << ", bits: " << m_bits << " }";
 }
 
 
@@ -115,4 +98,22 @@ km2::ast_token_list km2::type_node::tokens() const {
             .segment = this->segment()
         }
     };
+}
+
+
+std::ostream &km2::type_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
+    if(fmt == Simple) {
+        stream << std::string(ctx.level(), ' ') << "{type_node}:" << std::endl;
+        stream << std::string(ctx.level() + 1, ' ') << "type: " << m_type << std::endl;
+        stream << std::string(ctx.level() + 1, ' ') << "bits: " << m_bits << std::endl;
+    } else if(fmt == TreeWriter) {
+        stream << ctx.node_begin()
+               << "type_node: "
+               << "{ type: " << m_type
+               << ", bits: " << m_bits
+               << " }"
+               << ctx.node_end()
+               << ctx.edge();
+    }
+    return stream;
 }

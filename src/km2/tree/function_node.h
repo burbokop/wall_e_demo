@@ -34,13 +34,13 @@ public:
         wall_e::error,
         backend::value*
     > generate_backend_value(const std::shared_ptr<backend::unit> &unit) override;
-    virtual void print(size_t level, std::ostream &stream) const override;
 
     // abstract_node interface
 public:
     virtual wall_e::list<wall_e::error> errors() const override;
-    virtual void short_print(std::ostream &stream) const override;
+    virtual std::ostream &short_print(std::ostream &stream) const override;
     virtual wall_e::list<ast_token> tokens() const override;
+    virtual std::ostream &write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const override;
 };
 
 } // namespace km2

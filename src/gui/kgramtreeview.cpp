@@ -1,4 +1,5 @@
 #include "kgramtreeview.h"
+#include "wall_e/src/utility/tree_view_tools.h"
 
 #include <QPaintEvent>
 #include <QPainter>
@@ -6,6 +7,7 @@
 #include <wall_e/src/gram.h>
 #include <src/km2/km2.h>
 #include <src/km2/tree/abstract/abstract_node.h>
+#include <QDesktopServices>
 #include <QQmlListProperty>
 
 KGramTreeView::KGramTreeView(QQuickItem *parent) : QQuickPaintedItem(parent) {
@@ -34,6 +36,24 @@ void KGramTreeView::paint(QPainter *painter) {
     if(tree()) {
         drawBranch(tree()->data(), m_treeX, m_treeY, spacingMultiplier, painter);
     }
+
+}
+
+void KGramTreeView::openInBrowser() {
+    std::stringstream ss;
+
+    if(const auto ast_node = tree()->data().option_cast<std::shared_ptr<km2::abstract_node>>()) {
+        wall_e::graphviz_tree_writer writer;
+        ss << "digraph G {" << std::endl;
+        (*ast_node)->write(ss, km2::abstract_node::TreeWriter, writer.root());
+        ss << "}" << std::endl;
+    } else {
+        wall_e::write_tree(tree()->data(), ss, wall_e::Graphviz);
+    }
+
+    QUrl url = QUrl("https://dreampuf.github.io/GraphvizOnline/");
+    url.setFragment(QString::fromStdString(ss.str()));
+    QDesktopServices::openUrl(url);
 }
 
 int KGramTreeView::stringRadius(const std::string &string) {

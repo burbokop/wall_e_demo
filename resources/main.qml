@@ -302,6 +302,14 @@ Window {
                         focus: true
                         anchors.fill: parent
                         visible: appCore.mode === AppCore.ModeTree
+
+                        ToolBarButton {
+                            text: 'O'
+                            anchors.top: parent.top
+                            anchors.right: parent.right
+                            anchors.margins: 5
+                            onClicked: treeWiev.openInBrowser()
+                        }
                     }
 
                     InfoArea {

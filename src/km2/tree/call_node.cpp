@@ -9,15 +9,18 @@
 #include "wall_e/src/macro.h"
 
 
-km2::call_node::call_node(const wall_e::index &index,
+km2::call_node::call_node(
+        const wall_e::index &index,
+        const wall_e::lex::token_vec& namespace_stack,
         const std::string &name,
         const wall_e::vec<std::shared_ptr<abstract_value_node> > &args,
         const wall_e::text_segment& name_segment
-        ) : km2::abstract_value_node(index, cast_to_children(args)) {
-    m_name = name;
-    m_args = args;
-    m_name_segment = name_segment;
-}
+        )
+    : km2::abstract_value_node(index, cast_to_children(args)),
+      m_namespace_stack(namespace_stack),
+      m_name(name),
+      m_args(args),
+      m_name_segment(name_segment) {}
 
 wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
     if(debug) std::cout << "km2::call_node::create: " << args << std::endl;
@@ -29,15 +32,15 @@ wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &ar
             const auto constrained_args = args[3].constrain();
             const auto function_args = wall_e::remove_tokens(constrained_args, { "EP" });
 
-            wall_e::str_list namespace_stack;
-            for(const auto& n : namespaces) {
+            const auto& namespace_stack = namespaces
+                    .filter_map<wall_e::lex::token>([](const wall_e::variant& n) -> wall_e::opt<wall_e::lex::token> {
                 if(const auto& nt = n.option<wall_e::lex::token>()) {
                     if(nt->name == "TOK_ID") {
-                        namespace_stack.push_back(nt->text);
+                        return nt;
                     }
                 }
-            }
-            std::cout << "namespace_stack: " << namespace_stack << std::endl;
+                return std::nullopt;
+            });
 
             wall_e::vec<std::shared_ptr<abstract_value_node>> funcArgs;
             funcArgs.reserve(function_args.size());
@@ -49,13 +52,14 @@ wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &ar
 
             return std::make_shared<call_node>(
                         index,
+                        namespace_stack,
                         function_name_token->text,
                         funcArgs,
                         function_name_token->segment()
                         );
         }
     }
-    return std::make_shared<call_node>(index, std::string(), wall_e::vec<std::shared_ptr<km2::abstract_value_node>>(), wall_e::text_segment());
+    return std::make_shared<call_node>(index, wall_e::lex::token_vec {}, std::string(), wall_e::vec<std::shared_ptr<km2::abstract_value_node>>(), wall_e::text_segment());
 }
 
 
@@ -128,32 +132,30 @@ wall_e::either<
     }
 }
 
-
-
-void km2::call_node::print(size_t level, std::ostream &stream) const {
-    stream << std::string(level, ' ') << "{call_node}:" << std::endl;
-    stream << std::string(level + 1, ' ') << "name: " << m_name << std::endl;
-    for(const auto &arg : m_args) {
-        if(arg) {
-            arg->print(level + 1, stream);
-        } else {
-            stream << std::string(level + 1, ' ') << "null arg" << std::endl;
-        }
-    }
-}
-
-
 wall_e::list<wall_e::error> km2::call_node::errors() const {
     return {};
 }
 
-void km2::call_node::short_print(std::ostream &stream) const {
-    stream << "call_node { name: " << m_name << " }";
+std::ostream &km2::call_node::short_print(std::ostream &stream) const {
+    return stream << "call_node { name: " << m_name << " }";
 }
 
 km2::ast_token_list km2::call_node::tokens() const {
     using namespace km2::literals;
-    return ast_token_list {
+
+    ast_token_list namespace_tokens;
+    for(const auto &n : m_namespace_stack) {
+        namespace_tokens.push_back(ast_token {
+                                       .type = AstNamespace,
+                                       .modifier = wall_e::enums::max_value<ast_token_modifier>(),
+                                       .node_type = wall_e::type_name<call_node>(),
+                                       .hover = "**namespace** "_md + n.text,
+                                       .text = n.text,
+                                       .segment = n.segment()
+                                   });
+    }
+
+    return std::move(namespace_tokens) + ast_token_list {
         ast_token {
             .type = AstFunction,
             .modifier = wall_e::enums::max_value<ast_token_modifier>(),
@@ -163,4 +165,44 @@ km2::ast_token_list km2::call_node::tokens() const {
             .segment = m_name_segment
         },
     } + tokens_from_node_list(m_args);
+}
+
+
+std::ostream &km2::call_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
+    std::string full_name;
+    if(m_namespace_stack.size() > 0) {
+        full_name = m_namespace_stack.map_member<std::string>(&wall_e::lex::token::text).join("::") + "::" + m_name;
+    } else {
+        full_name = m_name;
+    }
+
+    if(fmt == Simple) {
+        stream << std::string(ctx.level(), ' ') << "{call_node}:" << std::endl;
+        stream << std::string(ctx.level() + 1, ' ') << "name: " << m_name << std::endl;
+        for(const auto &arg : m_args) {
+            if(arg) {
+                arg->write(stream, fmt, ctx.new_child("arg"));
+            } else {
+                stream << std::string(ctx.level() + 1, ' ') << "null arg" << std::endl;
+            }
+        }
+    } else if(fmt == TreeWriter) {
+        stream << ctx.node_begin()
+               << "call_node: { " << "name: " << full_name << " }"
+               << ctx.node_end()
+               << ctx.edge();
+
+        for(const auto &arg : m_args) {
+            const auto child_ctx = ctx.new_child("arg");
+            if(arg) {
+                arg->write(stream, fmt, child_ctx);
+            } else {
+                stream << child_ctx.node_begin()
+                       << "[null arg]"
+                       << child_ctx.node_end()
+                       << child_ctx.edge();
+            }
+        }
+    }
+    return stream;
 }

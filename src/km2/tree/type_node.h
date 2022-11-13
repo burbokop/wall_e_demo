@@ -10,16 +10,14 @@ class type_node : public km2::abstract_type_node {
 public:
     typedef km2::abstract_type_node super_type;
 
-    enum type {
+    wall_e_enum_member(type,
         Unsigned,
         Signed,
         Float,
         Double,
         String,
         Undefined
-    };
-
-    static std::string type_string(type  t);
+    )
 
 private:
     const type m_type = Undefined;
@@ -46,10 +44,10 @@ public:
 
     // abstract_node interface
 public:
-    virtual void print(size_t level, std::ostream &stream) const override;
-    virtual void short_print(std::ostream &stream) const override;
+    virtual std::ostream &short_print(std::ostream &stream) const override;
     virtual wall_e::list<wall_e::error> errors() const override;
     virtual wall_e::list<ast_token> tokens() const override;
+    virtual std::ostream &write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const override;
 };
 
 } // namespace km2

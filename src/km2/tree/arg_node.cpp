@@ -10,18 +10,6 @@
 #include "wall_e/src/color.h"
 
 
-std::string km2::arg_node::type_string(const type &t) {
-    switch (t) {
-    case Id: return "Id";
-    case IntLiteral: return "IntLiteral";
-    case FloatLiteral: return "FloatLiteral";
-    case StringLiteral: return "StringLiteral";
-    case ValueNode: return "ValueNode";
-    case Undefined: return "Undefined";
-    }
-    return "Undefined";
-}
-
 km2::arg_node::arg_node(
         const wall_e::index& index,
         const wall_e::text_segment& segment,
@@ -135,24 +123,12 @@ wall_e::either<
     return wall_e::left(wall_e::error("unknown arg type"));
 }
 
-void km2::arg_node::print(size_t level, std::ostream &stream) const {
-    stream << std::string(level, ' ') << "{arg_node}:" << std::endl;
-    stream << std::string(level + 1, ' ') << "type: " << type_string(m_type) << std::endl;
-    stream << std::string(level + 1, ' ') << "text: " << m_text << std::endl;
-    if (m_value_node) {
-        m_value_node->print(level + 1, stream);
-    } else {
-        stream << std::string(level + 1, ' ') << "value node is empty" << std::endl;
-    }
-}
-
-
 wall_e::list<wall_e::error> km2::arg_node::errors() const {
     return {};
 }
 
-void km2::arg_node::short_print(std::ostream &stream) const {
-    stream << "arg_node { type: " << m_type << ", text: " << m_text << " }";
+std::ostream &km2::arg_node::short_print(std::ostream &stream) const {
+    return stream << "arg_node { type: " << m_type << ", text: " << m_text << " }";
 }
 
 km2::ast_token_list km2::arg_node::tokens() const {
@@ -171,4 +147,32 @@ km2::ast_token_list km2::arg_node::tokens() const {
             }
         };
     }
+}
+
+
+std::ostream &km2::arg_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
+    if(fmt == Simple) {
+        stream << std::string(ctx.level(), ' ') << "{arg_node}:" << std::endl;
+        stream << std::string(ctx.level() + 1, ' ') << "type: " << m_type << std::endl;
+        stream << std::string(ctx.level() + 1, ' ') << "text: " << m_text << std::endl;
+        if (m_value_node) {
+            m_value_node->write(stream, fmt, ctx.new_child("value"));
+        } else {
+            stream << std::string(ctx.level() + 1, ' ') << "value node is empty" << std::endl;
+        }
+    } else if(fmt == TreeWriter) {
+        stream << ctx.node_begin()
+               << "arg_node "
+               << "{ type: " << m_type
+               << ", text: " << (m_type == StringLiteral ? wall_e::lex::encode_special_syms(m_text) : m_text)
+               << (m_value_node ? "" : ", no value node")
+               << " }"
+               << ctx.node_end()
+               << ctx.edge();
+
+        if (m_value_node) {
+            m_value_node->write(stream, fmt, ctx.new_child("value"));
+        }
+    }
+    return stream;
 }

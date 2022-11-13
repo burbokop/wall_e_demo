@@ -18,6 +18,7 @@
 #include <src/km2/utility/function.h>
 #include <wall_e/src/utility/token_tools.h>
 #include <wall_e/src/private/gram_smp.h>
+#include "src/km2/tree/stmt_node.h"
 #include "tree/namespace_node.h"
 #include "tree/call_node.h"
 #include "tree/function_node.h"
@@ -245,33 +246,44 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
 
 
     if(__flags.verbose) {
-        std::cout << "result type: " << right.type() << std::endl;
-        std::cout << "result lineage: " << right.lineage() << std::endl;
+        std::cout << "gram result type: " << right.type() << std::endl;
+        std::cout << "gram result lineage: " << right.lineage() << std::endl;
 
-        std::cout << "--- TREE --- ---" << std::endl;
-        wall_e::write_tree(right, std::cout, wall_e::tree_print_format::Simple);
-        std::cout << "--- TREE END ---" << std::endl;
+        if(__flags.tree_mode) {
+            std::cout << "--- TOKEN TREE --- ---" << std::endl;
+            wall_e::write_tree(right, std::cout, wall_e::tree_print_format::Simple);
+            std::cout << "--- TOKEN TREE GRAPHVIZ ---" << std::endl;
+            wall_e::write_tree(right, std::cout, wall_e::tree_print_format::Graphviz);
+            std::cout << "--- TOKEN TREE END ---" << std::endl;
+        }
 
         std::cout << "\n -------------- GRAM END --------------\n\n";
     }
-
-    wall_e::write_tree(right, std::cout, wall_e::tree_print_format::Graphviz);
 
     if(right.contains_type<std::shared_ptr<km2::namespace_node>>()) {
         if(const auto node = right.value<std::shared_ptr<km2::namespace_node>>()) {
             const auto errors = node->errors();
 
             if(errors.size() > 0) {
-                std::cout << wall_e::red << "FOUND ERRORS OF LEVEL 1: " << errors << wall_e::color::reset() << std::endl;
+                if(__flags.verbose) {
+                    std::cout << wall_e::red << "FOUND ERRORS OF LEVEL 1: " << errors << wall_e::color::reset() << std::endl;
+                }
                 return compilation_result(sorted_tokens, wall_e::gram::pattern::to_string(gram_list), right, {}, {}, {}, errors, log);
             } else {
-                std::cout << wall_e::green << "NO ERRORS OF LEVEL 1" << wall_e::color::reset() << std::endl;
+                if(__flags.verbose) {
+                    std::cout << wall_e::green << "NO ERRORS OF LEVEL 1" << wall_e::color::reset() << std::endl;
+                }
             }
 
             if(__flags.verbose) {
-                std::cout << "AST:" << std::endl;
+                std::cout << "AST --------" << std::endl;
+                node->write(std::cout, abstract_node::Simple, wall_e::tree_writer::context::detached());
+                std::cout << "AST GRAPHVIZ" << std::endl;
+
+                wall_e::graphviz_tree_writer writer;
+                node->write(std::cout, abstract_node::TreeWriter, writer.root());
+                std::cout << "AST END ----" << std::endl;
             }
-            node->print(0, std::cout);
             if(__flags.verbose) {
                 std::cout << "BACKEND: " << b << std::endl;
             }

@@ -13,6 +13,9 @@ wall_e::gram::argument km2::stmt_node::create(const wall_e::gram::arg_vector &ar
     if(debug) std::cout << wall_e::type_name<stmt_node>() << "::create: " << args << std::endl;
     if(args.size() > 0) {
         if(debug) std::cout << "km2::cmd_node::create 1: " << args[0] << std::endl;
+        std::cout << "args[0]: " << args[0] << std::endl;
+        std::cout << "args[0].type: " << args[0].type() << std::endl;
+        std::cout << "args[0].lineage: " << args[0].lineage() << std::endl;
         const auto node = args[0].option_cast<std::shared_ptr<abstract_value_node>>();
         if(node.has_value()) {
             if(debug) std::cout << "km2::cmd_node::create 2: " << node.value() << std::endl;
@@ -30,17 +33,6 @@ wall_e::either<wall_e::error, km2::backend::value*> km2::stmt_node::generate_bac
     return wall_e::left(wall_e::error("cmd node not exist"));
 }
 
-
-void km2::stmt_node::print(size_t level, std::ostream &stream) const {
-    stream << std::string(level, ' ') << "{stmt_node}:" << std::endl;
-    if(m_node) {
-        m_node->print(level + 1, stream);
-    } else {
-        stream << std::string(level + 1, ' ') + "node not exist" << std::endl;
-    }
-}
-
-
 wall_e::list<wall_e::error> km2::stmt_node::errors() const {
     return { wall_e::error("err not implemented") };
 }
@@ -49,6 +41,27 @@ const km2::backend::context &km2::stmt_node::context() const {
     return m_context;
 }
 
-void km2::stmt_node::short_print(std::ostream &stream) const {
-    stream << "stmt_node { recursive content }";
+std::ostream &km2::stmt_node::short_print(std::ostream &stream) const {
+    return stream << "stmt_node { recursive content }";
+}
+
+
+std::ostream &km2::stmt_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
+    if(fmt == Simple) {
+        stream << std::string(ctx.level(), ' ') << "{stmt_node}:" << std::endl;
+        if(m_node) {
+            m_node->write(stream, fmt, ctx.new_child(""));
+        } else {
+            stream << std::string(ctx.level() + 1, ' ') + "node not exist" << std::endl;
+        }
+    } else if(fmt == TreeWriter) {
+        stream << ctx.node_begin()
+               << "stmt_node: { " << (m_node ? "" : "no node") << " }"
+               << ctx.node_end()
+               << ctx.edge();
+        if(m_node) {
+            m_node->write(stream, fmt, ctx.new_child(""));
+        }
+    }
+    return stream;
 }

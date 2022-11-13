@@ -96,36 +96,12 @@ wall_e::either<
     return wall_e::right<backend::value*>(proto);
 }
 
-void km2::function_node::print(size_t level, std::ostream &stream) const {
-    stream << std::string(level, ' ') << "{function_node}:" << std::endl;
-    if(const auto ns = nearest_ancestor<namespace_node>()) {
-        stream << std::string(level + 1, ' ') << "name: " << wall_e::lex::join(ns->full_name(), "::") << "::" << m_name << std::endl;
-    } else {
-        stream << std::string(level + 1, ' ') << "name: " << m_name << std::endl;
-    }
-    stream << std::string(level + 1, ' ') << "args: " << std::endl;
-
-    for(const auto& a : m_args) {
-        if(a) {
-            a->print(level + 1, stream);
-        } else {
-            stream << std::string(level + 1, ' ') + "null arg" << std::endl;
-        }
-    }
-    stream << std::string(level + 1, ' ') << "body: " << std::endl;
-    if(m_body) {
-        m_body->print(level + 1, stream);
-    } else {
-        stream << std::string(level + 1, ' ') + "body not exist" << std::endl;
-    }
-}
-
 wall_e::list<wall_e::error> km2::function_node::errors() const {
     return {};
 }
 
-void km2::function_node::short_print(std::ostream &stream) const {
-    stream << "function_node { name: " << m_name << ", args: " << m_args << " }";
+std::ostream &km2::function_node::short_print(std::ostream &stream) const {
+    return stream << "function_node { name: " << m_name << ", args: " << m_args << " }";
 }
 
 km2::ast_token_list km2::function_node::tokens() const {    
@@ -141,4 +117,59 @@ km2::ast_token_list km2::function_node::tokens() const {
         },
     } + tokens_from_node_list(m_args)
     + (m_body ? m_body->tokens() : ast_token_list {});
+}
+
+
+std::ostream &km2::function_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
+    std::string full_name;
+    if(const auto ns = nearest_ancestor<namespace_node>()) {
+        full_name = wall_e::lex::join(ns->full_name(), "::") + "::" + m_name;
+    } else {
+        full_name = m_name;
+    }
+
+    if(fmt == Simple) {
+        stream << std::string(ctx.level(), ' ') << "{function_node}:" << std::endl;
+        if(const auto ns = nearest_ancestor<namespace_node>()) {
+            stream << std::string(ctx.level() + 1, ' ') << "name: " << wall_e::lex::join(ns->full_name(), "::") << "::" << m_name << std::endl;
+        } else {
+            stream << std::string(ctx.level() + 1, ' ') << "name: " << m_name << std::endl;
+        }
+        stream << std::string(ctx.level() + 1, ' ') << "args: " << std::endl;
+
+        for(const auto& a : m_args) {
+            if(a) {
+                a->write(stream, fmt, ctx.new_child("arg"));
+            } else {
+                stream << std::string(ctx.level() + 1, ' ') + "null arg" << std::endl;
+            }
+        }
+        stream << std::string(ctx.level() + 1, ' ') << "body: " << std::endl;
+        if(m_body) {
+            m_body->write(stream, fmt, ctx.new_child("body"));
+        } else {
+            stream << std::string(ctx.level() + 1, ' ') + "body not exist" << std::endl;
+        }
+    } else if(fmt == TreeWriter) {
+        stream << ctx.node_begin()
+               << "function_node { name: " << full_name << (m_body ? "" : ", no body") << " }"
+               << ctx.node_end()
+               << ctx.edge();
+
+        for(const auto& a : m_args) {
+            const auto child_ctx = ctx.new_child("arg");
+            if(a) {
+                a->write(stream, fmt, child_ctx);
+            } else {
+                stream << child_ctx.node_begin()
+                       << "[null arg]"
+                       << child_ctx.node_end()
+                       << child_ctx.edge();
+            }
+        }
+        if(m_body) {
+            m_body->write(stream, fmt, ctx.new_child("body"));
+        }
+    }
+    return stream;
 }

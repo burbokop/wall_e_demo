@@ -7,12 +7,17 @@
 #include "arg_node.h"
 #include <src/km2/backend/entities/value.h>
 
-km2::const_node::const_node(const wall_e::index& index, const std::string &keyword_text, const wall_e::text_segment &keyword_segment,
+km2::const_node::const_node(
+        const wall_e::index& index,
+        const std::string &keyword_text,
+        const wall_e::text_segment &keyword_segment,
         const std::string &id,
         const wall_e::text_segment &id_segment,
         const std::shared_ptr<arg_node> &value
         )
     : km2::abstract_value_node(index, { value }),
+      m_keyword_text(keyword_text),
+      m_keyword_segment(keyword_segment),
       m_id(id),
       m_id_segment(id_segment),
       m_value(value) {}
@@ -32,16 +37,6 @@ wall_e::gram::argument km2::const_node::create(const wall_e::gram::arg_vector &a
         }
     }
     return std::make_shared<const_node>(index, std::string(), wall_e::text_segment(), std::string(), wall_e::text_segment());
-}
-
-void km2::const_node::print(size_t level, std::ostream &stream) const {
-    stream << std::string(level, ' ') << "{const_node}:" << std::endl;
-    stream << std::string(level + 1, ' ') + m_id << std::endl;
-    if(m_value) {
-        m_value->print(level + 1, stream);
-    } else {
-        stream << std::string(level + 1, ' ') + "value node not exist" << std::endl;
-    }
 }
 
 wall_e::list<wall_e::error> km2::const_node::errors() const {
@@ -66,8 +61,8 @@ wall_e::either<wall_e::error, km2::backend::value*> km2::const_node::generate_ba
     }
 }
 
-void km2::const_node::short_print(std::ostream &stream) const {
-    stream << "const_node { id: " << m_id << " }";
+std::ostream &km2::const_node::short_print(std::ostream &stream) const {
+    return stream << "const_node { id: " << m_id << " }";
 }
 
 wall_e::list<km2::ast_token> km2::const_node::tokens() const {
@@ -91,4 +86,27 @@ wall_e::list<km2::ast_token> km2::const_node::tokens() const {
             .segment = m_id_segment
         }
     } + (m_value ? m_value->tokens() : wall_e::list<km2::ast_token> {});
+}
+
+
+std::ostream &km2::const_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
+    if(fmt == Simple) {
+        stream << std::string(ctx.level(), ' ') << "{const_node}:" << std::endl;
+        stream << std::string(ctx.level() + 1, ' ') + m_id << std::endl;
+        if(m_value) {
+            m_value->write(stream, fmt, ctx.new_child("value"));
+        } else {
+            stream << std::string(ctx.level() + 1, ' ') + "value node not exist" << std::endl;
+        }
+    } else if(fmt == TreeWriter) {
+        stream << ctx.node_begin()
+               << "const_node { id: " << m_id << (m_value ? "" : ", no value node") << " }"
+               << ctx.node_end()
+               << ctx.edge();
+
+        if(m_value) {
+            m_value->write(stream, fmt, ctx.new_child("value"));
+        }
+    }
+    return stream;
 }

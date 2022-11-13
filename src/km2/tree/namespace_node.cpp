@@ -10,13 +10,17 @@
 
 
 km2::namespace_node::namespace_node(const wall_e::index &index,
+        const wall_e::opt<std::string> &exp_keyword,
+        const wall_e::text_segment &exp_keyword_segment,
         const std::string &keyword,
         const wall_e::text_segment &keyword_segment,
         const std::string &name,
         const wall_e::text_segment &name_segment,
         const std::shared_ptr<block_node>& block_node
-        , const bool exp)
+        )
     : abstract_value_node(index, { block_node }),
+      m_exp_keyword(exp_keyword),
+      m_exp_keyword_segment(exp_keyword_segment),
       m_keyword(keyword),
       m_keyword_segment(keyword_segment),
       m_name(name),
@@ -29,7 +33,7 @@ km2::abstract_node::factory km2::namespace_node::create(const std::string& exp_t
         if(debug) std::cout << wall_e::type_name<namespace_node>() << "::create: " << args << std::endl;
         if (args.size() > 3) {
             const auto exp = args[0].option<wall_e::lex::token>()
-                    .exists([exp_token](const wall_e::lex::token& t) { return t.name == exp_token; });
+                    .filter([exp_token](const wall_e::lex::token& t) { return t.name == exp_token; });
 
             if(const auto& keyword_token = args[1].option<wall_e::lex::token>()) {
                 if(const auto& name_with_ob = args[2].option<wall_e::gram::arg_vector>()) {
@@ -38,12 +42,13 @@ km2::abstract_node::factory km2::namespace_node::create(const std::string& exp_t
                         if(name_with_ob->size() > 1 && name_or_ob->name == name_token) {
                             return std::make_shared<namespace_node>(
                                         index,
+                                        exp.map<std::string>([](const wall_e::lex::token& t){ return t.text; }),
+                                        exp.map<wall_e::text_segment>([](const wall_e::lex::token& t){ return t.segment(); }).value_or(wall_e::text_segment()),
                                         keyword_token->text,
                                         keyword_token->segment(),
                                         name_or_ob->text,
                                         name_or_ob->segment(),
-                                        args[3].value<std::shared_ptr<block_node>>(),
-                                        exp
+                                        args[3].value<std::shared_ptr<block_node>>()
                                     );
                         }
                     }
@@ -51,17 +56,18 @@ km2::abstract_node::factory km2::namespace_node::create(const std::string& exp_t
                 if(const auto& block = args[3].option<std::shared_ptr<block_node>>()) {
                     return std::make_shared<namespace_node>(
                                 index,
+                                exp.map<std::string>([](const wall_e::lex::token& t){ return t.text; }),
+                                exp.map<wall_e::text_segment>([](const wall_e::lex::token& t){ return t.segment(); }).value_or(wall_e::text_segment()),
                                 keyword_token->text,
                                 keyword_token->segment(),
                                 std::string(),
                                 wall_e::text_segment(),
-                                *block,
-                                exp
+                                *block
                                 );
                 }
             }
         }
-        return std::make_shared<namespace_node>(index, std::string(), wall_e::text_segment());
+        return std::make_shared<namespace_node>(index, std::nullopt, wall_e::text_segment(), std::string(), wall_e::text_segment());
     };
 }
 
@@ -83,21 +89,9 @@ wall_e::either<
     return wall_e::right<backend::value*>(nullptr);
 }
 
-void km2::namespace_node::print(size_t level, std::ostream &stream) const {
-    stream << std::string(level, ' ') << "{namespace_node}:" << std::endl;
-    stream << std::string(level + 1, ' ') << "name: " << m_name << std::endl;
-    if(m_block_node) {
-        m_block_node->print(level + 1, stream);
-    } else {
-        stream << std::string(level + 1, ' ') + "block node not exist" << std::endl;
-    }
-}
-
-
 wall_e::list<wall_e::error> km2::namespace_node::errors() const {
     return {};
 }
-
 
 std::string km2::namespace_node::name() const {
     return m_name;
@@ -117,14 +111,23 @@ const km2::backend::context &km2::namespace_node::context() const {
     return m_context;
 }
 
-void km2::namespace_node::short_print(std::ostream &stream) const {
-    stream << "namespace_node: { name: " << m_name << " }";
+std::ostream &km2::namespace_node::short_print(std::ostream &stream) const {
+    return stream << "namespace_node: { name: " << m_name << " }";
 }
 
 km2::ast_token_list km2::namespace_node::tokens() const {
     using namespace km2::literals;
     const auto hover = m_name.empty() ? "**anonimus namespace**"_md : "**namespace** "_md + m_name;
-    return ast_token_list {
+    return (m_exp_keyword ? ast_token_list {
+        ast_token {
+            .type = AstKeyword,
+            .modifier = wall_e::enums::max_value<ast_token_modifier>(),
+            .node_type = wall_e::type_name<namespace_node>(),
+            .hover = hover,
+            .text = *m_exp_keyword,
+            .segment = m_exp_keyword_segment
+        }
+    } : ast_token_list {}) + ast_token_list {
         ast_token {
             .type = AstKeyword,
             .modifier = wall_e::enums::max_value<ast_token_modifier>(),
@@ -143,4 +146,27 @@ km2::ast_token_list km2::namespace_node::tokens() const {
             .segment = m_name_segment
         }
     }) + (m_block_node ? m_block_node->tokens() : ast_token_list {});
+}
+
+
+std::ostream &km2::namespace_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
+    if(fmt == Simple) {
+        stream << std::string(ctx.level(), ' ') << "{namespace_node}:" << std::endl;
+        stream << std::string(ctx.level() + 1, ' ') << "name: " << m_name << std::endl;
+        if(m_block_node) {
+            m_block_node->write(stream, fmt, ctx.new_child("block"));
+        } else {
+            stream << std::string(ctx.level() + 1, ' ') + "block node not exist" << std::endl;
+        }
+    } else if(fmt == TreeWriter) {
+        stream << ctx.node_begin()
+               << "namespace_node: { name: " << m_name << (m_block_node ? "" : ", no block") << " }"
+               << ctx.node_end()
+               << ctx.edge();
+
+        if(m_block_node) {
+            m_block_node->write(stream, fmt, ctx.new_child("block"));
+        }
+    }
+    return stream;
 }

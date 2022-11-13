@@ -31,16 +31,16 @@ wall_e::either<
     return wall_e::left(wall_e::error("asm_node not implemented"));
 }
 
-void km2::asm_node::print(size_t level, std::ostream &stream) const {
-    short_print(stream);
+std::ostream &km2::asm_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
+    return short_print(stream);
 }
 
 wall_e::list<wall_e::error> km2::asm_node::errors() const {
     return {};
 }
 
-void km2::asm_node::short_print(std::ostream &stream) const {
-    stream << "asm_node { not implemented }";
+std::ostream &km2::asm_node::short_print(std::ostream &stream) const {
+    return stream << "asm_node { not implemented }";
 }
 
 wall_e::list<km2::ast_token> km2::asm_node::tokens() const {
