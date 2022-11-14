@@ -38,7 +38,7 @@ int main(int argc, const char** argv) {
     }
 
     if(const auto& backend = backends.find_opt(backend_name_flag.data())) {
-        const auto result = km2::compile((*backend)(), std::ifstream(input_flag.data()), compile_flags);
+        const auto result = km2::compile((*backend)(), std::ifstream(input_flag.data()), input_flag.data(), compile_flags);
 
         if(result.errors().size() > 0) {
             std::cerr << "compile errors: " << result.errors() << std::endl;

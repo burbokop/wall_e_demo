@@ -11,7 +11,7 @@
 #include <src/km2/backend/models/function_ref.h>
 #include "wall_e/src/macro.h"
 
-wall_e::gram::argument km2::function_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
+wall_e::gram::argument km2::function_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) {
     if(debug) std::cout << "km2::function_node::create: " << args << std::endl;
     if(args.size() > 5 && args[0].contains_type<wall_e::lex::token>()) {
         wall_e::vec<std::shared_ptr<decl_arg_node>> da_nodes;
@@ -97,7 +97,7 @@ wall_e::either<
 }
 
 wall_e::list<wall_e::error> km2::function_node::errors() const {
-    return {};
+    return { wall_e::error("errors not implemented in " + wall_e::type_name<function_node>()) };
 }
 
 std::ostream &km2::function_node::short_print(std::ostream &stream) const {
@@ -123,7 +123,7 @@ km2::ast_token_list km2::function_node::tokens() const {
 std::ostream &km2::function_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
     std::string full_name;
     if(const auto ns = nearest_ancestor<namespace_node>()) {
-        full_name = wall_e::lex::join(ns->full_name(), "::") + "::" + m_name;
+        full_name = ns->full_name().join("::") + "::" + m_name;
     } else {
         full_name = m_name;
     }
@@ -131,7 +131,7 @@ std::ostream &km2::function_node::write(std::ostream &stream, write_format fmt, 
     if(fmt == Simple) {
         stream << std::string(ctx.level(), ' ') << "{function_node}:" << std::endl;
         if(const auto ns = nearest_ancestor<namespace_node>()) {
-            stream << std::string(ctx.level() + 1, ' ') << "name: " << wall_e::lex::join(ns->full_name(), "::") << "::" << m_name << std::endl;
+            stream << std::string(ctx.level() + 1, ' ') << "name: " << ns->full_name().join("::") << "::" << m_name << std::endl;
         } else {
             stream << std::string(ctx.level() + 1, ' ') << "name: " << m_name << std::endl;
         }

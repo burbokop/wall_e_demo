@@ -17,7 +17,7 @@ template <typename T>
 concept concept_node = std::is_base_of<abstract_node, T>::value;
 
 struct abstract_node {
-    typedef std::function<wall_e::gram::argument(const wall_e::gram::arg_vector &, const wall_e::index&)> factory;
+    typedef std::function<wall_e::gram::argument(const wall_e::gram::arg_vector &, const wall_e::index&, const wall_e::gram::environment*)> factory;
     typedef std::vector<std::shared_ptr<abstract_node>> children_t;
 
     static constexpr bool debug = false;

@@ -22,7 +22,7 @@ km2::const_node::const_node(
       m_id_segment(id_segment),
       m_value(value) {}
 
-wall_e::gram::argument km2::const_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
+wall_e::gram::argument km2::const_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) {
     if(debug) std::cout << "km2::const_node::create: " << args << std::endl;
     if(args.size() > 3) {
         if(const auto& keyword_token = args[0].option<wall_e::lex::token>()) {
@@ -40,7 +40,7 @@ wall_e::gram::argument km2::const_node::create(const wall_e::gram::arg_vector &a
 }
 
 wall_e::list<wall_e::error> km2::const_node::errors() const {
-    return {};
+    return { wall_e::error("errors not implemented in " + wall_e::type_name<const_node>()) };
 }
 
 wall_e::either<wall_e::error, km2::backend::value*> km2::const_node::generate_backend_value(const std::shared_ptr<backend::unit> &unit) {

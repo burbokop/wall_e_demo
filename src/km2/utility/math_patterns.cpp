@@ -37,14 +37,14 @@ wall_e::gram::rule km2::math_patterns::add_to(
     return expr_id;
 }
 
-wall_e::gram::argument km2::math_patterns::add_sub_processor(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
+wall_e::gram::argument km2::math_patterns::add_sub_processor(const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) {
     std::list<std::pair<std::string, std::function<int (int, int)>>> operations;
     operations.push_back({ "TOK_PLUS", [](int a, int b){ return a + b; } });
     operations.push_back({ "TOK_MINUS", [](int a, int b){ return a - b; } });
-    return binary_int_operator(args, operations);
+    return binary_int_operator(args, operations, env);
 }
 
-wall_e::gram::argument km2::math_patterns::mul_div_processor(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
+wall_e::gram::argument km2::math_patterns::mul_div_processor(const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) {
     std::list<std::pair<std::string, std::function<int (int, int)>>> operations;
     operations.push_back({ "TOK_MUL", [](int a, int b){ return a * b; } });
     operations.push_back({ "TOK_DIV", [](int a, int b){
@@ -54,10 +54,10 @@ wall_e::gram::argument km2::math_patterns::mul_div_processor(const wall_e::gram:
                                }
                                return a / b;
                            }});
-    return binary_int_operator(args, operations);
+    return binary_int_operator(args, operations, env);
 }
 
-wall_e::gram::argument km2::math_patterns::binary_int_operator(const wall_e::gram::arg_vector &args, std::list<std::pair<std::string, std::function<int (int, int)> > > l) {
+wall_e::gram::argument km2::math_patterns::binary_int_operator(const wall_e::gram::arg_vector &args, std::list<std::pair<std::string, std::function<int (int, int)> > > l, const wall_e::gram::environment* env) {
     if(args.size() > 2) {
         //std::cout << args << "\n";
         int num0, num1;
@@ -84,16 +84,16 @@ wall_e::gram::argument km2::math_patterns::binary_int_operator(const wall_e::gra
                     if(vec[1].value<wall_e::lex::token>().name == args[1].value<wall_e::lex::token>().name) {
                         if(firstIsNumber) {
                             //std::cout << "refactored: " << kgram_arg_vector_t { vec[2], args[1], kgram_arg_vector_t { args[0], vec[1], vec[0] } };
-                            return binary_int_operator(wall_e::gram::arg_vector { vec[2], args[1], wall_e::gram::arg_vector { args[0], vec[1], vec[0] } }, l);
+                            return binary_int_operator(wall_e::gram::arg_vector { vec[2], args[1], wall_e::gram::arg_vector { args[0], vec[1], vec[0] } }, l, env);
                         } else {
                             //std::cout << "refactored: " << kgram_arg_vector_t { vec[0], args[1], kgram_arg_vector_t { args[0], vec[1], vec[2] } };
-                            return binary_int_operator(wall_e::gram::arg_vector { vec[0], args[1], wall_e::gram::arg_vector { args[0], vec[1], vec[2] } }, l);
+                            return binary_int_operator(wall_e::gram::arg_vector { vec[0], args[1], wall_e::gram::arg_vector { args[0], vec[1], vec[2] } }, l, env);
                         }
                     }
                 }
             }
         }
-        return wall_e::gram::pattern::default_processor(args, wall_e::index(0, 0, 0, 0));
+        return wall_e::gram::pattern::default_processor(args, wall_e::index(0, 0, 0, 0), env);
     }
     return wall_e::gram::argument();
 }

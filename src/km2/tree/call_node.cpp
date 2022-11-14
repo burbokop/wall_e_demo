@@ -22,7 +22,7 @@ km2::call_node::call_node(
       m_args(args),
       m_name_segment(name_segment) {}
 
-wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
+wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) {
     if(debug) std::cout << "km2::call_node::create: " << args << std::endl;
     if(args.size() > 3) {
         const auto namespaces = args[0].constrain();
@@ -133,7 +133,7 @@ wall_e::either<
 }
 
 wall_e::list<wall_e::error> km2::call_node::errors() const {
-    return {};
+    return { wall_e::error("errors not implemented in " + wall_e::type_name<call_node>()) };
 }
 
 std::ostream &km2::call_node::short_print(std::ostream &stream) const {

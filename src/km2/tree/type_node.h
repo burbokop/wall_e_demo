@@ -34,7 +34,7 @@ public:
             const wall_e::text_segment &segment = {}
             );
 
-    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
+    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index, const wall_e::gram::environment* env);
 
     km2::markup_string hover() const;
 

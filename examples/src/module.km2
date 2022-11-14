@@ -8,6 +8,6 @@ namespace {
     };
 
     print_hello = () {
-        //printf('hello goga\n');
+        /printf('hello goga\n');
     };
 }

@@ -29,7 +29,7 @@ km2::namespace_node::namespace_node(const wall_e::index &index,
       m_context({}) {}
 
 km2::abstract_node::factory km2::namespace_node::create(const std::string& exp_token, const std::string &name_token) {
-    return [name_token, exp_token](const wall_e::gram::arg_vector &args, const wall_e::index& index) -> wall_e::gram::argument {
+    return [name_token, exp_token](const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) -> wall_e::gram::argument {
         if(debug) std::cout << wall_e::type_name<namespace_node>() << "::create: " << args << std::endl;
         if (args.size() > 3) {
             const auto exp = args[0].option<wall_e::lex::token>()
@@ -90,7 +90,7 @@ wall_e::either<
 }
 
 wall_e::list<wall_e::error> km2::namespace_node::errors() const {
-    return {};
+    return m_block_node ? m_block_node->errors() : wall_e::list<wall_e::error> {};
 }
 
 std::string km2::namespace_node::name() const {

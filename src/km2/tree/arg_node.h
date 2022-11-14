@@ -36,7 +36,7 @@ public:
             std::shared_ptr<abstract_value_node> value_node = nullptr
             );
 
-    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
+    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index, const wall_e::gram::environment* env);
 
     ast_token_type token_type() const;
     markup_string hover() const;

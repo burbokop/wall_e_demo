@@ -95,11 +95,22 @@ enum flag {
 
 typedef std::list<flag> flags;
 
-compilation_result compile(const backend::backend* b, const std::string &input, const flags &flags = {});
-compilation_result compile(const backend::backend* b, std::istream &input, const flags &flags = {});
-inline compilation_result compile(const backend::backend* b, std::istream &&input, const flags &flags = {}) {
+class environment : public wall_e::gram::environment {
+    const flags& m_flags;
+public:
+    environment(const std::string& uri, const flags& flags)
+        : wall_e::gram::environment(uri),
+          m_flags(flags) {}
+
+    const flags& flags() const { return m_flags; }
+
+};
+
+compilation_result compile(const backend::backend* b, const std::string &input, const std::string& uri, const flags &flags = {});
+compilation_result compile(const backend::backend* b, std::istream &input, const std::string& uri, const flags &flags = {});
+inline compilation_result compile(const backend::backend* b, std::istream &&input, const std::string& uri, const flags &flags = {}) {
     std::istream& i = input;
-    return compile(b, i, flags);
+    return compile(b, i, uri, flags);
 }
 //inline compilation_result compile(const std::shared_ptr<const backend::backend>& b, const std::string &input, const flags &flags = {}) {
 //    const std::shared_ptr<const backend::backend> b_copy = b;

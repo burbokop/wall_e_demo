@@ -9,13 +9,10 @@ km2::stmt_node::stmt_node(const wall_e::index &index, std::shared_ptr<abstract_v
     : km2::abstract_value_node(index, { node }),
     m_node(node) {}
 
-wall_e::gram::argument km2::stmt_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
+wall_e::gram::argument km2::stmt_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) {
     if(debug) std::cout << wall_e::type_name<stmt_node>() << "::create: " << args << std::endl;
     if(args.size() > 0) {
         if(debug) std::cout << "km2::cmd_node::create 1: " << args[0] << std::endl;
-        std::cout << "args[0]: " << args[0] << std::endl;
-        std::cout << "args[0].type: " << args[0].type() << std::endl;
-        std::cout << "args[0].lineage: " << args[0].lineage() << std::endl;
         const auto node = args[0].option_cast<std::shared_ptr<abstract_value_node>>();
         if(node.has_value()) {
             if(debug) std::cout << "km2::cmd_node::create 2: " << node.value() << std::endl;
@@ -34,7 +31,7 @@ wall_e::either<wall_e::error, km2::backend::value*> km2::stmt_node::generate_bac
 }
 
 wall_e::list<wall_e::error> km2::stmt_node::errors() const {
-    return { wall_e::error("err not implemented") };
+    return m_node ? m_node->errors() : wall_e::list<wall_e::error> {};
 }
 
 const km2::backend::context &km2::stmt_node::context() const {

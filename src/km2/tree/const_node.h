@@ -26,7 +26,7 @@ public:
             const std::shared_ptr<arg_node>& value = nullptr
             );
 
-    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
+    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index, const wall_e::gram::environment* env);
 
     // abstract_value_node interface
 public:

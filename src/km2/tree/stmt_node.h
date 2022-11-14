@@ -14,7 +14,7 @@ public:
 
     stmt_node(const wall_e::index &index, std::shared_ptr<abstract_value_node> node = nullptr);
 
-    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index);
+    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index, const wall_e::gram::environment* env);
 
     const backend::context m_context;
     const backend::context &context() const;

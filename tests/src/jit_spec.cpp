@@ -24,7 +24,7 @@ static void jit_test(const km2::backend::backend* b) {
                       "print(444.);\n"
                       "}\n";
 
-    const auto res = km2::compile(b, code);
+    const auto res = km2::compile(b, "", code);
     wall_e_should_be_defined(res.unit());
     wall_e_should_be_defined(res.backend_value());
     auto entry = dynamic_cast<km2::backend::function*>(res.backend_value());

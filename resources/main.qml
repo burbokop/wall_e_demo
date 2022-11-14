@@ -20,12 +20,14 @@ Window {
     Compiler {
         id: compiler
         code: codeArea.text
+        uri: appCore.openedProjFile ? appCore.openedProjFile.fullPath : ''
         backend: appCore.backendFactory.currentBackend
     }
 
     Presentor {
         id: presentor
         codeDocument: codeArea.textDocument
+        uri: appCore.openedProjFile ? appCore.openedProjFile.fullPath : ''
         //errors: compiler.errors
         //onPresentationCompleated: codeArea.updatePresentation()
     }
@@ -256,38 +258,31 @@ Window {
                         }
                     }
                 }
-                Tile {
-                    internalColor: '#ffffff'
-                    id: errTile
+                RowLayout {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 80
-                    clip: true
+                    Tile {
+                        internalColor: '#ffffff'
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 80
+                        clip: true
 
-                    property int currentErr: -1
-                    ListView {
-                        anchors.fill: parent
-                        model: presentor.errors// compiler.errors
-                        delegate: Rectangle {
-                            color: (errTile.currentErr === index) ? '#88888888' : '#00000000'
-                            id: errRect
-                            width: parent.width
-                            height: (errTile.currentErr === index) ? 48 : 24
-                            Text {
-                                text: (errTile.currentErr === index)
-                                      ? modelData.toString() + '\nat fragment: ' +  codeArea.textFragmentForError(modelData)
-                                      : modelData.toString()
-                                anchors.verticalCenter: parent.verticalCenter
-                                anchors.left: parent.left
-                                anchors.leftMargin: 4
-                            }
-                            MouseArea {
-                                id: errMouseArea
-                                anchors.fill: parent
-                                onClicked: {
-                                    codeArea.goToPosition(modelData.begin)
-                                    errTile.currentErr = index
-                                }
-                            }
+                        ErrorsView {
+                            anchors.fill: parent
+                            model: presentor.errors
+                            onClicked: err => codeArea.goToPosition(err.begin)
+                        }
+                    }
+                    Tile {
+                        internalColor: '#ffffff'
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 80
+                        clip: true
+
+                        ErrorsView {
+                            anchors.fill: parent
+                            model: compiler.errors
+                            onClicked: err => codeArea.goToPosition(err.begin)
                         }
                     }
                 }

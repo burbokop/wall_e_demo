@@ -6,6 +6,7 @@
 
 Compiler::Compiler(QObject *parent) : QObject { parent } {
     connect(this, &Compiler::codeChanged, this, &Compiler::recompile);
+    connect(this, &Compiler::uriChanged, this, &Compiler::recompile);
     connect(this, &Compiler::onlyTreeChanged, this, &Compiler::recompile);
     connect(this, &Compiler::verboseChanged, this, &Compiler::recompile);
     connect(this, &Compiler::backendChanged, this, &Compiler::recompile);
@@ -19,6 +20,9 @@ Compiler::Compiler(QObject *parent) : QObject { parent } {
 
 
 void Compiler::recompile() {
+
+    qDebug() << "::uri()" << uri();
+
     setErrors({});
     if(!backend().valid()) {
         addErrors({ CompilationError(wall_e::error("backend not choosed", wall_e::error::warn)) });
@@ -34,15 +38,15 @@ void Compiler::recompile() {
     }
 
     if(m_firstCompilation) {
-        completeCompilation(km2::compile(backend().data_ptr().get(), code().toStdString(), flags));
+        completeCompilation(km2::compile(backend().data_ptr().get(), code().toStdString(), uri().toStdString(), flags));
         m_firstCompilation = false;
     } else {
         if(m_currentFutureWatcher.isStarted()) {
             m_currentFutureWatcher.cancel();
             m_currentFuture.cancel();
         }
-        const auto compile = [](const km2::backend::backend* b, const std::string &input, const km2::flags &flags = {}){ return km2::compile(b, input, flags); };
-        m_currentFuture = QtConcurrent::run(compile, backend().data_ptr().get(), code().toStdString(), flags);
+        const auto compile = [](const km2::backend::backend* b, const std::string &input, const std::string& uri, const km2::flags &flags = {}){ return km2::compile(b, input, uri, flags); };
+        m_currentFuture = QtConcurrent::run(compile, backend().data_ptr().get(), code().toStdString(), uri().toStdString(), flags);
         m_currentFutureWatcher.setFuture(m_currentFuture);
     }
 }

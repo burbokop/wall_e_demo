@@ -21,7 +21,7 @@ km2::proto_node::proto_node(const wall_e::index& index,
     m_args(args),
     m_result_type_node(result_type_node) {}
 
-wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
+wall_e::gram::argument km2::proto_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) {
     if(debug) std::cout << "km2::proto_node::create: " << args << std::endl;
 
     if(args.size() > 4 && args[0].contains_type<wall_e::lex::token>()) {
@@ -92,7 +92,7 @@ wall_e::either<
 }
 
 wall_e::list<wall_e::error> km2::proto_node::errors() const {
-    return { wall_e::error("err not implemented") };
+    return { wall_e::error("errors not implemented in " + wall_e::type_name<proto_node>()) };
 }
 
 std::ostream &km2::proto_node::short_print(std::ostream &stream) const {

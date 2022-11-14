@@ -103,6 +103,7 @@ class Compiler : public QObject {
 
     K_AUTO_PROPERTY(BackendSharedPtr, backend, backend, setBackend, backendChanged, BackendSharedPtr())
     K_AUTO_PROPERTY(QString, code, code, setCode, codeChanged, QString())
+    K_AUTO_PROPERTY(QString, uri, uri, setUri, uriChanged, QString())
     K_AUTO_PROPERTY(bool, onlyTree, onlyTree, setOnlyTree, onlyTreeChanged, false)
     K_AUTO_PROPERTY(bool, verbose, verbose, setVerbose, verboseChanged, false)
 

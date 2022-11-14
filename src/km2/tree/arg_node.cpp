@@ -22,7 +22,7 @@ km2::arg_node::arg_node(
       m_text(text),
       m_value_node(value_node) {}
 
-wall_e::gram::argument km2::arg_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
+wall_e::gram::argument km2::arg_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) {
     if(debug) std::cout << "km2::arg_node::create: " << args << std::endl;
     if(args.size() > 0) {
         if(args[0].contains_type<wall_e::lex::token>()) {
@@ -124,7 +124,7 @@ wall_e::either<
 }
 
 wall_e::list<wall_e::error> km2::arg_node::errors() const {
-    return {};
+    return { wall_e::error("errors not implemented in " + wall_e::type_name<arg_node>()) };
 }
 
 std::ostream &km2::arg_node::short_print(std::ostream &stream) const {

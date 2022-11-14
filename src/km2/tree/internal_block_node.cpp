@@ -40,7 +40,7 @@ wall_e::either<
 }
 
 wall_e::list<wall_e::error> km2::internal_block_node::errors() const {
-    return { wall_e::error("err not implemented") };
+    return { wall_e::error("errors not implemented in " + wall_e::type_name<internal_block_node>()) };
 }
 
 std::ostream &km2::internal_block_node::short_print(std::ostream &stream) const {

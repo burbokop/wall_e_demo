@@ -41,7 +41,7 @@ km2::type_node::type_node(
       m_bits(bits),
       m_original_text(original_text) {}
 
-wall_e::gram::argument km2::type_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
+wall_e::gram::argument km2::type_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) {
     if(args.size() > 0) {
         const auto token = args[0].option<wall_e::lex::token>();
         if(token.has_value()) {
@@ -79,7 +79,7 @@ wall_e::either<wall_e::error, km2::backend::type*> km2::type_node::generate_back
 }
 
 wall_e::list<wall_e::error> km2::type_node::errors() const {
-    return { wall_e::error("err not implemented") };
+    return { wall_e::error("errors not implemented in " + wall_e::type_name<type_node>()) };
 }
 
 std::ostream &km2::type_node::short_print(std::ostream &stream) const {

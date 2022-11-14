@@ -24,7 +24,7 @@ km2::block_node::block_node(
                     : backend::context({})),
       m_mutable_context(backend::context({})) {}
 
-wall_e::gram::argument km2::block_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index) {
+wall_e::gram::argument km2::block_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) {
     if(debug) std::cout << "km2::block_node::create" << std::endl;
     if (args.size() > 0) {
         const auto stmt = args[0].value_or<std::shared_ptr<stmt_node>>(nullptr);
@@ -58,7 +58,9 @@ wall_e::either<
 }
 
 wall_e::list<wall_e::error> km2::block_node::errors() const {
-    return { wall_e::error("err not implemented") };
+    return (m_stmt_node ? m_stmt_node->errors() : wall_e::list<wall_e::error> {})
+            .with(m_namespace_node ? m_namespace_node->errors() : wall_e::list<wall_e::error> {})
+            .with(m_next_node ? m_next_node->errors() : wall_e::list<wall_e::error> {});
 }
 
 std::optional<wall_e::error> km2::block_node::add_function(const backend::function_ref &function) {

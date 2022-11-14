@@ -82,7 +82,7 @@ void km2::lsp::service::initialize(const std::string &uri) {}
 wall_e::list<wall_e::error> km2::lsp::service::change_content(const std::string &uri, const std::string &content) {
     auto& ref = m_cache[uri];
     ref.content = content;
-    ref.compilation_result = km2::compile(nullptr, content, ref.flags);
+    ref.compilation_result = km2::compile(nullptr, content, uri, ref.flags);
     return ref.compilation_result->errors();
 }
 
@@ -94,7 +94,7 @@ wall_e::vec<wall_e::lex::token> km2::lsp::service::tokens(const std::string &uri
     return {};
 }
 
-wall_e::vec<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const std::string &uri) const {
+wall_e::vec<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const std::string& uri) const {
     const auto cache_it = m_cache.find(uri);
     if(cache_it != m_cache.end() && cache_it->second.compilation_result) {
         if(cache_it->second.compilation_result->root_node() && m_ast_semantic_token_types_map.size() > 0) {
@@ -144,7 +144,7 @@ wall_e::vec<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const s
     return wall_e::vec<semantic_token> {};
 }
 
-wall_e::opt<km2::markup_string> km2::lsp::service::hover(const std::string &uri, const wall_e::text_segment::predicate &predicate) {
+wall_e::opt<km2::markup_string> km2::lsp::service::hover(const std::string& uri, const wall_e::text_segment::predicate &predicate) {
     const auto cache_it = m_cache.find(uri);
     if(cache_it != m_cache.end() && cache_it->second.compilation_result) {
 
@@ -161,7 +161,7 @@ wall_e::opt<km2::markup_string> km2::lsp::service::hover(const std::string &uri,
     return std::nullopt;
 }
 
-wall_e::list<std::string> km2::lsp::service::complete(const std::string &uri, const wall_e::text_segment::predicate &predicate) {
+wall_e::list<std::string> km2::lsp::service::complete(const std::string& uri, const wall_e::text_segment::predicate &predicate) {
     //const auto cache_it = m_cache.find(uri);
     //if(cache_it != m_cache.end()) {
 //

@@ -4,17 +4,16 @@
 
 std::string km2::backend::symbol::cppmangle(const proto &p) {
     return "_Z"
-            + (p.namespace_name.size() > 0 ? "N" + wall_e::lex::join(p.namespace_name, "", [](const std::string& part){
+            + (p.namespace_name.size() > 0 ? "N" + p.namespace_name.map<std::string>([](const std::string& part){
         return std::to_string(part.size()) + part;
-    }) : "")
+    }).join("") : "")
             + p.name
             + "v"; // TODO add arg types mangle;
 }
 
-km2::backend::symbol::symbol(
-        const std::list<std::string> &namespace_name,
+km2::backend::symbol::symbol(const wall_e::str_list &namespace_name,
         const std::string &name,
-        const std::list<std::string> &arg_types,
+        const wall_e::str_list &arg_types,
         const std::string &ret_type,
         const std::function<std::string (const proto &)> &mangle_func
         ) :
@@ -30,9 +29,9 @@ km2::backend::symbol::symbol(
         .ret_type = ret_type
     }) : std::string()) {}
 
-std::list<std::string> km2::backend::symbol::namespace_name() const { return m_namespace_name; }
+const wall_e::str_list &km2::backend::symbol::namespace_name() const { return m_namespace_name; }
 std::string km2::backend::symbol::name() const { return m_name; }
-std::list<std::string> km2::backend::symbol::arg_types() const { return m_arg_types; }
+const wall_e::str_list &km2::backend::symbol::arg_types() const { return m_arg_types; }
 std::function<std::string(const km2::backend::symbol::proto&)> km2::backend::symbol::mangle_func() const { return m_mangle_func; }
 std::string km2::backend::symbol::mangled_name() const { return m_mangled_name; }
 std::string km2::backend::symbol::ret_type() const { return m_ret_type; }

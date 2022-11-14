@@ -11,5 +11,6 @@
         <file>resources/BackendList.qml</file>
         <file>resources/ProjectView.qml</file>
         <file>resources/LogTable.qml</file>
+        <file>resources/ErrorsView.qml</file>
     </qresource>
 </RCC>

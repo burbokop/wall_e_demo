@@ -10,6 +10,8 @@
 class Presentor : public QObject {
     Q_OBJECT
     K_AUTO_PROPERTY(QQuickTextDocument*, codeDocument, codeDocument, setCodeDocument, codeDocumentChanged, nullptr)
+    K_AUTO_PROPERTY(QString, uri, uri, setUri, uriChanged, QString())
+
     K_READONLY_PROPERTY(QList<CompilationError>, errors, errors, setErrors, errorsChanged, QList<CompilationError>());
     K_READONLY_PROPERTY(bool, astTokensReady, astTokensReady, setAstTokensReady, astTokensReadyChanged, false)
 
@@ -18,7 +20,7 @@ class Presentor : public QObject {
     QList<QMetaObject::Connection> m_documentConnections;
 
     Highlighter *m_higlighter = nullptr;
-    static QString uriFromDoc(const QTextDocument* doc);
+    static QString substituteUri(const QString& uri);
 
     QTextDocument* m_doc = nullptr;
     LSPService* m_service = nullptr;

@@ -2,26 +2,25 @@
 #include <wall_e/src/macro.h>
 #include <QTimer>
 
-QString Presentor::uriFromDoc(const QTextDocument *doc) {
-    const auto& u = doc->baseUrl().toString();
-    if(u.isEmpty()) {
-        QString s;
-        { QTextStream ss(&s); ss << doc; }
-        return s;
+
+QString Presentor::substituteUri(const QString &uri) {
+    if(uri.isEmpty()) {
+        static int next = 0;
+        return "unknown_uri_" + QString::number(next++);
     } else {
-        return u;
+        return uri;
     }
 }
 
 void Presentor::initialize() {
     for(const auto& c : m_documentConnections) disconnect(c);
     if(!m_serviceThread->isRunning() || !m_doc) return;
-    const auto& uri = uriFromDoc(m_doc);
+    const auto& u = substituteUri(uri());
     if(m_higlighter) { m_higlighter->deleteLater(); }
     m_higlighter = new Highlighter(m_doc);
-    m_service->initialize(uri, m_theme->capability());
-    m_documentConnections.push_back(connect(m_doc, &QTextDocument::contentsChanged, this, [uri, this](){
-        QMetaObject::invokeMethod(m_service, [this, uri]{ m_service->changeContent(uri, m_doc); }, Qt::QueuedConnection);
+    m_service->initialize(u, m_theme->capability());
+    m_documentConnections.push_back(connect(m_doc, &QTextDocument::contentsChanged, this, [u, this](){
+        QMetaObject::invokeMethod(m_service, [this, u]{ m_service->changeContent(u, m_doc); }, Qt::QueuedConnection);
     }));
 }
 
