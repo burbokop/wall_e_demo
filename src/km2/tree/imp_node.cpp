@@ -25,11 +25,7 @@ wall_e::gram::argument km2::imp_node::create(const wall_e::gram::arg_vector &arg
 
         if(module_name_token) {
             const auto& module_uri = std::filesystem::path(env->uri()).parent_path() / (module_name_token->text + ".km2");
-
-            std::cout << "env->uri(): " << env->uri() << std::endl;
-
             if(std::filesystem::exists(module_uri) && std::filesystem::is_regular_file(module_uri)) {
-                std::cout << "uri exist: " << module_uri << std::endl;
                 std::ifstream input(module_uri);
                 return std::make_shared<imp_node>(
                             index,
@@ -39,7 +35,6 @@ wall_e::gram::argument km2::imp_node::create(const wall_e::gram::arg_vector &arg
                             wall_e::list<wall_e::error>()
                         );
             } else {
-                std::cout << "uri not exist: " << module_uri << std::endl;
                 return std::make_shared<imp_node>(
                             index,
                             args[0].value_or<wall_e::lex::token>(),
@@ -107,7 +102,19 @@ km2::ast_token_list km2::imp_node::tokens() const {
 wall_e::list<wall_e::error> km2::imp_node::errors() const {
     const auto& cres = *m_module_cresult.get();
     if(cres) {
-        return m_search_errors.with(cres->errors());
+        if(cres->errors().contains([](const wall_e::error& err) { return err.sev() == wall_e::error::err; })) {
+            return m_search_errors
+                    .with(wall_e::error(
+                              "errors detected in module '" + m_name_token.text + "'",
+                              wall_e::error::err,
+                              wall_e::error::semantic,
+                              0,
+                              m_name_token.segment()
+                              ))
+                    .with(cres->errors());
+        } else {
+            return m_search_errors.with(cres->errors());
+        }
     }
     return m_search_errors;
 }

@@ -5,12 +5,10 @@ import QtQuick.Controls 2.12
 Flickable {
     id: localRoot
 
+    readonly property TextArea textArea: area
+
     function goToPosition(pos) {
         area.cursorPosition = pos
-    }
-
-    function textFragmentForError(err) {
-        return area.text.substring(err.begin, err.end)
     }
 
     function updatePresentation() {

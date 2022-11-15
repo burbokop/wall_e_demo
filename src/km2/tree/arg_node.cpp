@@ -124,7 +124,7 @@ wall_e::either<
 }
 
 wall_e::list<wall_e::error> km2::arg_node::errors() const {
-    return { wall_e::error("errors not implemented in " + wall_e::type_name<arg_node>()) };
+    return m_value_node ? m_value_node->errors() : wall_e::list<wall_e::error> {};
 }
 
 std::ostream &km2::arg_node::short_print(std::ostream &stream) const {

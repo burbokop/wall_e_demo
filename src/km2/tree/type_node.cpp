@@ -79,7 +79,7 @@ wall_e::either<wall_e::error, km2::backend::type*> km2::type_node::generate_back
 }
 
 wall_e::list<wall_e::error> km2::type_node::errors() const {
-    return { wall_e::error("errors not implemented in " + wall_e::type_name<type_node>()) };
+    return wall_e::list<wall_e::error> {}; // TODO return { wall_e::error("errors not implemented in " + wall_e::type_name<type_node>()) };
 }
 
 std::ostream &km2::type_node::short_print(std::ostream &stream) const {

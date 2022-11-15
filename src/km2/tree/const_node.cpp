@@ -40,7 +40,7 @@ wall_e::gram::argument km2::const_node::create(const wall_e::gram::arg_vector &a
 }
 
 wall_e::list<wall_e::error> km2::const_node::errors() const {
-    return { wall_e::error("errors not implemented in " + wall_e::type_name<const_node>()) };
+    return m_value ? m_value->errors() : wall_e::list<wall_e::error> {};
 }
 
 wall_e::either<wall_e::error, km2::backend::value*> km2::const_node::generate_backend_value(const std::shared_ptr<backend::unit> &unit) {

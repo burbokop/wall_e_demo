@@ -10,7 +10,9 @@
 class CompilationError {
     Q_GADGET
 
-    Q_PROPERTY(int regin READ begin)
+    Q_PROPERTY(QString message READ message)
+    Q_PROPERTY(QString uri READ uri)
+    Q_PROPERTY(int begin READ begin)
     Q_PROPERTY(int end READ end)
 
     wall_e::error m_data;
@@ -18,14 +20,16 @@ public:
     CompilationError(wall_e::error data = {}) : m_data(data) {}
     const wall_e::error& data() const { return m_data; }
 
-    Q_INVOKABLE inline QString toString() const {
-        return QString::fromStdString(m_data.message());
-    }
+    inline QString message() const { return QString::fromStdString(m_data.message()); }
+    inline QString uri() const { return QString::fromStdString(m_data.segment().uri()); }
     inline int begin() const { return m_data.segment().begin(); }
     inline int end() const { return m_data.segment().end(); }
 
     inline bool operator==(const CompilationError& other) const {
         return m_data == other.m_data;
+    }
+    inline friend QDebug& operator<<(QDebug& debug, const CompilationError& err) {
+        return debug << "{ message: " << err.message() << ", uri: " << err.uri() << " }";
     }
 };
 

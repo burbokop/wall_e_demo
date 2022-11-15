@@ -20,9 +20,6 @@ Compiler::Compiler(QObject *parent) : QObject { parent } {
 
 
 void Compiler::recompile() {
-
-    qDebug() << "::uri()" << uri();
-
     setErrors({});
     if(!backend().valid()) {
         addErrors({ CompilationError(wall_e::error("backend not choosed", wall_e::error::warn)) });

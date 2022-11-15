@@ -1,8 +1,11 @@
 import QtQml 2.15
 import QtQuick 2.15
+import QtQuick.Controls 2.12
 
 ListView {
     id: localRoot
+
+    property TextArea area
 
     signal clicked(variant err)
 
@@ -10,14 +13,17 @@ ListView {
     delegate: Rectangle {
         color: (localRoot.currentErr === index) ? '#88888888' : '#00000000'
         id: errRect
-        width: parent.width
-        height: (localRoot.currentErr === index) ? 48 : 24
+        width: localRoot.width
+        implicitHeight: txt.implicitHeight
+        readonly property string substr: localRoot.area.text.substring(modelData.begin, modelData.end)
         Text {
+            id: txt
+            wrapMode: Text.WordWrap
             text: (localRoot.currentErr === index)
-                  ? modelData.toString() + '\nat fragment: ' +  codeArea.textFragmentForError(modelData)
-                  : modelData.toString()
-            anchors.verticalCenter: parent.verticalCenter
+                  ? `${modelData.message}\n---------------------\nuri: ${modelData.uri}\n---------------------\n${errRect.substr}`
+                  : modelData.message
             anchors.left: parent.left
+            anchors.right: parent.right
             anchors.leftMargin: 4
         }
         MouseArea {

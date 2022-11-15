@@ -97,7 +97,10 @@ wall_e::either<
 }
 
 wall_e::list<wall_e::error> km2::function_node::errors() const {
-    return { wall_e::error("errors not implemented in " + wall_e::type_name<function_node>()) };
+    return m_args
+            .map<wall_e::list<wall_e::error>>([](const std::shared_ptr<decl_arg_node>& arg){ return arg ? arg->errors() : wall_e::list<wall_e::error> {}; })
+            .reduce({}, [](const auto& a, const auto& b) { return a.with(b); })
+            .with(m_body ? m_body->errors() : wall_e::list<wall_e::error> {});
 }
 
 std::ostream &km2::function_node::short_print(std::ostream &stream) const {

@@ -2,6 +2,11 @@
 #include <wall_e/src/macro.h>
 #include <QTimer>
 
+#include <filesystem>
+
+bool Presentor::compareUri(const QString &u0, const QString &u1) {
+    return std::filesystem::path(u0.toStdString()) == std::filesystem::path(u1.toStdString());
+}
 
 QString Presentor::substituteUri(const QString &uri) {
     if(uri.isEmpty()) {
@@ -15,12 +20,11 @@ QString Presentor::substituteUri(const QString &uri) {
 void Presentor::initialize() {
     for(const auto& c : m_documentConnections) disconnect(c);
     if(!m_serviceThread->isRunning() || !m_doc) return;
-    const auto& u = substituteUri(uri());
     if(m_higlighter) { m_higlighter->deleteLater(); }
     m_higlighter = new Highlighter(m_doc);
-    m_service->initialize(u, m_theme->capability());
-    m_documentConnections.push_back(connect(m_doc, &QTextDocument::contentsChanged, this, [u, this](){
-        QMetaObject::invokeMethod(m_service, [this, u]{ m_service->changeContent(u, m_doc); }, Qt::QueuedConnection);
+    QMetaObject::invokeMethod(m_service, [this, cap = m_theme->capability()]{ m_service->initialize(substituteUri(uri()), cap); }, Qt::QueuedConnection);
+    m_documentConnections.push_back(connect(m_doc, &QTextDocument::contentsChanged, this, [this](){
+        QMetaObject::invokeMethod(m_service, [this]{ m_service->changeContent(substituteUri(uri()), m_doc); }, Qt::QueuedConnection);
     }));
 }
 
@@ -46,8 +50,18 @@ Presentor::Presentor(QObject *parent) : QObject{ parent } {
     connect(m_service, &LSPService::contentChanged, this, [this](const QList<CompilationError>& errs, const QList<SemanticToken>& tokens, bool astTokensReady){
         setAstTokensReady(astTokensReady);
         setErrors(errs);
-        if(m_higlighter) {
-            m_higlighter->setErrorsAndSemanticTokens(errs, tokens);
+        if(m_higlighter) {            
+            QList<CompilationError> thisUriErrors;
+            for(const auto& e : errs) {
+                if(compareUri(e.uri(), uri())) {
+                    thisUriErrors.push_back(e);
+                }
+            }
+            qDebug() << "errs: " << errs;
+            qDebug() << "uri(): " << uri();
+            qDebug() << "thisUriErrors: " << thisUriErrors;
+
+            m_higlighter->setErrorsAndSemanticTokens(thisUriErrors, tokens);
         }
     });
 

@@ -271,6 +271,7 @@ Window {
                             anchors.fill: parent
                             model: presentor.errors
                             onClicked: err => codeArea.goToPosition(err.begin)
+                            area: codeArea.textArea
                         }
                     }
                     Tile {
@@ -283,6 +284,7 @@ Window {
                             anchors.fill: parent
                             model: compiler.errors
                             onClicked: err => codeArea.goToPosition(err.begin)
+                            area: codeArea.textArea
                         }
                     }
                 }

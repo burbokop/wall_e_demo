@@ -41,7 +41,7 @@ std::ostream &km2::decl_arg_node::short_print(std::ostream &stream) const {
 
 
 wall_e::list<wall_e::error> km2::decl_arg_node::errors() const {
-    return { wall_e::error("errors not implemented in " + wall_e::type_name<decl_arg_node>()) };
+    return m_type_node ? m_type_node->errors() : wall_e::list<wall_e::error> {};
 }
 
 wall_e::list<km2::ast_token> km2::decl_arg_node::tokens() const {

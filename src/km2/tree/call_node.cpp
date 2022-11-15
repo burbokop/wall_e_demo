@@ -133,7 +133,9 @@ wall_e::either<
 }
 
 wall_e::list<wall_e::error> km2::call_node::errors() const {
-    return { wall_e::error("errors not implemented in " + wall_e::type_name<call_node>()) };
+    return m_args
+            .map<wall_e::list<wall_e::error>>([](const std::shared_ptr<abstract_value_node>& arg){ return arg ? arg->errors() : wall_e::list<wall_e::error> {}; })
+            .reduce({}, [](const auto& a, const auto& b) { return a.with(b); });
 }
 
 std::ostream &km2::call_node::short_print(std::ostream &stream) const {

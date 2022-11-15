@@ -15,7 +15,7 @@ class Presentor : public QObject {
     K_READONLY_PROPERTY(QList<CompilationError>, errors, errors, setErrors, errorsChanged, QList<CompilationError>());
     K_READONLY_PROPERTY(bool, astTokensReady, astTokensReady, setAstTokensReady, astTokensReadyChanged, false)
 
-
+    static bool compareUri(const QString& u0, const QString& u1);
 
     QList<QMetaObject::Connection> m_documentConnections;
 
