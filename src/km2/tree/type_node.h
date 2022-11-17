@@ -36,8 +36,6 @@ public:
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index, const wall_e::gram::environment* env);
 
-    km2::markup_string hover() const;
-
     // abstract_type_node interface
 public:
     virtual wall_e::either<wall_e::error, backend::type*> generate_backend_type(const std::shared_ptr<backend::unit> &unit) override;
@@ -48,6 +46,8 @@ public:
     virtual wall_e::list<wall_e::error> errors() const override;
     virtual wall_e::list<ast_token> tokens() const override;
     virtual std::ostream &write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const override;
+    virtual ast_token_type rvalue_type() const override;
+    virtual markup_string hover() const override;
 };
 
 } // namespace km2

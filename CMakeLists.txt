@@ -80,6 +80,7 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/decl_arg_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/const_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/imp_node.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/substitution_node.cpp
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/backend.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/unit/unit.cpp
@@ -97,6 +98,8 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/models/context.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/models/function_ref.cpp    
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/printable.cpp
+
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/lvalue.cpp
     )
 
 set(KM2_HEADERS
@@ -124,6 +127,7 @@ set(KM2_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/decl_arg_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/const_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/imp_node.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/substitution_node.h
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/backend.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/as.h
@@ -142,6 +146,8 @@ set(KM2_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/models/context.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/models/function_ref.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/printable.h
+
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/lvalue.h
 )
 
 set(KM2_LLVM_BACKEND_SOURCES

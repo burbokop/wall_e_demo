@@ -1,8 +1,8 @@
-exp namespace goga {
+exp = namespace {
 
-	namespace aaaa {
+	aaaa = namespace {
 		pow = (a f64, b f64) f64;
 	};
 
-	aaaa::bbb::pow(2., 2.);
-}
+	aaaa::pow(2., 2.);
+};

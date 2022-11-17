@@ -32,7 +32,7 @@ wall_e::gram::rule km2::math_patterns::add_to(
                         << mul_div_processor);
 
     patterns->push_back(wall_e::gram::pattern(factor_id.value())
-                        << ("cmd" | wall_e::gram::rule("TOK_ID") | "NUMBER"));
+                        << ("cmd" | wall_e::gram::rule("ID") | "NUMBER"));
 
     return expr_id;
 }

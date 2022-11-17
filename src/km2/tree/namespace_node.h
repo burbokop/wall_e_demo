@@ -5,17 +5,14 @@
 #include "abstract/abstract_value_node.h"
 #include <wall_e/src/gram.h>
 #include <string>
+#include <src/km2/utility/lvalue.h>
 
 
 
 namespace km2 {
 class namespace_node : public abstract_value_node {
-    const wall_e::opt<std::string> m_exp_keyword;
-    const wall_e::text_segment m_exp_keyword_segment;
-    const std::string m_keyword;
-    const wall_e::text_segment m_keyword_segment;
-    const std::string m_name;
-    const wall_e::text_segment m_name_segment;
+    //const lvalue m_lvalue;
+    const wall_e::lex::token m_keyword_token;
     const std::shared_ptr<block_node> m_block_node;
 
     backend::context m_context;
@@ -24,16 +21,11 @@ public:
 
     namespace_node(
             const wall_e::index& index,
-            const wall_e::opt<std::string>& exp_keyword,
-            const wall_e::text_segment& exp_keyword_segment,
-            const std::string& keyword,
-            const wall_e::text_segment& keyword_segment,
-            const std::string &name = {},
-            const wall_e::text_segment& name_segment = {},
-            const std::shared_ptr<block_node>& block_node = nullptr
+            const wall_e::lex::token& keyword_token,
+            const std::shared_ptr<block_node>& block_node
             );
 
-    static factory create(const std::string& exp_token, const std::string& name_token);
+    static factory create(const lvalue::factory& lval_factory);
 
     // node interface
 public:
@@ -43,7 +35,7 @@ public:
     > generate_backend_value(const std::shared_ptr<backend::unit> &unit) override;
 
     virtual wall_e::list<wall_e::error> errors() const override;
-    std::string name() const;
+    wall_e::opt<std::string> name() const;
     wall_e::str_list full_name() const;
     const backend::context &context() const;
 
@@ -52,6 +44,8 @@ public:
     virtual std::ostream &short_print(std::ostream &stream) const override;
     virtual wall_e::list<ast_token> tokens() const override;
     virtual std::ostream &write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const override;
+    virtual ast_token_type rvalue_type() const override;
+    virtual markup_string hover() const override;
 };
 }
 

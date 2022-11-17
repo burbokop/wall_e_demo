@@ -35,7 +35,7 @@ wall_e::gram::argument km2::call_node::create(const wall_e::gram::arg_vector &ar
             const auto& namespace_stack = namespaces
                     .filter_map<wall_e::lex::token>([](const wall_e::variant& n) -> wall_e::opt<wall_e::lex::token> {
                 if(const auto& nt = n.option<wall_e::lex::token>()) {
-                    if(nt->name == "TOK_ID") {
+                    if(nt->name == "ID") {
                         return nt;
                     }
                 }
@@ -106,8 +106,8 @@ wall_e::either<
             } else {
                 return wall_e::left(wall_e::error(
                                         "function '" + m_name + "' not defined for specific arg types",
-                                        wall_e::error::severity::err,
-                                        wall_e::error::stage::semantic,
+                                        wall_e::error::severity::Err,
+                                        wall_e::error::stage::Semantic,
                                         0,
                                         m_name_segment
                                         ));
@@ -115,8 +115,8 @@ wall_e::either<
         } else {
             return wall_e::left(wall_e::error(
                                     "function '" + m_name + "' not defined",
-                                    wall_e::error::severity::err,
-                                    wall_e::error::stage::semantic,
+                                    wall_e::error::severity::Err,
+                                    wall_e::error::stage::Semantic,
                                     0,
                                     m_name_segment
                                     ));
@@ -124,8 +124,8 @@ wall_e::either<
     } else {
         return wall_e::left(wall_e::error(
                                 "function '" + m_name + "' not defined in block",
-                                wall_e::error::severity::err,
-                                wall_e::error::stage::semantic,
+                                wall_e::error::severity::Err,
+                                wall_e::error::stage::Semantic,
                                 0,
                                 m_name_segment
                                 ));
@@ -162,7 +162,7 @@ km2::ast_token_list km2::call_node::tokens() const {
             .type = AstFunction,
             .modifier = wall_e::enums::max_value<ast_token_modifier>(),
             .node_type = wall_e::type_name<call_node>(),
-            .hover = "**function** "_md + m_name,
+            .hover = hover(),
             .text = m_name,
             .segment = m_name_segment
         },
@@ -190,7 +190,7 @@ std::ostream &km2::call_node::write(std::ostream &stream, write_format fmt, cons
         }
     } else if(fmt == TreeWriter) {
         stream << ctx.node_begin()
-               << "call_node: { " << "name: " << full_name << " }"
+               << "call_node: { " << full_name << " }"
                << ctx.node_end()
                << ctx.edge();
 
@@ -207,4 +207,13 @@ std::ostream &km2::call_node::write(std::ostream &stream, write_format fmt, cons
         }
     }
     return stream;
+}
+
+km2::ast_token_type km2::call_node::rvalue_type() const {
+    return AstVariable; /// because function returns variable
+}
+
+km2::markup_string km2::call_node::hover() const {
+    using namespace km2::literals;
+    return "**function** "_md + m_name;
 }

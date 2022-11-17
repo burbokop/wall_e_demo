@@ -45,13 +45,12 @@ wall_e::list<wall_e::error> km2::decl_arg_node::errors() const {
 }
 
 wall_e::list<km2::ast_token> km2::decl_arg_node::tokens() const {
-    using namespace km2::literals;
     return wall_e::list<ast_token> {
         ast_token {
             .type = AstParameter,
             .modifier = AstDefinition,
             .node_type = wall_e::type_name<decl_arg_node>(),
-            .hover = m_is_variadic ? "**variadic argument** "_md + m_name : "**argument** "_md + m_name,
+            .hover = hover(),
             .text = m_name,
             .segment = m_name_segment
         }
@@ -84,4 +83,14 @@ std::ostream &km2::decl_arg_node::write(std::ostream &stream, write_format fmt, 
         }
     }
     return stream;
+}
+
+
+km2::ast_token_type km2::decl_arg_node::rvalue_type() const {
+    return AstParameter;
+}
+
+km2::markup_string km2::decl_arg_node::hover() const {
+    using namespace km2::literals;
+    return m_is_variadic ? "**variadic argument** "_md + m_name : "**argument** "_md + m_name;
 }

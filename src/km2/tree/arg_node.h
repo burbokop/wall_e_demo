@@ -39,7 +39,6 @@ public:
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index, const wall_e::gram::environment* env);
 
     ast_token_type token_type() const;
-    markup_string hover() const;
 
     // node interface
 public:
@@ -54,6 +53,8 @@ public:
     virtual std::ostream &short_print(std::ostream &stream) const override;
     virtual wall_e::list<ast_token> tokens() const override;
     virtual std::ostream &write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const override;
+    virtual markup_string hover() const override;
+    virtual ast_token_type rvalue_type() const override;
 };
 
 } // namespace km2

@@ -1,18 +1,20 @@
-namespace goga {
+exp = namespace {
 
     imp module;
 
-	namespace aaaa {
-		pow = (a f64, b f64) f64;
+	aaaa = namespace {
+		bb = namespace {
+			pow = (a f64, b f64) f64;
+		};
 	};
 
-	aaaa::pow(2., 2.);
+	aaaa::bb::pow(2., 2.);
 
     //module::goga::print_hello();
 	printf = (format string, args ...) u32;
-	const my_cst = 'asas';
+	my_cst = 'asas';
 	pow = (a f64, b f64) f64;
-    const mc = pow(2., 2.);
+    mc = pow(2., 2.);
 
     fn2 = (num f64) {};
 
@@ -22,4 +24,4 @@ namespace goga {
 
     print(444.);
     print(mc);
-}
+};

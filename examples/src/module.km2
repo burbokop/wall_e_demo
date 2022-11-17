@@ -1,13 +1,15 @@
 
+_ = namespace {
 
-namespace {
-    exp namespace to_export {
-    	printf = (format string, args ...) u32;
-    	const my_cst = 'asas';
-    	pow = (a f64, b f64) f64;
+    printf = (format string, args ...) u32;
+    my_cst = 'asas';
+    pow = (a f64, b f64) f64;
+
+	exp = namespace {
+		print_hello = () {
+    	    printf('hello goga\n');
+	    };    
     };
 
-    print_hello = () {
-        /printf('hello goga\n');
-    };
-}
+	//exp = 'aaaaaa';
+};

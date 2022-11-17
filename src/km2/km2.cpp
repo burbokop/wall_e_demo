@@ -33,6 +33,8 @@
 
 #include "backend/backend.h"
 
+#include <src/km2/tree/substitution_node.h>
+
 struct __km2_flags_private {
     bool verbose = false;
     bool tree_mode = false;
@@ -74,19 +76,23 @@ static const wall_e::lex::pattern_list& km2_lexlist() {
     static const wall_e::lex::pattern_list res = {
         { std::regex("\\/\\/(.*)\n"), wall_e::lex::special::ignore },
         { std::regex("\\/\\*(.*)\\*\\/"), wall_e::lex::special::ignore },
-        { wall_e::lex::keyword("asm"), "TOK_ASM" },
-        { wall_e::lex::keyword("number"), "TOK_NUMBER" },
-        { wall_e::lex::keyword("string"), "TOK_STRING" },
-        { wall_e::lex::keyword("const"), "TOK_CONST" },
-        { wall_e::lex::keyword("(namespace|nspace)"), "TOK_NAMESPACE" },
-        { wall_e::lex::keyword("exp"), "TOK_EXP" },
-        { wall_e::lex::keyword("imp"), "TOK_IMP" },
+        { wall_e::lex::bounded("asm"), "TOK_ASM" },
+        { wall_e::lex::bounded("number"), "TOK_NUMBER" },
+        { wall_e::lex::bounded("string"), "TOK_STRING" },
+        { wall_e::lex::bounded("const"), "TOK_CONST" },
+        { wall_e::lex::bounded("(namespace|nspace)"), "TOK_NAMESPACE" },
+        { wall_e::lex::bounded("exp"), "TOK_EXP" },
+        { wall_e::lex::bounded("imp"), "TOK_IMP" },
+        { wall_e::lex::bounded("entry"/** TODO the same as export but choosed as default entry of program (every `exp` can be entry also) */), "TOK_ENTRY" },
+        { wall_e::lex::bounded("mut"/** TODO modifier to variable which means variable is mutable */), "TOK_MUT" },
+        { wall_e::lex::bounded("irresolute"/** TODO modifier to variable which means variable can be modified everywhere (defualt mut can not be modified after first use in closure) */), "TOK_IRRESOLUTE" },
         { std::regex("u[0-9]+"), "TOK_UNSIGNED" },
         { std::regex("i[0-9]+"), "TOK_SIGNED" },
         { std::regex("f32"), "TOK_FLOAT" },
         { std::regex("f64"), "TOK_DOUBLE" },
         { std::regex("'[^']*'"), "STRING_LITERAL" },
-        { std::regex("[a-zA-Z_][a-zA-Z0-9_]*"), "TOK_ID" },
+        { wall_e::lex::bounded("_"), "ANONIMUS_ID" },
+        { std::regex("[a-zA-Z_][a-zA-Z0-9_]*"), "ID" },
         { std::regex("[0-9]+\\.([0-9]+)?"), "FLOAT_LITERAL" },
         { std::regex("[0-9]+"), "INT_LITERAL" },
         { std::regex("[(]"), "OP" },
@@ -123,7 +129,11 @@ km2::compilation_result km2::compile(const backend::backend *b, std::istream &in
 km2::compilation_result km2::compile(const backend::backend* b, const std::string &input, const std::string& uri, const km2::flags &flags) {
     using namespace wall_e::gram::literals;
 
-    const auto& absolute_uri = std::filesystem::absolute(uri).string();
+    if(input.empty()) {
+        return compilation_result({}, {}, {}, {}, {}, {}, { wall_e::error("Empty input", wall_e::error::Err, wall_e::error::UndefinedStage, 0) }, {});
+    }
+
+    const auto& absolute_uri = uri.empty() ? "" : std::filesystem::absolute(uri).string();
 
     const auto __flags = __km2_parse_flags(flags);
     wall_e::gram::flags_list gram_flags;
@@ -158,49 +168,62 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
 
     wall_e::gram::pattern_list gram_list;
 
-    //TOK_EXP
-    //TOK_IMP
-    gram_list.push_back("namespace << (TOK_EXP | -) & TOK_NAMESPACE & (TOK_ID & OB | OB) & (EB | block)"_pattern
-        << km2::namespace_node::create("TOK_EXP", "TOK_ID"));
 
-    gram_list.push_back("block << (namespace | stmt) & SEMICOLON & (EB | block)"_pattern
+    const auto& lvalue_fac = lvalue::fac("TOK_EXP", "ID", "ANONIMUS_ID");
+
+    gram_list.push_back("root_block << (0 | root_block_node)"_pattern
         << km2::block_node::create);
+
+    gram_list.push_back("root_block_node << stmt & SEMICOLON & (0 | root_block_node)"_pattern);
+
+    gram_list.push_back("block << OB & (EB | block_node)"_pattern
+        << km2::block_node::create);
+
+    gram_list.push_back("block_node << stmt & SEMICOLON & (EB | block_node)"_pattern);
+
+    gram_list.push_back("namespace << TOK_NAMESPACE & block"_pattern
+        << km2::namespace_node::create(lvalue_fac));
+
+    gram_list.push_back("lvalue << TOK_EXP | ID | ANONIMUS_ID"_pattern);
+    gram_list.push_back("rvalue << namespace | function_declaration | proto_declaration | const"_pattern);
+
+    gram_list.push_back("substitution << lvalue & EQUALS & rvalue"_pattern
+                        << km2::substitution_node::create(lvalue_fac));
 
     //gram_list.push_back("internal_block << (namespace | stmt) & SEMICOLON & (EB | internal_block)"_pattern
     //    << km2::internal_block_node::create);
 
-    gram_list.push_back("stmt << import | function_call | function_declaration | proto_declaration | const"_pattern
+    gram_list.push_back("stmt << import | function_call | substitution"_pattern
         << km2::stmt_node::create);
 
-    gram_list.push_back("import << TOK_IMP & TOK_ID"_pattern
+    gram_list.push_back("import << TOK_IMP & ID"_pattern
         << km2::imp_node::create);
 
-    gram_list.push_back("const << TOK_CONST & TOK_ID & EQUALS & arg"_pattern
-        << km2::const_node::create);
+    gram_list.push_back("const << arg"_pattern
+        << km2::const_node::create());
 
-    gram_list.push_back("function_declaration << TOK_ID & EQUALS & OP & (EP | decl_arg_list) & OB & (EB | block)"_pattern
-        << km2::function_node::create);
+    gram_list.push_back("function_declaration << OP & (EP | decl_arg_list) & block"_pattern
+        << km2::function_node::create());
 
-    gram_list.push_back("proto_declaration << TOK_ID & EQUALS & OP & (EP | decl_arg_list) & type"_pattern
-        << km2::proto_node::create);
+    gram_list.push_back("proto_declaration << OP & (EP | decl_arg_list) & type"_pattern
+        << km2::proto_node::create());
 
     gram_list.push_back("decl_arg_list << decl_arg & (EP | (COMA & decl_arg_list))"_pattern);
 
-    gram_list.push_back("decl_arg << TOK_ID & (type | THREE_DOT)"_pattern
+    gram_list.push_back("decl_arg << ID & (type | THREE_DOT)"_pattern
         << km2::decl_arg_node::create);
 
     gram_list.push_back("type << TOK_UNSIGNED | TOK_SIGNED | TOK_FLOAT | TOK_DOUBLE | TOK_STRING"_pattern
         << km2::type_node::create);
 
-    gram_list.push_back("namespace_appeal << TOK_ID & DOUBLE_COLON & (namespace_appeal | -)"_pattern
-                        );
+    gram_list.push_back("namespace_appeal << ID & DOUBLE_COLON & (namespace_appeal | -)"_pattern);
 
-    gram_list.push_back("function_call << (namespace_appeal | -) & TOK_ID & OP & (EP | arg_list)"_pattern
+    gram_list.push_back("function_call << (namespace_appeal | -) & ID & OP & (EP | arg_list)"_pattern
         << km2::call_node::create);
 
     gram_list.push_back("arg_list << arg & (EP | (COMA & arg_list))"_pattern);
 
-    gram_list.push_back("arg << function_call | const | TOK_ID | STRING_LITERAL | FLOAT_LITERAL | INT_LITERAL"_pattern
+    gram_list.push_back("arg << function_call | substitution | ID | STRING_LITERAL | FLOAT_LITERAL | INT_LITERAL"_pattern
         << km2::arg_node::create);
 
 
@@ -258,55 +281,54 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
         std::cout << "\n -------------- GRAM END --------------\n\n";
     }
 
-    if(right.contains_type<std::shared_ptr<km2::namespace_node>>()) {
-        if(const auto node = right.value<std::shared_ptr<km2::namespace_node>>()) {
-            const auto errors = node->errors();
+    if(const auto& root_node = right.option_cast<std::shared_ptr<km2::abstract_value_node>>()) {
+        const auto errors = (*root_node)->errors();
 
-            if(errors.size() > 0) {
-                if(__flags.verbose) {
-                    std::cout << wall_e::red << "FOUND ERRORS OF LEVEL 1: " << errors << wall_e::color::reset() << std::endl;
-                }
-                return compilation_result(tokens, wall_e::gram::pattern::to_string(gram_list), right, {}, {}, {}, errors, log);
-            } else {
-                if(__flags.verbose) {
-                    std::cout << wall_e::green << "NO ERRORS OF LEVEL 1" << wall_e::color::reset() << std::endl;
-                }
-            }
-
+        if(errors.size() > 0) {
             if(__flags.verbose) {
-                std::cout << "AST --------" << std::endl;
-                node->write(std::cout, abstract_node::Simple, wall_e::tree_writer::context::detached());
-                std::cout << "AST GRAPHVIZ" << std::endl;
-
-                wall_e::graphviz_tree_writer writer;
-                node->write(std::cout, abstract_node::TreeWriter, writer.root());
-                std::cout << "AST END ----" << std::endl;
+                std::cout << wall_e::red << "FOUND ERRORS OF LEVEL 1: " << errors << wall_e::color::reset() << std::endl;
             }
+            return compilation_result(tokens, wall_e::gram::pattern::to_string(gram_list), right, {}, {}, {}, errors, log);
+        } else {
             if(__flags.verbose) {
-                std::cout << "BACKEND: " << b << std::endl;
+                std::cout << wall_e::green << "NO ERRORS OF LEVEL 1" << wall_e::color::reset() << std::endl;
             }
-            if(!b) {
-                return compilation_result(tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, nullptr, nullptr, {}, log);
-            }
-            if(__flags.verbose) {
-                std::cout << "USING BACKEND: " << b->name() << std::endl;
-            }
+        }
 
-            const auto unit = b->create_unit();
-            if(const auto gen_result = node->generate_backend_value(unit)) {
-                backend::value* backend_value = gen_result.right_value();
-                unit->print();
-                return compilation_result(tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, unit, backend_value, {}, log);
-            } else {
-                if(__flags.verbose) {
-                    std::cout << wall_e::red << "FOUND ERRORS OF LEVEL 2: " << gen_result.left_value() << wall_e::color::reset() << std::endl;
-                }
-                return compilation_result(tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), node, unit, {}, { gen_result.left_value() }, log);
-            }          
+        std::cout << "root node: " << (*root_node) << std::endl;
+
+        if(__flags.verbose) {
+            std::cout << "AST --------" << std::endl;
+            (*root_node)->write(std::cout, abstract_node::Simple, wall_e::tree_writer::context::detached());
+            std::cout << "AST GRAPHVIZ" << std::endl;
+
+            wall_e::graphviz_tree_writer writer;
+            (*root_node)->write(std::cout, abstract_node::TreeWriter, writer.root());
+            std::cout << "AST END ----" << std::endl;
+        }
+        if(__flags.verbose) {
+            std::cout << "BACKEND: " << b << std::endl;
+        }
+        if(!b) {
+            return compilation_result(tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), *root_node, nullptr, nullptr, {}, log);
+        }
+        if(__flags.verbose) {
+            std::cout << "USING BACKEND: " << b->name() << std::endl;
+        }
+
+        const auto unit = b->create_unit();
+        if(const auto gen_result = (*root_node)->generate_backend_value(unit)) {
+            backend::value* backend_value = gen_result.right_value();
+            unit->print();
+            return compilation_result(tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), *root_node, unit, backend_value, {}, log);
+        } else {
+            if(__flags.verbose) {
+                std::cout << wall_e::red << "FOUND ERRORS OF LEVEL 2: " << gen_result.left_value() << wall_e::color::reset() << std::endl;
+            }
+            return compilation_result(tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), *root_node, unit, {}, { gen_result.left_value() }, log);
         }
     }
-
-    return compilation_result(tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), {}, {}, {}, { wall_e::error("root node is not a namespace") }, log);
+    return compilation_result(tokens, wall_e::gram::pattern::to_string(gram_list), result.right().value(), {}, {}, {}, { wall_e::error("root node not a value node") }, log);
 }
 
 

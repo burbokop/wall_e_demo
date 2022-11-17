@@ -30,6 +30,8 @@ public:
     virtual std::ostream &short_print(std::ostream &stream) const override;
     virtual wall_e::list<ast_token> tokens() const override { return m_node ? m_node->tokens() : wall_e::list<ast_token> {}; }
     virtual std::ostream &write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const override;
+    virtual ast_token_type rvalue_type() const override;
+    virtual markup_string hover() const override;
 };
 
 } // namespace km2

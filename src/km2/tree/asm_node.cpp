@@ -56,3 +56,16 @@ wall_e::list<km2::ast_token> km2::asm_node::tokens() const {
         }
     };
 }
+
+
+//bool km2::asm_node::is_export_root() const
+//{
+//}
+
+
+km2::ast_token_type km2::asm_node::rvalue_type() const { return wall_e::enums::null; }
+
+km2::markup_string km2::asm_node::hover() const {
+    using namespace literals;
+    return "**asm**"_md;
+}

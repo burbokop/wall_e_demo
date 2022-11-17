@@ -33,7 +33,7 @@ wall_e::gram::argument km2::arg_node::create(const wall_e::gram::arg_vector &arg
                 return std::make_shared<arg_node>(index, token.segment(), FloatLiteral, token.text);
             } else if(token.name == "STRING_LITERAL") {
                 return std::make_shared<arg_node>(index, token.segment(), StringLiteral, wall_e::lex::parse_string_literal(token.text, true));
-            } else if(token.name == "TOK_ID") {
+            } else if(token.name == "ID") {
                 return std::make_shared<arg_node>(index, token.segment(), Id, token.text);
             }
         } else {
@@ -104,8 +104,8 @@ wall_e::either<
         } else {
             return wall_e::left(wall_e::error(
                                     "variable " + m_text + " not found in current context",
-                                    wall_e::error::err,
-                                    wall_e::error::semantic,
+                                    wall_e::error::Err,
+                                    wall_e::error::Semantic,
                                     0,
                                     segment()
                                     ));
@@ -175,4 +175,9 @@ std::ostream &km2::arg_node::write(std::ostream &stream, write_format fmt, const
         }
     }
     return stream;
+}
+
+
+km2::ast_token_type km2::arg_node::rvalue_type() const {
+    return AstVariable;
 }

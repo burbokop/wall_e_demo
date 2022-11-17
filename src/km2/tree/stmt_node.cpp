@@ -12,11 +12,8 @@ km2::stmt_node::stmt_node(const wall_e::index &index, std::shared_ptr<abstract_v
 wall_e::gram::argument km2::stmt_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) {
     if(debug) std::cout << wall_e::type_name<stmt_node>() << "::create: " << args << std::endl;
     if(args.size() > 0) {
-        if(debug) std::cout << "km2::cmd_node::create 1: " << args[0] << std::endl;
-        const auto node = args[0].option_cast<std::shared_ptr<abstract_value_node>>();
-        if(node.has_value()) {
-            if(debug) std::cout << "km2::cmd_node::create 2: " << node.value() << std::endl;
-            return std::make_shared<stmt_node>(index, node.value());
+        if(const auto node = args[0].option_cast<std::shared_ptr<abstract_value_node>>()) {
+            return std::make_shared<stmt_node>(index, *node);
         }
     }
     return std::make_shared<stmt_node>(index);
@@ -61,4 +58,12 @@ std::ostream &km2::stmt_node::write(std::ostream &stream, write_format fmt, cons
         }
     }
     return stream;
+}
+
+km2::ast_token_type km2::stmt_node::rvalue_type() const {
+    return m_node ? m_node->rvalue_type() : wall_e::enums::null;
+}
+
+km2::markup_string km2::stmt_node::hover() const {
+    return m_node ? m_node->hover() : km2::markup_string();
 }

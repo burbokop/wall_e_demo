@@ -10,10 +10,7 @@ namespace km2 {
 class stmt_node;
 class namespace_node;
 class block_node : public km2::abstract_value_node {
-    const std::shared_ptr<stmt_node> m_stmt_node;
-    const std::shared_ptr<namespace_node> m_namespace_node;
-
-    const std::shared_ptr<block_node> m_next_node;
+    const wall_e::vec<std::shared_ptr<stmt_node>> m_statements;
 
     const backend::context m_acc_context;
     const backend::context m_context;
@@ -23,9 +20,7 @@ public:
 
     block_node(
             const wall_e::index &index,
-            const std::shared_ptr<stmt_node> &stmt_node,
-            const std::shared_ptr<namespace_node> &namespace_node,
-            const std::shared_ptr<block_node>& next_node = nullptr
+            const wall_e::vec<std::shared_ptr<stmt_node>>& statements
             );
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index, const wall_e::gram::environment* env);
@@ -42,12 +37,25 @@ public:
     std::shared_ptr<backend::overload> find_overload_in_block_seq(
             const std::list<std::string> &namespace_stack,
             const std::string &name
-            );
+            ) const;
 
     std::shared_ptr<backend::overload> find_overload_in_whole_tree(
             const std::list<std::string> &namespace_stack,
             const std::string &name
-            );
+            ) const;
+
+    enum search_scope {
+        WholeTree,
+        Block,
+        Namespace
+    };
+
+    wall_e::list<std::shared_ptr<abstract_value_node>> find_call_candidate_nodes(
+            const wall_e::str_list &namespace_stack,
+            const std::string &name,
+            search_scope search_scope
+            ) const;
+
 
     const backend::context &context() const { return m_context; }
     const backend::context &acc_context() const { return m_acc_context; }
@@ -59,6 +67,8 @@ public:
     virtual std::ostream &short_print(std::ostream &stream) const override;
     virtual wall_e::list<ast_token> tokens() const override;
     virtual std::ostream &write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const override;
+    virtual ast_token_type rvalue_type() const override;
+    virtual markup_string hover() const override;
 };
 
 } // namespace km2

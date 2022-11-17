@@ -59,7 +59,7 @@ km2::backend::function *km2::backend::overload::find(wall_e::vec<type*> arg_type
 wall_e::opt<wall_e::error> km2::backend::overload::add_value(backend::function *value, const wall_e::text_segment &segment) {    
     for(const auto& v : m_values) {
         if(is_same_signature(v, value)) {
-            return wall_e::error("same function already exists", wall_e::error::err, wall_e::error::semantic, 0, segment);
+            return wall_e::error("same function already exists", wall_e::error::Err, wall_e::error::Semantic, 0, segment);
         }
     }
     m_values.push_back(value);

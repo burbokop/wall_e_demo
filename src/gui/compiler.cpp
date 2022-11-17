@@ -22,7 +22,7 @@ Compiler::Compiler(QObject *parent) : QObject { parent } {
 void Compiler::recompile() {
     setErrors({});
     if(!backend().valid()) {
-        addErrors({ CompilationError(wall_e::error("backend not choosed", wall_e::error::warn)) });
+        addErrors({ CompilationError(wall_e::error("backend not choosed", wall_e::error::Warn)) });
     }
 
     km2::flags flags;

@@ -5,28 +5,26 @@
 
 #include "decl_arg_node.h"
 
+#include <src/km2/utility/lvalue.h>
 #include <string>
 #include <vector>
 #include <wall_e/src/gram.h>
 
 namespace km2 {
-
+class block_node;
 class function_node : public abstract_value_node {
-    const std::string m_name;
-    const wall_e::text_segment m_name_segment;
     const wall_e::vec<std::shared_ptr<decl_arg_node>> m_args;
-    const std::shared_ptr<abstract_value_node> m_body;
+    const std::shared_ptr<block_node> m_body;
 public:
     typedef abstract_value_node super_type;
 
-    function_node(const wall_e::index& index,
-            const std::string &name,
-            const wall_e::text_segment &name_segment,
+    function_node(
+            const wall_e::index& index,
             const wall_e::vec<std::shared_ptr<decl_arg_node> > &args,
-            std::shared_ptr<abstract_value_node> body
+            std::shared_ptr<block_node> body
             );
 
-    static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index, const wall_e::gram::environment* env);
+    static factory create();
 
     // node interface
 public:
@@ -41,6 +39,8 @@ public:
     virtual std::ostream &short_print(std::ostream &stream) const override;
     virtual wall_e::list<ast_token> tokens() const override;
     virtual std::ostream &write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const override;
+    virtual ast_token_type rvalue_type() const override;
+    virtual markup_string hover() const override;
 };
 
 } // namespace km2

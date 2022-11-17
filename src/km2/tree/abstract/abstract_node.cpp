@@ -3,17 +3,24 @@
 #include <numeric>
 #include <execution>
 
+#include <src/km2/tree/substitution_node.h>
+
 
 std::vector<km2::backend::context> km2::abstract_node::contexts(const children_t &children) {
     std::vector<backend::context> result;
-    transform(children.begin(), children.end(), back_inserter(result), [](const std::shared_ptr<abstract_node> &n){
+    transform(children.begin(), children.end(), back_inserter(result), [](const std::shared_ptr<const abstract_node> &n){
         return n ? n->ctx() : backend::context();
     });
     return result;
 }
 
-km2::abstract_node::abstract_node(const wall_e::index &index, const children_t &children, const wall_e::text_segment &segment)
+km2::abstract_node::abstract_node(
+        const wall_e::index &index,
+        const children_t &children,
+        const wall_e::text_segment &segment
+        )
     : m_index(index),
+      m_children(children),
       m_context(backend::context::sum(contexts(children))),
       m_segment(segment) {
     for(const auto& c : children) {
@@ -21,22 +28,25 @@ km2::abstract_node::abstract_node(const wall_e::index &index, const children_t &
     }
 }
 
-km2::abstract_node* km2::abstract_node::parent() const {
-    return m_parent;
-}
-
 wall_e::text_segment km2::abstract_node::segment() const {
     return m_segment;
 }
 
-std::map<std::size_t, km2::abstract_node*> km2::abstract_node::ancestor_cache() const {
+std::map<std::size_t, const km2::abstract_node*> km2::abstract_node::ancestor_cache() const {
     return m_ancestor_cache;
 }
 
-
-std::vector<std::shared_ptr<km2::abstract_node>> km2::abstract_node::children() const {
-    return m_children;
+wall_e::opt<km2::lvalue> km2::abstract_node::lval() const {
+    if(const auto s = parent_as<substitution_node>()) {
+        return s->lvalue();
+    } else {
+        return std::nullopt;
+    }
 }
 
 const km2::backend::context &km2::abstract_node::ctx() const { return m_context; }
 const wall_e::index &km2::abstract_node::index() const { return m_index; }
+
+wall_e::vec<std::shared_ptr<const km2::abstract_node> > km2::default_tree_searcher::enter_level(const abstract_node *node) {
+    return node->children();
+}

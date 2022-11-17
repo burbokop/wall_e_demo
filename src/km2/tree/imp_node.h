@@ -4,6 +4,7 @@
 #include "abstract/abstract_value_node.h"
 
 #include <wall_e/src/utility/box.h>
+#include <wall_e/src/utility/lazy.h>
 
 namespace km2 {
 
@@ -14,6 +15,9 @@ class imp_node : public abstract_value_node {
     const wall_e::lex::token m_name_token;
     const wall_e::opt_box<compilation_result> m_module_cresult;
     const wall_e::list<wall_e::error> m_search_errors;
+
+    std::shared_ptr<const abstract_value_node> eval_mod_exp_root_cache() const;
+    const wall_e::lazy<std::shared_ptr<const abstract_value_node>> m_mod_exp_root_cache = wall_e::lazy(this, &imp_node::eval_mod_exp_root_cache);
 public:
     typedef abstract_value_node super_type;
 
@@ -27,6 +31,7 @@ public:
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index, const wall_e::gram::environment* env);
 
+    inline const std::shared_ptr<const abstract_value_node> mod_exp_root() const { return m_mod_exp_root_cache.value(); }
 
     // abstract_node interface
 public:
@@ -34,6 +39,8 @@ public:
     virtual std::ostream &short_print(std::ostream &stream) const override;
     virtual ast_token_list tokens() const override;
     virtual wall_e::list<wall_e::error> errors() const override;
+    virtual ast_token_type rvalue_type() const override;
+    virtual markup_string hover() const override;
 
     // abstract_value_node interface
 public:

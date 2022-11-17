@@ -7,7 +7,7 @@ std::list<std::shared_ptr<km2::backend::overload>> km2::backend::context::overlo
 
 std::optional<wall_e::error> km2::backend::context::add_overload(const std::shared_ptr<overload> &overload, const wall_e::text_segment &segment) {
     if(find_overload(overload->namespace_stack(), overload->name())) {
-        return wall_e::error("overload already exist", wall_e::error::err, wall_e::error::semantic, 0, segment);
+        return wall_e::error("overload already exist", wall_e::error::Err, wall_e::error::Semantic, 0, segment);
     } else {
         m_overloads.push_back(overload);
         return std::nullopt;

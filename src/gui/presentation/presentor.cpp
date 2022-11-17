@@ -57,9 +57,6 @@ Presentor::Presentor(QObject *parent) : QObject{ parent } {
                     thisUriErrors.push_back(e);
                 }
             }
-            qDebug() << "errs: " << errs;
-            qDebug() << "uri(): " << uri();
-            qDebug() << "thisUriErrors: " << thisUriErrors;
 
             m_higlighter->setErrorsAndSemanticTokens(thisUriErrors, tokens);
         }

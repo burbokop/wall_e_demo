@@ -13,7 +13,7 @@ const wall_e::map<std::string, km2::lsp::semantic_token_type> &km2::lsp::default
         { "TOK_FLOAT", semantic_token_type::Keyword },
         { "TOK_DOUBLE", semantic_token_type::Keyword },
         { "STRING_LITERAL", semantic_token_type::String },
-        { "TOK_ID", semantic_token_type::Variable },
+        { "ID", semantic_token_type::Variable },
         { "FLOAT_LITERAL", semantic_token_type::Number },
         { "INT_LITERAL", semantic_token_type::Number },
         /** { "OP", no semantic token }, */
@@ -48,7 +48,7 @@ const wall_e::map<std::string, km2::lsp::semantic_token_modifier>& km2::lsp::def
         /** { "TOK_FLOAT", no semantic token modifier }, */
         /** { "TOK_DOUBLE", no semantic token modifier }, */
         /** { "STRING_LITERAL", no semantic token modifier }, */
-        /** { "TOK_ID", no semantic token modifier }, */
+        /** { "ID", no semantic token modifier }, */
         /** { "FLOAT_LITERAL", no semantic token modifier }, */
         /** { "INT_LITERAL", no semantic token modifier }, */
         /** { "OP", no semantic token modifier }, */

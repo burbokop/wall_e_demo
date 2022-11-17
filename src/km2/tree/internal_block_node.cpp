@@ -3,7 +3,7 @@
 #include "wall_e/src/macro.h"
 
 km2::internal_block_node::internal_block_node(const wall_e::index &index, std::shared_ptr<stmt_node> stmt, std::shared_ptr<internal_block_node> next_node)
-    : km2::abstract_value_node(index, cast_to_children(std::vector { stmt }, std::vector { next_node })),
+    : km2::abstract_value_node(index, cast_to_children(wall_e::vec { stmt }, wall_e::vec { next_node })),
       m_stmt(stmt),
       m_next_node(next_node)
 {}
@@ -14,12 +14,13 @@ wall_e::gram::argument km2::internal_block_node::create(const wall_e::gram::arg_
         const auto stmt = args[0].value_or<std::shared_ptr<stmt_node>>(nullptr);
         if (args.size() > 2) {
             const auto next_block = args[2].value_or<std::shared_ptr<internal_block_node>>(nullptr);
-            return std::make_shared<internal_block_node>(index, stmt, next_block);
+            //return std::make_shared<internal_block_node>(index, stmt, next_block);
         } else {
-            return std::make_shared<internal_block_node>(index, stmt, nullptr);
+            //return std::make_shared<internal_block_node>(index, stmt, nullptr);
         }
     }
-    return std::make_shared<internal_block_node>(index, nullptr);
+    //return std::make_shared<internal_block_node>(index, nullptr);
+    return nullptr;
 }
 
 wall_e::either<

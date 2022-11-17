@@ -25,6 +25,7 @@ km2::markup_string km2::type_node::hover() const {
     case Double: return "**primitive float type** "_md + m_original_text;
     case String: return "**primitive type** "_md + m_original_text;
     case Undefined: return "**undefined type** "_md + m_original_text;
+    case __type_max_value: break;
     }
     return ""_md;
 }
@@ -116,4 +117,9 @@ std::ostream &km2::type_node::write(std::ostream &stream, write_format fmt, cons
                << ctx.edge();
     }
     return stream;
+}
+
+
+km2::ast_token_type km2::type_node::rvalue_type() const {
+    return AstType;
 }
