@@ -10,13 +10,7 @@ km2::block_node::block_node(
         const wall_e::index &index,
         const wall_e::vec<std::shared_ptr<km2::stmt_node>> &statements
         )
-    : km2::abstract_value_node(index, [statements]{
-    const auto c = cast_to_children(statements);
-
-    std::cout << "block cast_to_children: " << statements << " -> " << c << std::endl;
-
-            return c;
-}()),
+    : km2::abstract_value_node(index, cast_to_children(statements)),
       m_statements(statements),
       m_context(/*statements ? statements->context() :*/ backend::context({})),
       m_acc_context(/*statements

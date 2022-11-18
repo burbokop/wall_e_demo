@@ -8,6 +8,9 @@ exp = namespace {
 		};
 	};
 
+	foo();
+	print_hello();
+
 	aaaa::bb::pow(2., 2.);
 
     //module::goga::print_hello();

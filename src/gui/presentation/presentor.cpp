@@ -47,7 +47,7 @@ Presentor::Presentor(QObject *parent) : QObject{ parent } {
         initialize();
     });
 
-    connect(m_service, &LSPService::contentChanged, this, [this](const QList<CompilationError>& errs, const QList<SemanticToken>& tokens, bool astTokensReady){
+    connect(m_service, &LSPService::contentChanged, this, [this](const QString&, const QList<CompilationError>& errs, const QList<SemanticToken>& tokens, bool astTokensReady){
         setAstTokensReady(astTokensReady);
         setErrors(errs);
         if(m_higlighter) {            
@@ -62,10 +62,18 @@ Presentor::Presentor(QObject *parent) : QObject{ parent } {
         }
     });
 
-    connect(m_service, &LSPService::initialized, this, [this](const SemanticTokensLegend& legend){
+    connect(m_service, &LSPService::initialized, this, [this](const QString& uri, const SemanticTokensLegend& legend){
         if(m_higlighter) {
             m_higlighter->setLegend(m_theme->highlightLegend(legend));
         }
+    });
+
+    connect(m_service, &LSPService::hover, this, [this](const QString&, const MarkupString& str) {
+        emit hover(str);
+    });
+
+    connect(m_service, &LSPService::unhover, this, [this](const QString&) {
+        emit unhover();
     });
 
     m_serviceThread->start();
@@ -75,6 +83,12 @@ Presentor::~Presentor() {
     if(m_serviceThread) {
         m_serviceThread->quit();
         m_serviceThread->wait();
+    }
+}
+
+void Presentor::hoverText(int pos) {
+    if(m_service) {
+        QMetaObject::invokeMethod(m_service, [this, pos]{ m_service->hoverText(substituteUri(uri()), pos); }, Qt::QueuedConnection);
     }
 }
 

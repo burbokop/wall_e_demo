@@ -34,7 +34,8 @@ public:
 };
 
 wall_e_enum(semantic_error,
-    DoubleExport
+    DoubleExport,
+    FunctionNotFound
 )
 
 struct abstract_node {

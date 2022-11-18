@@ -144,15 +144,14 @@ wall_e::vec<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const s
     return wall_e::vec<semantic_token> {};
 }
 
-wall_e::opt<km2::markup_string> km2::lsp::service::hover(const std::string& uri, const wall_e::text_segment::predicate &predicate) {
+wall_e::opt<km2::markup_string> km2::lsp::service::hover(const std::string& uri, const wall_e::text_segment::predicate &predicate) const {
     const auto cache_it = m_cache.find(uri);
     if(cache_it != m_cache.end() && cache_it->second.compilation_result) {
-
         const auto& hovers = cache_it->second.compilation_result->hovers();
         const auto it = std::find_if(hovers.begin(), hovers.end(), [&predicate, &cache_it](
                                      const std::pair<wall_e::text_segment, markup_string>& pair
                                      ){
-            return predicate(pair.first, cache_it->second.content);
+            return predicate(pair.first);
         });
         if(it != hovers.end()) {
             return it->second;

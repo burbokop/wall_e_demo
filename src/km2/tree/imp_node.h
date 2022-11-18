@@ -47,6 +47,23 @@ public:
     virtual wall_e::either<wall_e::error, backend::value *> generate_backend_value(const std::shared_ptr<backend::unit> &unit) override;
 };
 
+/// concept tree_seracher
+class pub_api_searcher {
+    const abstract_node* m_until;
+public:
+    pub_api_searcher(const abstract_node* until = nullptr) : m_until(until) {}
+
+    inline const abstract_node* until() const { return m_until; }
+    wall_e::vec<std::shared_ptr<const abstract_node>> enter_level(const abstract_node* node) {
+        if(!node) return {};
+        if(const auto& i = dynamic_cast<const imp_node*>(node)) {
+            return { i->mod_exp_root() };
+        } else {
+            return node->children();
+        }
+    }
+};
+
 }
 
 #endif // IMP_NODE_H

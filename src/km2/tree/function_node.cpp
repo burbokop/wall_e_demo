@@ -23,7 +23,7 @@ km2::function_node::function_node(
 
 km2::abstract_node::factory km2::function_node::create() {
     return [](const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) -> wall_e::gram::argument {
-        /*if(debug)*/ std::cout << "km2::function_node::create: " << args << std::endl;
+        if(debug) std::cout << "km2::function_node::create: " << args << std::endl;
         if(args.size() > 2) {
             wall_e::vec<std::shared_ptr<decl_arg_node>> da_nodes;
             const auto decl_args = args[1].constrain();
@@ -43,6 +43,16 @@ km2::abstract_node::factory km2::function_node::create() {
 
         return nullptr;
     };
+}
+
+wall_e::str_list km2::function_node::full_name() const {
+    if(lval()) {
+        if(const auto ns = nearest_ancestor<namespace_node>()) {
+            return ns->full_name() + lval()->pretty_str();
+        }
+        return { lval()->pretty_str() };
+    }
+    return {};
 }
 
 wall_e::either<
@@ -174,7 +184,7 @@ km2::markup_string km2::function_node::hover() const {
     if(const auto& lvalue = lval()) {
         switch (lvalue->lval_kind()) {
         case lvalue::Exp: return "**export function**"_md;
-        case lvalue::Id: return "**function** "_md + lvalue->token().text;
+        case lvalue::Id: return "**function** "_md + km2::markup_string(full_name().join("::"), km2::markup_string::PlainText);
         case lvalue::AnonId: return "**anonimus function**"_md;
         case lvalue::__kind_max_value: break;
         }

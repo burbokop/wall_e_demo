@@ -5,6 +5,7 @@
 #include <src/gui/appcore.h>
 #include <src/gui/kgramtreeview.h>
 #include <src/gui/presentation/presentor.h>
+#include <src/gui/presentation/textedithover.h>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -149,6 +150,8 @@ int main(int argc, char **argv) {
     qmlRegisterType<Compiler>("Km2", 1, 0, "Compiler");
     qmlRegisterType<Presentor>("Km2", 1, 0, "Presentor");
     qmlRegisterType<LogTableModel>("Km2", 1, 0, "LogTableModel");
+    qmlRegisterType<TextEditHover>("Km2", 1, 0, "TextEditHover");
+
     qmlRegisterUncreatableType<BackendFactory>("Km2", 1, 0, "BackendFactory", "created in appcore");
     qmlRegisterUncreatableType<JitExecutor>("Km2", 1, 0, "JitExecutor", "created in appcore");
     qmlRegisterUncreatableType<TokenTree>("Km2", 1, 0, "TokenTree", "created in compiler");

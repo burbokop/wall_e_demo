@@ -1,10 +1,13 @@
 import QtQuick 2.0
 import QtQuick.Controls 2.12
-
+import Km2
 
 Flickable {
     id: localRoot
 
+    signal hover(int pos)
+
+    property alias hoverDelay: hover.delay
     readonly property TextArea textArea: area
 
     function goToPosition(pos) {
@@ -23,6 +26,17 @@ Flickable {
     TextArea.flickable: TextArea {
         id: area
         wrapMode: TextArea.Wrap
+
+        TextEditHover {
+            id: hover
+            textEdit: area
+            onHover: pos => localRoot.hover(pos)
+            delay: localRoot.hoverDelay
+        }
+
+        Text {
+            text: `cp: ${area.cursorPosition}`
+        }
     }
 
     ScrollBar.vertical: ScrollBar { }

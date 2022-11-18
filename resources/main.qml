@@ -30,6 +30,9 @@ Window {
         uri: appCore.openedProjFile ? appCore.openedProjFile.fullPath : ''
         //errors: compiler.errors
         //onPresentationCompleated: codeArea.updatePresentation()
+
+        onHover: str => hoverTextRect.show(str)
+        onUnhover: hoverTextRect.hide()
     }
 
 
@@ -204,6 +207,7 @@ Window {
                             anchors.fill: parent
                             anchors.margins: 2
                             onTextChanged: appCore.codeEdited = true
+                            onHover: pos => presentor.hoverText(pos)
 
                             property bool ctrlPressed: false
                             Keys.onPressed: event => {
@@ -225,7 +229,36 @@ Window {
                                     codeArea.ctrlPressed = false
                                 }
                             }
+
+                            hoverDelay: hoverTextRect.visible ? 100 : 500
+
+
                         }
+
+                        Rectangle {
+                            id: hoverTextRect
+                            function show(murkupStr) {
+                                hoverText.textFormat = murkupStr.format === 'md' ? Text.MarkdownText : Text.PlainText
+                                hoverText.text = murkupStr.str
+                                hoverTextRect.visible = true;
+                            }
+                            function hide() { hoverTextRect.visible = false; }
+
+                            border.width: 1
+                            implicitHeight: hoverText.implicitHeight
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.bottom: parent.bottom
+                            Text {
+                                id: hoverText
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                horizontalAlignment: Qt.AlignLeft
+                                wrapMode: Text.WordWrap
+                                text: qsTr('text')
+                            }
+                        }
+
                         Text {
                             anchors.right: parent.right
                             anchors.top: parent.top

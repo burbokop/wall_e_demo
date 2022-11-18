@@ -1,13 +1,24 @@
 
 _ = namespace {
 
-    printf = (format string, args ...) u32;
+	n1 = namespace {
+		n2 = namespace {
+			printf = (format string, args ...) u32;
+			bar = () {};
+		};
+
+
+		n2::bar();
+	};
+
     my_cst = 'asas';
     pow = (a f64, b f64) f64;
 
+	foo = () {};
+
 	exp = namespace {
 		print_hello = () {
-    	    printf('hello goga\n');
+    	    //foo('hello goga\n');
 	    };    
     };
 

@@ -32,8 +32,13 @@ public:
     explicit Presentor(QObject *parent = nullptr);
     ~Presentor();
 
+public slots:
+    void hoverText(int pos);
+
+
 signals:
-    void presentationCompleated();
+    void hover(const MarkupString& str);
+    void unhover();
 
 };
 

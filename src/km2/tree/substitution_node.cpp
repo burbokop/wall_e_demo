@@ -64,14 +64,7 @@ wall_e::list<wall_e::error> km2::substitution_node::errors() const {
     const auto rval_errors = m_rvalue ? m_rvalue->errors() : wall_e::list<wall_e::error> {};
 
     if(m_lvalue.lval_kind() == lvalue::Exp) {
-        const auto& p = prev_exp_node();
-        if(p) {
-            std::cout << "prev_exp_node: " << p << std::endl;
-        } else {
-            std::cout << "prev_exp_node: null" << std::endl;
-        }
-
-        if(p) {
+        if(const auto& p = prev_exp_node()) {
             return wall_e::list<wall_e::error> {
                 wall_e::error(
                             "Module can have only one export.",

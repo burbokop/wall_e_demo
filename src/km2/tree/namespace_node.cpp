@@ -59,19 +59,13 @@ wall_e::list<wall_e::error> km2::namespace_node::errors() const {
 }
 
 wall_e::opt<std::string> km2::namespace_node::name() const {
-    //if(m_lvalue.lval_kind() == lvalue::Id) {
-    //    return m_lvalue.token().text;
-    //} else {
-        return std::nullopt;
-    //}
+    return lval().map<std::string>([](const lvalue& v) { return v.pretty_str(); });
 }
 
 wall_e::str_list km2::namespace_node::full_name() const {
     if(const auto& n = name()) {
         if(const auto ns = nearest_ancestor<namespace_node>()) {
-            auto result = ns->full_name();
-            result.push_back(*n);
-            return result;
+            return ns->full_name() + *n;
         }
         return wall_e::str_list { *n };
     }

@@ -28,6 +28,17 @@ public:
     inline markup_string operator+(const std::string& other) const {
         return markup_string(m_data + other, m_format);
     }
+
+    inline markup_string operator+(const markup_string& other) const {
+        const auto& c = other.convert_to(m_format);
+        return markup_string(m_data + c.m_data, m_format);
+    }
+
+    markup_string convert_to(enum format fmt) const;
+
+    bool operator==(const markup_string& other) const {
+        return m_data == other.m_data && m_format == other.m_format;
+    }
 };
 
 std::ostream& operator<<(std::ostream& stream, const markup_string& s);

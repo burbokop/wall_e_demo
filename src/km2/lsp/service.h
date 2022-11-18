@@ -174,8 +174,8 @@ public:
 
     wall_e::vec<wall_e::lex::token> tokens(const std::string& uri) const;
     wall_e::vec<semantic_token> semantic_tokens(const std::string& uri) const;
-    wall_e::opt<markup_string> hover(const std::string& uri, const wall_e::text_segment::predicate& predicate);
-    inline wall_e::opt<markup_string> hover(const std::string& uri, std::size_t offset) {
+    wall_e::opt<markup_string> hover(const std::string& uri, const wall_e::text_segment::predicate& predicate) const;
+    inline wall_e::opt<markup_string> hover(const std::string& uri, std::size_t offset) const {
         return hover(uri, wall_e::text_segment::offset_predicate(offset));
     }
     wall_e::list<std::string> complete(const std::string& uri, const wall_e::text_segment::predicate& predicate);
