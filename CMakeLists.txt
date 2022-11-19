@@ -67,6 +67,7 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/abstract/abstract_type_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/abstract/abstract_value_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/abstract/abstract_node.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/abstract/abstract_func_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/namespace_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/function_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/call_node.cpp
@@ -81,6 +82,7 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/const_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/imp_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/substitution_node.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/invocable_node.cpp
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/backend.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/unit/unit.cpp
@@ -97,7 +99,7 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/models/overload.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/models/context.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/models/function_ref.cpp    
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/printable.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/entities/printable.cpp    
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/utility/lvalue.cpp
     )
@@ -114,6 +116,7 @@ set(KM2_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/abstract/abstract_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/abstract/abstract_type_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/abstract/abstract_value_node.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/abstract/abstract_func_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/namespace_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/function_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/call_node.h
@@ -128,6 +131,7 @@ set(KM2_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/const_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/imp_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/substitution_node.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/invocable_node.h
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/backend.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/as.h

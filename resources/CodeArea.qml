@@ -33,10 +33,6 @@ Flickable {
             onHover: pos => localRoot.hover(pos)
             delay: localRoot.hoverDelay
         }
-
-        Text {
-            text: `cp: ${area.cursorPosition}`
-        }
     }
 
     ScrollBar.vertical: ScrollBar { }

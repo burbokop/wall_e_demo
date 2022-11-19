@@ -17,7 +17,7 @@ km2::function_node::function_node(
         const wall_e::vec<std::shared_ptr<decl_arg_node>> &args,
         std::shared_ptr<block_node> body
         )
-    : abstract_value_node(index, cast_to_children(args, wall_e::vec<std::shared_ptr<abstract_value_node>> { body })),
+    : abstract_func_node(index, cast_to_children(args, wall_e::vec<std::shared_ptr<abstract_value_node>> { body })),
       m_args(args),
       m_body(body) {}
 

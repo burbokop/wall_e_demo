@@ -1,7 +1,7 @@
 #ifndef KM2_PROTO_NODE_H
 #define KM2_PROTO_NODE_H
 
-#include "abstract/abstract_value_node.h"
+#include "abstract/abstract_func_node.h"
 #include "decl_arg_node.h"
 #include <wall_e/src/gram.h>
 #include <src/km2/tree/abstract/abstract_type_node.h>
@@ -10,11 +10,11 @@
 
 namespace km2 {
 
-class proto_node : public km2::abstract_value_node {
+class proto_node : public abstract_func_node {
     const wall_e::vec<std::shared_ptr<decl_arg_node>> m_args;
     const std::shared_ptr<abstract_type_node> m_result_type_node;
 public:
-    typedef abstract_value_node super_type;
+    typedef abstract_func_node super_type;
 
     proto_node(
             const wall_e::index &index,

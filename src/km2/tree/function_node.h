@@ -1,7 +1,7 @@
 #ifndef KM2_FUNCTION_NODE_H
 #define KM2_FUNCTION_NODE_H
 
-#include "abstract/abstract_value_node.h"
+#include "abstract/abstract_func_node.h"
 
 #include "decl_arg_node.h"
 
@@ -12,11 +12,11 @@
 
 namespace km2 {
 class block_node;
-class function_node : public abstract_value_node {
+class function_node : public abstract_func_node {
     const wall_e::vec<std::shared_ptr<decl_arg_node>> m_args;
     const std::shared_ptr<block_node> m_body;
 public:
-    typedef abstract_value_node super_type;
+    typedef abstract_func_node super_type;
 
     function_node(
             const wall_e::index& index,

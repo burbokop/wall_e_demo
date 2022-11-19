@@ -25,29 +25,9 @@ static wall_e::str_list remap_name_from_module(const wall_e::str_list& input, co
     return imp->lval_full_name() + wall_e::str_list(it, input.end());
 }
 
-
-template <typename T, typename A>
-concept ccc = requires(T t) {
-    { t.foo() } -> std::convertible_to<A>;
-};
-
-template<typename T, ccc<T> C>
-void func(C c) {
-    T a = c.foo();
-}
-
-template<typename T>
-struct def_c {
-    T d;
-    T foo() { return d; }
-};
-
-std::shared_ptr<const km2::function_node> km2::call_node::eval_declaration() const {
-
-    func<int, def_c<int>>(def_c<int> { 10 });
-
-    return root()->find<function_node, imp_node, pub_api_searcher<imp_node>>([this](
-                                                         const std::shared_ptr<const function_node>& f,
+std::shared_ptr<const km2::abstract_func_node> km2::call_node::eval_declaration() const {
+    return root()->find<abstract_func_node, imp_node, pub_api_searcher<imp_node>>([this](
+                                                         const std::shared_ptr<const abstract_func_node>& f,
                                                          const imp_node* imp
                                                          ) -> bool {
         const auto& im = dynamic_cast<const imp_node*>(imp);

@@ -104,7 +104,7 @@ km2::ast_token_list km2::imp_node::tokens() const {
             .segment = m_keyword_token.segment()
         },
         ast_token {
-            .type = AstMacro /** TODO use type depending on what exported (namespace, variable, function, ...) */,
+            .type = AstMacro,
             .modifier = wall_e::enums::max_value<ast_token_modifier>(),
             .node_type = wall_e::type_name<imp_node>(),
             .hover = hover(),
@@ -140,6 +140,9 @@ wall_e::either<wall_e::error, km2::backend::value *> km2::imp_node::generate_bac
 
 
 km2::ast_token_type km2::imp_node::rvalue_type() const {
+    if(const auto& exp_root = mod_exp_root()) {
+        return exp_root->rvalue_type();
+    }
     return wall_e::enums::null;
 }
 

@@ -14,7 +14,7 @@ km2::proto_node::proto_node(
         const wall_e::vec<std::shared_ptr<decl_arg_node> > &args,
         std::shared_ptr<abstract_type_node> result_type_node
         )
-    : km2::abstract_value_node(index, cast_to_children(args, wall_e::vec { result_type_node })),
+    : km2::abstract_func_node(index, cast_to_children(args, wall_e::vec { result_type_node })),
       m_args(args),
       m_result_type_node(result_type_node) {}
 

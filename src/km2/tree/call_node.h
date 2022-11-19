@@ -9,15 +9,15 @@ namespace km2 {
 
 wall_e::str_list subtract_namespace_stack(const wall_e::str_list& op0, const wall_e::str_list& op1);
 
-class function_node;
+class abstract_func_node;
 class call_node : public km2::abstract_value_node {
     const wall_e::lex::token_vec m_apeal_namespace_stack;
     const std::string m_name;
     const wall_e::vec<std::shared_ptr<km2::abstract_value_node>> m_args;
     const wall_e::text_segment m_name_segment;
 
-    std::shared_ptr<const function_node> eval_declaration() const;
-    const wall_e::lazy<std::shared_ptr<const function_node>> m_declaration = wall_e::lazy(this, &call_node::eval_declaration);
+    std::shared_ptr<const abstract_func_node> eval_declaration() const;
+    const wall_e::lazy<std::shared_ptr<const abstract_func_node>> m_declaration = wall_e::lazy(this, &call_node::eval_declaration);
 public:
     typedef abstract_value_node super_type;
 
@@ -32,7 +32,7 @@ public:
             const wall_e::text_segment& name_segment
             );
 
-    const std::shared_ptr<const function_node> declaration() const { return m_declaration.value(); }
+    const auto declaration() const { return m_declaration.value(); }
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index, const wall_e::gram::environment* env);
 
