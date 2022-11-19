@@ -1,3 +1,4 @@
+#include "namespace_node.h"
 #include "substitution_node.h"
 #include <iostream>
 
@@ -30,6 +31,13 @@ km2::abstract_node::factory km2::substitution_node::create(const lvalue::factory
         }
         return nullptr;
     };
+}
+
+wall_e::str_list km2::substitution_node::full_name() const {
+    if(const auto ns = nearest_ancestor<namespace_node>()) {
+        return ns->full_name() + m_lvalue.pretty_str();
+    }
+    return { m_lvalue.pretty_str() };
 }
 
 std::ostream &km2::substitution_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {

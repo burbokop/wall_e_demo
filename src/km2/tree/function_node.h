@@ -26,8 +26,6 @@ public:
 
     static factory create();
 
-    wall_e::str_list full_name() const;
-
     // node interface
 public:
     virtual wall_e::either<

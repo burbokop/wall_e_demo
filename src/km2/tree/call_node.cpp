@@ -10,12 +10,50 @@
 #include "wall_e/src/macro.h"
 #include "function_node.h"
 
+/// TODO make comparison not between strings but between lvalues
+static wall_e::str_list remap_name_from_module(const wall_e::str_list& input, const km2::imp_node* imp) {
+    auto it = input.begin();
+    for(; it != input.end(); ++it) {
+        if(*it == "<export>") {
+            break;
+        }
+    }
+
+    if(it != input.end()) ++it;
+
+    //std::cout << "remap_name_from_module " << imp->lval_full_name() << " + " <<  input << " (" << wall_e::str_list(it, input.end()) << ")" << std::endl;
+    return imp->lval_full_name() + wall_e::str_list(it, input.end());
+}
+
+
+template <typename T, typename A>
+concept ccc = requires(T t) {
+    { t.foo() } -> std::convertible_to<A>;
+};
+
+template<typename T, ccc<T> C>
+void func(C c) {
+    T a = c.foo();
+}
+
+template<typename T>
+struct def_c {
+    T d;
+    T foo() { return d; }
+};
+
 std::shared_ptr<const km2::function_node> km2::call_node::eval_declaration() const {
-    return root()->find<function_node, pub_api_searcher>([this](const std::shared_ptr<const function_node>& f) -> bool {
 
-        const auto& s = subtract_namespace_stack(f->full_name(), current_nspace_stack());
-        std::cout << "serach func from " << current_nspace_stack() << ": " << f->full_name() << " (" << s << ")" << " == " << full_apeal_name() << std::endl;
+    func<int, def_c<int>>(def_c<int> { 10 });
 
+    return root()->find<function_node, imp_node, pub_api_searcher<imp_node>>([this](
+                                                         const std::shared_ptr<const function_node>& f,
+                                                         const imp_node* imp
+                                                         ) -> bool {
+        const auto& im = dynamic_cast<const imp_node*>(imp);
+        const auto& remapped_name = im ? remap_name_from_module(f->lval_full_name(), im) : f->lval_full_name();
+        const auto& s = subtract_namespace_stack(remapped_name, current_nspace_stack());
+        //std::cout << "serach func from " << current_nspace_stack() << ": " << f->lval_full_name() << " -> " << remapped_name << " (" << s << ")" << " == " << full_apeal_name() << std::endl;
         return s == full_apeal_name();
     });
 }

@@ -185,7 +185,7 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
         << km2::namespace_node::create(lvalue_fac));
 
     gram_list.push_back("lvalue << TOK_EXP | ID | ANONIMUS_ID"_pattern);
-    gram_list.push_back("rvalue << namespace | function_declaration | proto_declaration | const"_pattern);
+    gram_list.push_back("rvalue << import | namespace | function_declaration | proto_declaration | const"_pattern);
 
     gram_list.push_back("substitution << lvalue & EQUALS & rvalue"_pattern
                         << km2::substitution_node::create(lvalue_fac));
@@ -193,7 +193,7 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
     //gram_list.push_back("internal_block << (namespace | stmt) & SEMICOLON & (EB | internal_block)"_pattern
     //    << km2::internal_block_node::create);
 
-    gram_list.push_back("stmt << import | function_call | substitution"_pattern
+    gram_list.push_back("stmt << function_call | substitution"_pattern
         << km2::stmt_node::create);
 
     gram_list.push_back("import << TOK_IMP & ID"_pattern

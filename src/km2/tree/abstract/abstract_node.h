@@ -18,19 +18,11 @@ struct abstract_node;
 template <typename T>
 concept concept_node = std::is_base_of<abstract_node, T>::value;
 
-template<typename T>
+template<typename T, typename A>
 concept tree_searcher = requires(T t) {
     { t.enter_level(std::declval<const abstract_node*>()) } -> std::convertible_to<wall_e::vec<std::shared_ptr<const abstract_node>>>;
+    { t.valuable_ancestor(std::declval<const abstract_node*>()) } -> std::convertible_to<const A*>;
     { t.until() } -> std::convertible_to<const abstract_node*>;
-};
-
-class default_tree_searcher {
-    const abstract_node* m_until;
-public:
-    default_tree_searcher(const abstract_node* until = nullptr) : m_until(until) {}
-
-    inline const abstract_node* until() const { return m_until; }
-    wall_e::vec<std::shared_ptr<const abstract_node>> enter_level(const abstract_node* node);
 };
 
 wall_e_enum(semantic_error,
@@ -145,29 +137,67 @@ public:
     const children_t& children() const { return m_children; }
 
     wall_e::opt<lvalue> lval() const;
+    wall_e::str_list lval_full_name() const;
+
+
+
+    template<typename T>
+    class default_tree_searcher {
+        const abstract_node* m_until;
+    public:
+        default_tree_searcher(const abstract_node* until = nullptr) : m_until(until) {}
+
+        inline const abstract_node* until() const { return m_until; }
+        inline wall_e::vec<std::shared_ptr<const abstract_node>> enter_level(const abstract_node* node) { return node->m_children; }
+        inline const T* valuable_ancestor(const abstract_node* node) const {
+            if(const auto& i = dynamic_cast<const T*>(node)) { return i; } else { return nullptr; }
+        }
+    };
 
     /**
      * @brief find - find node in posterity
      * @param predicate
      */
-    template <typename T, tree_searcher S = default_tree_searcher>
-    inline std::shared_ptr<const T> find(const std::function<bool(const std::shared_ptr<const T>&)>& predicate, S s = S {}) const {
-        return __find(predicate, s).value_or(nullptr);
+    template <typename T, tree_searcher<abstract_node> S = default_tree_searcher<abstract_node>>
+    inline std::shared_ptr<const T> find(
+                const std::function<bool(const std::shared_ptr<const T>&)>& predicate,
+                S s = S {}
+            ) const {
+        return find<T, abstract_node, S>([predicate](const std::shared_ptr<const T>& v, const abstract_node*){ return predicate(v); }, s);
+    }
+
+    /**
+     * @brief find - find node in posterity
+     * @param predicate
+     */
+    template <typename T, typename V, tree_searcher<V> S = default_tree_searcher<V>>
+    inline std::shared_ptr<const T> find(
+                const std::function<bool(const std::shared_ptr<const T>&, const V*)>& predicate,
+                S s = S {}
+            ) const {
+        return __find<T, V, S>(predicate, nullptr, s).value_or(nullptr);
     }
 private:
-    template <typename T, tree_searcher S = default_tree_searcher>
-    wall_e::opt<std::shared_ptr<const T>> __find(const std::function<bool(const std::shared_ptr<const T>&)>& predicate, S s = S {}) const {
+    template <typename T, typename V, tree_searcher<V> S = default_tree_searcher<V>>
+    wall_e::opt<std::shared_ptr<const T>> __find(
+                const std::function<bool(const std::shared_ptr<const T>&, const V*)>& predicate,
+                const V* prev_va,
+                S s
+            ) const {
+        auto va = s.valuable_ancestor(this);
+        va = va ? va : prev_va;
+
         for(const auto& c : s.enter_level(this)) {
             if(s.until() && c.get() == s.until()) {
                 return std::nullopt;
             }
             if(const auto& cc = std::dynamic_pointer_cast<const T>(c)) {
-                if(predicate(cc)) {
+                if(predicate(cc, va)) {
                     return cc;
                 }
             }
             if(c) {
-                const auto& f = c->__find(predicate, s);
+                const auto& f = c->__find(predicate, va, s);
                 if(f ? bool(*f) : true) {
                     return f;
                 }
@@ -181,9 +211,18 @@ public:
      * @param predicate
      * @return
      */
-    template <typename T, tree_searcher S = default_tree_searcher>
-    inline std::shared_ptr<const T> find_until(const std::function<bool(const std::shared_ptr<const T>&)>& predicate, S s = S {}) const {
-        return root()->find(predicate, S(this));
+    template <typename T, typename V, tree_searcher<V> S = default_tree_searcher<V>>
+    inline std::shared_ptr<const T> find_until(
+                const std::function<bool(const std::shared_ptr<const T>&, const V*)>& predicate
+            ) const {
+        return root()->find<T, V, S>(predicate, S(this));
+    }
+
+    template <typename T, tree_searcher<abstract_node> S = default_tree_searcher<abstract_node>>
+    inline std::shared_ptr<const T> find_until(
+                const std::function<bool(const std::shared_ptr<const T>&)>& predicate
+            ) const {
+        return find_until<T, abstract_node, S>([predicate](const std::shared_ptr<const T>& v, const abstract_node*){ return predicate(v); });
     }
 
     virtual std::ostream& write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const = 0;

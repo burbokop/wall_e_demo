@@ -44,9 +44,14 @@ wall_e::opt<km2::lvalue> km2::abstract_node::lval() const {
     }
 }
 
+wall_e::str_list km2::abstract_node::lval_full_name() const {
+    if(const auto s = parent_as<substitution_node>()) {
+        return s->full_name();
+    } else {
+        return {};
+    }
+}
+
+
 const km2::backend::context &km2::abstract_node::ctx() const { return m_context; }
 const wall_e::index &km2::abstract_node::index() const { return m_index; }
-
-wall_e::vec<std::shared_ptr<const km2::abstract_node> > km2::default_tree_searcher::enter_level(const abstract_node *node) {
-    return node->children();
-}

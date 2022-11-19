@@ -45,16 +45,6 @@ km2::abstract_node::factory km2::function_node::create() {
     };
 }
 
-wall_e::str_list km2::function_node::full_name() const {
-    if(lval()) {
-        if(const auto ns = nearest_ancestor<namespace_node>()) {
-            return ns->full_name() + lval()->pretty_str();
-        }
-        return { lval()->pretty_str() };
-    }
-    return {};
-}
-
 wall_e::either<
 wall_e::error,
 km2::backend::value *
@@ -184,7 +174,7 @@ km2::markup_string km2::function_node::hover() const {
     if(const auto& lvalue = lval()) {
         switch (lvalue->lval_kind()) {
         case lvalue::Exp: return "**export function**"_md;
-        case lvalue::Id: return "**function** "_md + km2::markup_string(full_name().join("::"), km2::markup_string::PlainText);
+        case lvalue::Id: return "**function** "_md + km2::markup_string(lval_full_name().join("::"), km2::markup_string::PlainText);
         case lvalue::AnonId: return "**anonimus function**"_md;
         case lvalue::__kind_max_value: break;
         }

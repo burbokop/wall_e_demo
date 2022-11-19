@@ -48,13 +48,19 @@ public:
 };
 
 /// concept tree_seracher
+template<typename T>
 class pub_api_searcher {
     const abstract_node* m_until;
 public:
-    pub_api_searcher(const abstract_node* until = nullptr) : m_until(until) {}
+    inline pub_api_searcher(const abstract_node* until = nullptr) : m_until(until) {}
 
     inline const abstract_node* until() const { return m_until; }
-    wall_e::vec<std::shared_ptr<const abstract_node>> enter_level(const abstract_node* node) {
+
+    inline const T* valuable_ancestor(const abstract_node* node) const {
+        if(const auto& i = dynamic_cast<const T*>(node)) { return i; } else { return nullptr; }
+    }
+
+    inline wall_e::vec<std::shared_ptr<const abstract_node>> enter_level(const abstract_node* node) const {
         if(!node) return {};
         if(const auto& i = dynamic_cast<const imp_node*>(node)) {
             return { i->mod_exp_root() };

@@ -30,6 +30,8 @@ public:
     const lvalue& lvalue() const { return m_lvalue; }
     const std::shared_ptr<abstract_value_node>& rvalue() const { return m_rvalue; };
 
+    wall_e::str_list full_name() const;
+
     inline const std::shared_ptr<const substitution_node>& prev_exp_node() const { return m_prev_exp_node_cache.value(); }
 
     // abstract_node interface
