@@ -2,7 +2,10 @@
 
 const wall_e::map<std::string, km2::lsp::semantic_token_type> &km2::lsp::default_semantic_token_types_map() {
     static const wall_e::map<std::string, semantic_token_type> res = {
-        { "TOK_WAIT", semantic_token_type::Keyword },
+        { "COMMENT", semantic_token_type::Comment },
+        { "MULTILINE_COMMENT", semantic_token_type::Comment },
+        { "DOC", semantic_token_type::Comment },
+        { "MULTILINE_DOC", semantic_token_type::Comment },
         { "TOK_ASM", semantic_token_type::Keyword },
         { "TOK_NUMBER", semantic_token_type::Keyword },
         { "TOK_STRING", semantic_token_type::Keyword },
@@ -37,7 +40,8 @@ const wall_e::map<std::string, km2::lsp::semantic_token_type> &km2::lsp::default
 
 const wall_e::map<std::string, km2::lsp::semantic_token_modifier>& km2::lsp::default_semantic_token_modifiers_map() {
     static const wall_e::map<std::string, semantic_token_modifier> res = {
-        /** { "TOK_WAIT", no semantic token modifier }, */
+        { "DOC", semantic_token_modifier::Documentation },
+        { "MULTILINE_DOC", semantic_token_modifier::Documentation },
         /** { "TOK_ASM", no semantic token modifier }, */
         /** { "TOK_NUMBER", no semantic token modifier }, */
         /** { "TOK_STRING", no semantic token modifier }, */

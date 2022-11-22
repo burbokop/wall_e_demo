@@ -26,6 +26,7 @@ class ProjFile : public QObject {
     Q_OBJECT
     K_CONST_PROPERTY(QString, fullPath, {})
     K_CONST_PROPERTY(QString, relativePath, {})
+    K_CONST_PROPERTY(QUrl, url, {})
 public:
     ProjFile(
             const QString& fullPath = {},
@@ -34,7 +35,8 @@ public:
             )
     : QObject(parent),
       m_fullPath(fullPath),
-      m_relativePath(relativePath) {}
+      m_relativePath(relativePath),
+      m_url(QUrl::fromLocalFile(fullPath)) {}
 };
 
 class AppCore : public QObject {

@@ -11,7 +11,7 @@ class CompilationError {
     Q_GADGET
 
     Q_PROPERTY(QString message READ message)
-    Q_PROPERTY(QString uri READ uri)
+    Q_PROPERTY(QUrl url READ url)
     Q_PROPERTY(int begin READ begin)
     Q_PROPERTY(int end READ end)
 
@@ -21,7 +21,7 @@ public:
     const wall_e::error& data() const { return m_data; }
 
     inline QString message() const { return QString::fromStdString(m_data.message()); }
-    inline QString uri() const { return QString::fromStdString(m_data.segment().uri()); }
+    inline QUrl url() const { return QUrl(QString::fromStdString(m_data.segment().uri())); }
     inline int begin() const { return m_data.segment().begin(); }
     inline int end() const { return m_data.segment().end(); }
 
@@ -29,7 +29,7 @@ public:
         return m_data == other.m_data;
     }
     inline friend QDebug& operator<<(QDebug& debug, const CompilationError& err) {
-        return debug << "{ message: " << err.message() << ", uri: " << err.uri() << " }";
+        return debug << "{ message: " << err.message() << ", url: " << err.url() << " }";
     }
 };
 
@@ -107,7 +107,7 @@ class Compiler : public QObject {
 
     K_AUTO_PROPERTY(BackendSharedPtr, backend, backend, setBackend, backendChanged, BackendSharedPtr())
     K_AUTO_PROPERTY(QString, code, code, setCode, codeChanged, QString())
-    K_AUTO_PROPERTY(QString, uri, uri, setUri, uriChanged, QString())
+    K_AUTO_PROPERTY(QUrl, url, url, setUrl, urlChanged, QUrl())
     K_AUTO_PROPERTY(bool, onlyTree, onlyTree, setOnlyTree, onlyTreeChanged, false)
     K_AUTO_PROPERTY(bool, verbose, verbose, setVerbose, verboseChanged, false)
 

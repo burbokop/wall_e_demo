@@ -20,14 +20,19 @@ Window {
     Compiler {
         id: compiler
         code: codeArea.text
-        uri: appCore.openedProjFile ? appCore.openedProjFile.fullPath : ''
+        url: appCore.openedProjFile ? appCore.openedProjFile.url : Qt.url('')
         backend: appCore.backendFactory.currentBackend
+    }
+
+    Text {
+        z: 100
+        text: appCore.openedProjFile.fullPath + '\n' + appCore.openedProjFile.url
     }
 
     Presentor {
         id: presentor
         codeDocument: codeArea.textDocument
-        uri: appCore.openedProjFile ? appCore.openedProjFile.fullPath : ''
+        url: appCore.openedProjFile ? appCore.openedProjFile.url : Qt.url('')
         //errors: compiler.errors
         //onPresentationCompleated: codeArea.updatePresentation()
 

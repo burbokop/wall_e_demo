@@ -1,5 +1,6 @@
 #include "service.h"
 #include "../tree/abstract/abstract_node.h"
+#include "wall_e/src/macro.h"
 
 std::string km2::lsp::first_char_to_lower(std::string str) {
     if(str.size() > 0) {
@@ -13,17 +14,6 @@ std::string km2::lsp::first_char_to_upper(std::string str) {
         str[0] = std::toupper(str[0]);
     }
     return std::move(str);
-}
-
-
-
-
-km2::lsp::service::service() {
-
-}
-
-void km2::lsp::service::configure(const std::string &uri, const flags &flags) {
-    m_cache[uri].flags = flags;
 }
 
 km2::lsp::semantic_tokens_legend km2::lsp::service::register_semantic_tokens(const semantic_tokens_client_capability &client_cap) {
@@ -76,13 +66,11 @@ bool km2::lsp::service::ast_tokens_ready(const std::string &uri) const {
     return false;
 }
 
-void km2::lsp::service::initialize(const std::string &uri) {}
-
-#include <iostream>
 wall_e::list<wall_e::error> km2::lsp::service::change_content(const std::string &uri, const std::string &content) {
     auto& ref = m_cache[uri];
     ref.content = content;
-    ref.compilation_result = km2::compile(nullptr, content, uri, ref.flags);
+    ref.lines = wall_e::text_segment::lines(uri, content, false);
+    ref.compilation_result = km2::compile(nullptr, content, uri, m_flags, m_log);
     return ref.compilation_result->errors();
 }
 
@@ -94,33 +82,55 @@ wall_e::vec<wall_e::lex::token> km2::lsp::service::tokens(const std::string &uri
     return {};
 }
 
-wall_e::vec<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const std::string& uri) const {
+wall_e::vec<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const std::string& uri, bool split_multiline) const {
     const auto cache_it = m_cache.find(uri);
     if(cache_it != m_cache.end() && cache_it->second.compilation_result) {
         if(cache_it->second.compilation_result->root_node() && m_ast_semantic_token_types_map.size() > 0) {
             const auto& tokens = cache_it->second.compilation_result->ast_tokens();
-            if(!tokens.empty()) {
-                wall_e::vec<semantic_token> result;
-                result.reserve(tokens.size());
-                for(const auto& t : tokens) {
-                    const auto& ttype_it = m_ast_semantic_token_types_map.find(t.type);
-                    if(ttype_it != m_ast_semantic_token_types_map.end()) {
-                        result.push_back(semantic_token {
-                            .type = ttype_it->second,
-                            .modifier = m_ast_semantic_token_modifiers_map.get_or(
-                                             t.modifier,
-                                             wall_e::enums::max_value<semantic_token_modifier>()
-                                             ),
-                            .segment = t.segment,
-                            .position = text_wide_position::from_text_segment(t.segment, cache_it->second.content)
-                        });
-                    }
+            const auto& comments = cache_it->second.compilation_result->comments();
+            wall_e::vec<semantic_token> result;
+            result.reserve(tokens.size() + comments.size());
+            for(const auto& t : tokens) {
+                const auto& ttype_it = m_ast_semantic_token_types_map.find(t.type);
+                if(ttype_it != m_ast_semantic_token_types_map.end()) {
+                    result.push_back(semantic_token {
+                        .type = ttype_it->second,
+                        .modifier = m_ast_semantic_token_modifiers_map.get_or(
+                                         t.modifier,
+                                         wall_e::enums::max_value<semantic_token_modifier>()
+                                         ),
+                        .segment = t.segment
+                    });
                 }
-                return result;
             }
+            for(const auto& c : comments) {
+                const auto& ttype_it = m_semantic_token_types_map.find(c.name);
+                if(ttype_it != m_semantic_token_types_map.end()) {
+                    result.push_back(semantic_token {
+                        .type = ttype_it->second,
+                        .modifier = m_semantic_token_modifiers_map.get_or(
+                                         c.name,
+                                         wall_e::enums::max_value<semantic_token_modifier>()
+                                         ),
+                        .segment = c.segment()
+                    });
+                }
+            }
+
+            std::sort(result.begin(), result.end(), [](const semantic_token& t0, const semantic_token& t1){
+                return t0.segment.begin() < t1.segment.begin();
+            });
+
+            if(m_flags.contains([](flag f) { return f == Verbose; })) {
+                m_log << "lsp: semantic tokens:" << std::endl;
+                for(const auto& t : result) {
+                    m_log << "\n" << t << std::endl;
+                }
+            }
+            return split_multiline ? split_multiline_sementic_tokens(result, cache_it->second.lines) : result;
         }
 
-        /** if ast tokens not ready calculating semantic tokens from lex tokens */ {
+        /** if ast tokens not ready make semantic tokens from lex tokens */ {
             const auto& tokens = cache_it->second.compilation_result->tokens();
             wall_e::vec<semantic_token> result;
             result.reserve(tokens.size());
@@ -133,12 +143,11 @@ wall_e::vec<km2::lsp::semantic_token> km2::lsp::service::semantic_tokens(const s
                                          t.name,
                                          wall_e::enums::max_value<semantic_token_modifier>()
                                          ),
-                        .segment = t.segment(),
-                        .position = text_wide_position::from_text_segment(t.segment(), cache_it->second.content)
+                        .segment = t.segment()
                     });
                 }
             }
-            return result;
+            return split_multiline ? split_multiline_sementic_tokens(result, cache_it->second.lines) : result;
         }
     }
     return wall_e::vec<semantic_token> {};
@@ -180,8 +189,8 @@ wall_e::list<std::string> km2::lsp::service::complete(const std::string& uri, co
 
 
 
-std::vector<km2::lsp::semantic_token_type> km2::lsp::parse_semantic_token_types(const std::vector<std::string> &toks) {
-    std::vector<km2::lsp::semantic_token_type> result;
+wall_e::vec<km2::lsp::semantic_token_type> km2::lsp::parse_semantic_token_types(const wall_e::vec<std::string> &toks) {
+    wall_e::vec<km2::lsp::semantic_token_type> result;
     result.reserve(toks.size());
     for(const auto& t : toks) {
         if(const auto& r = wall_e::enums::from_string<km2::lsp::semantic_token_type>(first_char_to_upper(t))) {
@@ -191,8 +200,8 @@ std::vector<km2::lsp::semantic_token_type> km2::lsp::parse_semantic_token_types(
     return result;
 }
 
-std::vector<km2::lsp::semantic_token_modifier> km2::lsp::parse_semantic_token_modifiers(const std::vector<std::string> &modys) {
-    std::vector<km2::lsp::semantic_token_modifier> result;
+wall_e::vec<km2::lsp::semantic_token_modifier> km2::lsp::parse_semantic_token_modifiers(const wall_e::vec<std::string> &modys) {
+    wall_e::vec<km2::lsp::semantic_token_modifier> result;
     result.reserve(modys.size());
     for(const auto& t : modys) {
         if(const auto& r = wall_e::enums::from_string<km2::lsp::semantic_token_modifier>(first_char_to_upper(t))) {
@@ -202,8 +211,8 @@ std::vector<km2::lsp::semantic_token_modifier> km2::lsp::parse_semantic_token_mo
     return result;
 }
 
-std::vector<std::string> km2::lsp::stringify_semantic_token_types(const std::vector<semantic_token_type> &toks) {
-    std::vector<std::string> result;
+wall_e::vec<std::string> km2::lsp::stringify_semantic_token_types(const wall_e::vec<semantic_token_type> &toks) {
+    wall_e::vec<std::string> result;
     result.reserve(toks.size());
     for(const auto& t : toks) {
         result.push_back(first_char_to_lower(wall_e::enums::to_string(t)));
@@ -211,8 +220,8 @@ std::vector<std::string> km2::lsp::stringify_semantic_token_types(const std::vec
     return result;
 }
 
-std::vector<std::string> km2::lsp::stringify_semantic_token_modifiers(const std::vector<semantic_token_modifier> &modys) {
-    std::vector<std::string> result;
+wall_e::vec<std::string> km2::lsp::stringify_semantic_token_modifiers(const wall_e::vec<semantic_token_modifier> &modys) {
+    wall_e::vec<std::string> result;
     result.reserve(modys.size());
     for(const auto& t : modys) {
         result.push_back(first_char_to_lower(wall_e::enums::to_string(t)));
@@ -220,44 +229,15 @@ std::vector<std::string> km2::lsp::stringify_semantic_token_modifiers(const std:
     return result;
 }
 
-km2::lsp::text_wide_position km2::lsp::text_wide_position::from_text_segment(const wall_e::text_segment &segment, const std::string &text) {
-    text_wide_position result = { .line = 0, .character = 0, .length = 0 };
-    std::size_t i = 0;
-    std::size_t char_pos = 0;
-    bool begin_found = false;
-    bool end_found = false;
-    for(const auto& c : text) {
-        if(i == segment.begin()) {
-            result.character = char_pos;
-            begin_found = true;
-            if(end_found) {
-                result.length = 0;
-                return result;
-            }
+wall_e::vec<km2::lsp::semantic_token> km2::lsp::split_multiline_sementic_tokens(
+        const wall_e::vec<semantic_token> &tokens,
+        const wall_e::list<wall_e::text_segment>& lines
+        ) {
+    wall_e::vec<km2::lsp::semantic_token> result;
+    for(const auto& t : tokens) {
+        for(const auto s : t.segment.split_by_mask(lines)) {
+            result.push_back(semantic_token { .type = t.type, .modifier = t.modifier, .segment = s });
         }
-        if(i == segment.end()) {
-            if(begin_found) {
-                result.length = char_pos - result.character;
-                return result;
-            }
-            end_found = true;
-        }
-
-        if(c == '\n') {
-            if(begin_found) {
-                result.length = char_pos - result.character;
-                return result;
-            }
-            ++result.line;
-            char_pos = 0;
-        } else {
-            ++char_pos;
-        }
-        ++i;
     }
     return result;
-}
-
-km2::lsp::text_range km2::lsp::text_range::from_text_segment(const wall_e::text_segment &segment, const std::string &text) {
-    return km2::lsp::text_range {};
 }

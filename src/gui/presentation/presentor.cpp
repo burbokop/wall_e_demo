@@ -4,16 +4,18 @@
 
 #include <filesystem>
 
-bool Presentor::compareUri(const QString &u0, const QString &u1) {
-    return std::filesystem::path(u0.toStdString()) == std::filesystem::path(u1.toStdString());
+bool Presentor::compareUrl(const QUrl &u0, const QUrl &u1) {
+    return u0 == u1;
+    //if(ur)
+    //return std::filesystem::path(u0.toStdString()) == std::filesystem::path(u1.toStdString());
 }
 
-QString Presentor::substituteUri(const QString &uri) {
-    if(uri.isEmpty()) {
+QUrl Presentor::substituteUrl(const QUrl &url) {
+    if(url.isEmpty()) {
         static int next = 0;
-        return "unknown_uri_" + QString::number(next++);
+        return "doi://" + QString::number(next++);
     } else {
-        return uri;
+        return url;
     }
 }
 
@@ -22,9 +24,9 @@ void Presentor::initialize() {
     if(!m_serviceThread->isRunning() || !m_doc) return;
     if(m_higlighter) { m_higlighter->deleteLater(); }
     m_higlighter = new Highlighter(m_doc);
-    QMetaObject::invokeMethod(m_service, [this, cap = m_theme->capability()]{ m_service->initialize(substituteUri(uri()), cap); }, Qt::QueuedConnection);
+    QMetaObject::invokeMethod(m_service, [this, cap = m_theme->capability()]{ m_service->initialize(substituteUrl(url()), cap); }, Qt::QueuedConnection);
     m_documentConnections.push_back(connect(m_doc, &QTextDocument::contentsChanged, this, [this](){
-        QMetaObject::invokeMethod(m_service, [this]{ m_service->changeContent(substituteUri(uri()), m_doc); }, Qt::QueuedConnection);
+        QMetaObject::invokeMethod(m_service, [this]{ m_service->changeContent(substituteUrl(url()), m_doc); }, Qt::QueuedConnection);
     }));
 }
 
@@ -47,13 +49,13 @@ Presentor::Presentor(QObject *parent) : QObject{ parent } {
         initialize();
     });
 
-    connect(m_service, &LSPService::contentChanged, this, [this](const QString&, const QList<CompilationError>& errs, const QList<SemanticToken>& tokens, bool astTokensReady){
+    connect(m_service, &LSPService::contentChanged, this, [this](const QUrl&, const QList<CompilationError>& errs, const QList<SemanticToken>& tokens, bool astTokensReady){
         setAstTokensReady(astTokensReady);
         setErrors(errs);
         if(m_higlighter) {            
             QList<CompilationError> thisUriErrors;
             for(const auto& e : errs) {
-                if(compareUri(e.uri(), uri())) {
+                if(compareUrl(e.url(), url())) {
                     thisUriErrors.push_back(e);
                 }
             }
@@ -62,17 +64,17 @@ Presentor::Presentor(QObject *parent) : QObject{ parent } {
         }
     });
 
-    connect(m_service, &LSPService::initialized, this, [this](const QString& uri, const SemanticTokensLegend& legend){
+    connect(m_service, &LSPService::initialized, this, [this](const QUrl&, const SemanticTokensLegend& legend){
         if(m_higlighter) {
             m_higlighter->setLegend(m_theme->highlightLegend(legend));
         }
     });
 
-    connect(m_service, &LSPService::hover, this, [this](const QString&, const MarkupString& str) {
+    connect(m_service, &LSPService::hover, this, [this](const QUrl&, const MarkupString& str) {
         emit hover(str);
     });
 
-    connect(m_service, &LSPService::unhover, this, [this](const QString&) {
+    connect(m_service, &LSPService::unhover, this, [this](const QUrl&) {
         emit unhover();
     });
 
@@ -88,7 +90,7 @@ Presentor::~Presentor() {
 
 void Presentor::hoverText(int pos) {
     if(m_service) {
-        QMetaObject::invokeMethod(m_service, [this, pos]{ m_service->hoverText(substituteUri(uri()), pos); }, Qt::QueuedConnection);
+        QMetaObject::invokeMethod(m_service, [this, pos]{ m_service->hoverText(substituteUrl(url()), pos); }, Qt::QueuedConnection);
     }
 }
 

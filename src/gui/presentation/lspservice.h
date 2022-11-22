@@ -34,16 +34,16 @@ public:
     LSPService(QObject* parent = nullptr) : QObject(parent) {}
 
 public slots:
-    void initialize(const QString& uri, const SemanticTokensClientCapability& cap);
-    void changeContent(const QString &uri, QTextDocument *doc);
-    void hoverText(const QString &uri, int pos);
+    void initialize(const QUrl& url, const SemanticTokensClientCapability& cap);
+    void changeContent(const QUrl &url, QTextDocument *doc);
+    void hoverText(const QUrl &url, int pos);
 
 
 signals:
-    void initialized(const QString &uri, const SemanticTokensLegend& legend);
-    void contentChanged(const QString &uri, const QList<CompilationError>&, const QList<SemanticToken>&, bool astTokensReady);
-    void hover(const QString &uri, const MarkupString& str);
-    void unhover(const QString &uri);
+    void initialized(const QUrl &url, const SemanticTokensLegend& legend);
+    void contentChanged(const QUrl &url, const QList<CompilationError>&, const QList<SemanticToken>&, bool astTokensReady);
+    void hover(const QUrl &url, const MarkupString& str);
+    void unhover(const QUrl &url);
 
 };
 

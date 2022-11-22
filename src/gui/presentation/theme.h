@@ -38,6 +38,11 @@ public:
         }
         return result;
     }
+    inline friend QDebug& operator<<(QDebug& dbg, const SemanticToken& t) {
+        std::ostringstream ss;
+        ss << t.m_data;
+        return dbg << QString::fromStdString(ss.str());
+    }
 };
 
 class Theme : public QObject {

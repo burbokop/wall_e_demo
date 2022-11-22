@@ -8,7 +8,7 @@ exp = namespace {
 		};
 	};
 
-	//foo();
+	/*foo();*/
 	mymod::print_hello();
 
 	aaaa::bb::pow(2., 2.);

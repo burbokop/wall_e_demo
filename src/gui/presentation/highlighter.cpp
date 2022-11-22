@@ -10,11 +10,11 @@ void Highlighter::setFormatBySegment(const qsizetype &blockTextSize, const wall_
     const auto begin = currentBlock().begin();
     if(begin != currentBlock().end()) {
         const auto fragmentStartPos = begin.fragment().position();
-
-        const auto relativePos = segment.begin() - fragmentStartPos;
-        const auto length = segment.length();
-        if(relativePos >= 0 && relativePos + length < blockTextSize) {
-            setFormat(relativePos, length, fmt);
+        const int relativeBegin = std::max(int(segment.begin()) - fragmentStartPos, 0);
+        const int relativeEnd = std::min(int(segment.end()) - fragmentStartPos, int(blockTextSize));
+        const auto length = relativeEnd - relativeBegin;
+        if(length > 0) {
+            setFormat(relativeBegin, length, fmt);
         }
     }
 }

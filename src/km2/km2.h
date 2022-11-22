@@ -38,7 +38,9 @@ class backend;
 class abstract_node;
 
 class compilation_result {
+    std::string m_uri;
     wall_e::lex::token_vec m_tokens;
+    wall_e::lex::token_vec m_comments;
     std::string m_rules;
     wall_e::variant m_token_tree;
     std::shared_ptr<km2::abstract_node> m_root_node;
@@ -52,7 +54,9 @@ class compilation_result {
     mutable wall_e::opt<wall_e::map<wall_e::text_segment, markup_string>> m_hovers;
 public:
     compilation_result(
+            const std::string& uri,
             const wall_e::lex::token_vec& tokens,
+            const wall_e::lex::token_vec& comments,
             const std::string& rules,
             const wall_e::variant& token_tree,
             const std::shared_ptr<km2::abstract_node>& root_node,
@@ -61,7 +65,9 @@ public:
             const wall_e::list<wall_e::error>& errors,
             const std::shared_ptr<wall_e::gram::log>& gram_log
             )
-        : m_tokens(tokens),
+        : m_uri(uri),
+          m_tokens(tokens),
+          m_comments(comments),
           m_rules(rules),
           m_token_tree(token_tree),
           m_root_node(root_node),
@@ -70,7 +76,11 @@ public:
           m_errors(errors),
           m_gram_log(gram_log) {}
 
+    const std::string& uri() const { return m_uri; }
+
     const wall_e::lex::token_vec& tokens() const { return m_tokens; }
+    const wall_e::lex::token_vec& comments() const { return m_comments; };
+
     const std::string& rules() const { return m_rules; }
     const wall_e::variant& token_tree() const { return m_token_tree; }
     const std::shared_ptr<km2::abstract_node>& root_node() const { return m_root_node; }
@@ -93,7 +103,7 @@ enum flag {
     ///      = 4
 };
 
-typedef std::list<flag> flags;
+typedef wall_e::list<flag> flags;
 
 class environment : public wall_e::gram::environment {
     const flags& m_flags;
@@ -106,11 +116,13 @@ public:
 
 };
 
-compilation_result compile(const backend::backend* b, const std::string &input, const std::string& uri, const flags &flags = {});
-compilation_result compile(const backend::backend* b, std::istream &input, const std::string& uri, const flags &flags = {});
-inline compilation_result compile(const backend::backend* b, std::istream &&input, const std::string& uri, const flags &flags = {}) {
+std::ostream& default_log();
+
+compilation_result compile(const backend::backend* b, const std::string &input, const std::string& uri, const flags &flags = {}, std::ostream& log = default_log());
+compilation_result compile(const backend::backend* b, std::istream &input, const std::string& uri, const flags &flags = {}, std::ostream& log = default_log());
+inline compilation_result compile(const backend::backend* b, std::istream &&input, const std::string& uri, const flags &flags = {}, std::ostream& log = default_log()) {
     std::istream& i = input;
-    return compile(b, i, uri, flags);
+    return compile(b, i, uri, flags, log);
 }
 //inline compilation_result compile(const std::shared_ptr<const backend::backend>& b, const std::string &input, const flags &flags = {}) {
 //    const std::shared_ptr<const backend::backend> b_copy = b;

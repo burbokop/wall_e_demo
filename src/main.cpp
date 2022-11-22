@@ -66,7 +66,6 @@ void do_clang() {
 
 int main(int argc, char **argv) {
 
-
     std::cout << "wall_e compiled with: " << wall_e::cxx_info << std::endl;
     std::cout << "km2 compiled with: " << wall_e::inline_cxx_info << std::endl;
 

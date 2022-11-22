@@ -6,6 +6,7 @@
 #include <filesystem>
 
 #include <src/km2/km2.h>
+#include <wall_e/src/utility/uri.h>
 
 std::shared_ptr<const km2::abstract_value_node> km2::imp_node::eval_mod_exp_root_cache() const {
     if(const auto& mod = *m_module_cresult.get()) {
@@ -38,31 +39,51 @@ wall_e::gram::argument km2::imp_node::create(const wall_e::gram::arg_vector &arg
         const auto module_name_token = args[1].option<wall_e::lex::token>();
 
         if(module_name_token) {
-            const auto& module_uri = std::filesystem::path(env->uri()).parent_path() / (module_name_token->text + ".km2");
-            if(std::filesystem::exists(module_uri) && std::filesystem::is_regular_file(module_uri)) {
-                std::ifstream input(module_uri);
-                return std::make_shared<imp_node>(
-                            index,
-                            args[0].value_or<wall_e::lex::token>(),
-                            *module_name_token,
-                            km2::compile(nullptr, input, module_uri.string(), {}),
-                            wall_e::list<wall_e::error>()
-                        );
+
+            if(const auto& path = wall_e::uri::to_path(env->uri())) {
+                const auto& module_uri = std::filesystem::path(*path).parent_path() / (module_name_token->text + ".km2");
+
+                if(std::filesystem::exists(module_uri) && std::filesystem::is_regular_file(module_uri)) {
+                    std::ifstream input(module_uri);
+                    return std::make_shared<imp_node>(
+                        index,
+                        args[0].value_or<wall_e::lex::token>(),
+                        *module_name_token,
+                        km2::compile(nullptr, input, module_uri.string(), {}),
+                        wall_e::list<wall_e::error>()
+                    );
+                } else {
+                    return std::make_shared<imp_node>(
+                        index,
+                        args[0].value_or<wall_e::lex::token>(),
+                        *module_name_token,
+                        std::nullopt,
+                        wall_e::list<wall_e::error> {
+                            wall_e::error(
+                                "module '" + module_name_token->text + "' not found in '" + module_uri.string() + "'",
+                                wall_e::error::Err,
+                                wall_e::error::Semantic,
+                                0,
+                                module_name_token->segment()
+                            )
+                        }
+                    );
+                }
             } else {
                 return std::make_shared<imp_node>(
-                            index,
-                            args[0].value_or<wall_e::lex::token>(),
-                           *module_name_token,
-                            std::nullopt,
-                            wall_e::list<wall_e::error> {
-                                wall_e::error(
-                                            "module '" + module_name_token->text + "' not found in '" + module_uri.string() + "'",
-                                            wall_e::error::Err,
-                                            wall_e::error::Semantic,
-                                            0,
-                                            module_name_token->segment()
-                                            )
-                            }
+                    index,
+                    args[0].value_or<wall_e::lex::token>(),
+                    *module_name_token,
+                    std::nullopt,
+                    wall_e::list<wall_e::error> {
+                        wall_e::error(
+                            "can not parse uri '" + env->uri() + "' as path. unknown scheme.",
+                            wall_e::error::Err,
+                            wall_e::error::Semantic,
+                            0,
+                            module_name_token->segment()
+                        )
+                    }
                 );
             }
         }
@@ -147,6 +168,7 @@ km2::ast_token_type km2::imp_node::rvalue_type() const {
 }
 
 km2::markup_string km2::imp_node::hover() const {
-    using namespace km2::literals;
-    return "**module** "_md + m_name_token.text;
+    using namespace km2::literals;    
+    const auto mod = (*m_module_cresult.get());
+    return "**module** "_md + m_name_token.text + (mod ? "\n\n---\n" + mod->uri() : "");
 }

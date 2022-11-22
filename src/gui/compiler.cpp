@@ -6,7 +6,7 @@
 
 Compiler::Compiler(QObject *parent) : QObject { parent } {
     connect(this, &Compiler::codeChanged, this, &Compiler::recompile);
-    connect(this, &Compiler::uriChanged, this, &Compiler::recompile);
+    connect(this, &Compiler::urlChanged, this, &Compiler::recompile);
     connect(this, &Compiler::onlyTreeChanged, this, &Compiler::recompile);
     connect(this, &Compiler::verboseChanged, this, &Compiler::recompile);
     connect(this, &Compiler::backendChanged, this, &Compiler::recompile);
@@ -35,7 +35,7 @@ void Compiler::recompile() {
     }
 
     if(m_firstCompilation) {
-        completeCompilation(km2::compile(backend().data_ptr().get(), code().toStdString(), uri().toStdString(), flags));
+        completeCompilation(km2::compile(backend().data_ptr().get(), code().toStdString(), url().toString(QUrl::PrettyDecoded).toStdString(), flags));
         m_firstCompilation = false;
     } else {
         if(m_currentFutureWatcher.isStarted()) {
@@ -43,7 +43,7 @@ void Compiler::recompile() {
             m_currentFuture.cancel();
         }
         const auto compile = [](const km2::backend::backend* b, const std::string &input, const std::string& uri, const km2::flags &flags = {}){ return km2::compile(b, input, uri, flags); };
-        m_currentFuture = QtConcurrent::run(compile, backend().data_ptr().get(), code().toStdString(), uri().toStdString(), flags);
+        m_currentFuture = QtConcurrent::run(compile, backend().data_ptr().get(), code().toStdString(), url().toString(QUrl::PrettyDecoded).toStdString(), flags);
         m_currentFutureWatcher.setFuture(m_currentFuture);
     }
 }
