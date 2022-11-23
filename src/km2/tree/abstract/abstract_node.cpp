@@ -15,14 +15,18 @@ std::vector<km2::backend::context> km2::abstract_node::contexts(const children_t
 }
 
 km2::abstract_node::abstract_node(
+        const wall_e::gram::environment *env,
         const wall_e::index &index,
         const children_t &children,
-        const wall_e::text_segment &segment
+        const wall_e::text_segment &segment,
+        const wall_e::box_list<node_trait>::factory &traits
         )
-    : m_index(index),
+    : m_env(env),
+      m_index(index),
       m_children(children),
       m_context(backend::context::sum(contexts(children))),
-      m_segment(segment) {
+      m_segment(segment),
+      m_traits(traits) {
     for(const auto& c : children) {
         if(c) { c->m_parent = this; }
     }

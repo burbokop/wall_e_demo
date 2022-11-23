@@ -5,22 +5,26 @@
 #include "wall_e/src/macro.h"
 #include <iostream>
 
-km2::stmt_node::stmt_node(const wall_e::index &index, std::shared_ptr<abstract_value_node> node)
-    : km2::abstract_value_node(index, { node }),
+km2::stmt_node::stmt_node(
+        const wall_e::gram::environment *env,
+        const wall_e::index &index,
+        std::shared_ptr<abstract_value_node> node
+        )
+    : km2::abstract_value_node(env, index, { node }),
     m_node(node) {}
 
 wall_e::gram::argument km2::stmt_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) {
-    if(debug) std::cout << wall_e::type_name<stmt_node>() << "::create: " << args << std::endl;
+    if(env->verbose()) std::cout << wall_e::type_name<stmt_node>() << "::create: " << args << std::endl;
     if(args.size() > 0) {
         if(const auto node = args[0].option_cast<std::shared_ptr<abstract_value_node>>()) {
-            return std::make_shared<stmt_node>(index, *node);
+            return std::make_shared<stmt_node>(env, index, *node);
         }
     }
-    return std::make_shared<stmt_node>(index);
+    return std::make_shared<stmt_node>(env, index, nullptr);
 }
 
 wall_e::either<wall_e::error, km2::backend::value*> km2::stmt_node::generate_backend_value(const std::shared_ptr<backend::unit> &unit) {
-    if(debug) std::cout << wall_e_this_function << std::endl;
+    if(env()->verbose()) std::cout << wall_e_this_function << std::endl;
     if(m_node) {
         return m_node->generate_backend_value(unit);
     }
@@ -40,22 +44,13 @@ std::ostream &km2::stmt_node::short_print(std::ostream &stream) const {
 }
 
 
-std::ostream &km2::stmt_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
-    if(fmt == Simple) {
-        stream << std::string(ctx.level(), ' ') << "{stmt_node}:" << std::endl;
-        if(m_node) {
-            m_node->write(stream, fmt, ctx.new_child(""));
-        } else {
-            stream << std::string(ctx.level() + 1, ' ') + "node not exist" << std::endl;
-        }
-    } else if(fmt == TreeWriter) {
-        stream << ctx.node_begin()
-               << "stmt_node: { " << (m_node ? "" : "no node") << " }"
-               << ctx.node_end()
-               << ctx.edge();
-        if(m_node) {
-            m_node->write(stream, fmt, ctx.new_child(""));
-        }
+std::ostream &km2::stmt_node::write(std::ostream &stream, const wall_e::tree_writer::context &ctx) const {
+    stream << ctx.node_begin()
+           << "stmt_node: { " << (m_node ? "" : "no node") << " }"
+           << ctx.node_end()
+           << ctx.edge();
+    if(m_node) {
+        m_node->write(stream, ctx.new_child(""));
     }
     return stream;
 }

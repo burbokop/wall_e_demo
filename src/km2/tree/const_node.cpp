@@ -7,21 +7,21 @@
 #include "arg_node.h"
 #include <src/km2/backend/entities/value.h>
 
-km2::const_node::const_node(
+km2::const_node::const_node(const wall_e::gram::environment *env,
         const wall_e::index& index,
         const std::shared_ptr<arg_node> &value
         )
-    : km2::abstract_value_node(index, { value }),
+    : km2::abstract_value_node(env, index, { value }),
       m_value(value) {}
 
 km2::abstract_node::factory km2::const_node::create() {
     return [](const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) -> wall_e::gram::argument {
-        if(debug) std::cout << "km2::const_node::create: " << args << std::endl;
+        if(env->verbose()) std::cout << "km2::const_node::create: " << args << std::endl;
         if(args.size() > 0) {
                 if(const auto rvalue = args[0].option_cast<std::shared_ptr<arg_node>>()) {
-                    return std::make_shared<const_node>(index, *rvalue);
+                    return std::make_shared<const_node>(env, index, *rvalue);
                 } else {
-                    return std::make_shared<const_node>(index);
+                    return std::make_shared<const_node>(env, index);
                 }
             return nullptr;
         }
@@ -77,24 +77,14 @@ wall_e::list<km2::ast_token> km2::const_node::tokens() const {
 }
 
 
-std::ostream &km2::const_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
-    if(fmt == Simple) {
-        stream << std::string(ctx.level(), ' ') << "{const_node}:" << std::endl;
-        //stream << std::string(ctx.level() + 1, ' ') + m_id << std::endl;
-        //if(m_rvalue) {
-        //    m_rvalue->write(stream, fmt, ctx.new_child("value"));
-        //} else {
-        //    stream << std::string(ctx.level() + 1, ' ') + "value node not exist" << std::endl;
-        //}
-    } else if(fmt == TreeWriter) {
-        stream << ctx.node_begin()
-               << "const_node { " << lval().map_member_func<std::string>(&lvalue::pretty_str) << " }"
-               << ctx.node_end()
-               << ctx.edge();
+std::ostream &km2::const_node::write(std::ostream &stream, const wall_e::tree_writer::context &ctx) const {
+    stream << ctx.node_begin()
+           << "const_node { " << lval().map_member_func<std::string>(&lvalue::pretty_str) << " }"
+           << ctx.node_end()
+           << ctx.edge();
 
-        if(m_value) {
-            m_value->write(stream, fmt, ctx.new_child("rvalue"));
-        }
+    if(m_value) {
+        m_value->write(stream, ctx.new_child("rvalue"));
     }
     return stream;
 }

@@ -2,6 +2,18 @@ exp = namespace {
 
     mymod = imp module;
 
+	my_class = class (a f64, b f64) {
+		/// TODO c = a + b;
+	};
+
+	obj = my_class();
+
+	/** TODO
+	obj_a = obj.a;
+	obj_b = obj.b;
+	obj_c = obj.c;
+	*/
+
 	aaaa = namespace {
 		bb = namespace {
 			pow = (a f64, b f64) f64;

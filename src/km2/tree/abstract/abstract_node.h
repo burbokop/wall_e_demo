@@ -5,6 +5,7 @@
 #include <list>
 #include <functional>
 #include <wall_e/src/private/gram_private.h>
+#include <wall_e/src/utility/box.h>
 #include <wall_e/src/utility/tree_stream.h>
 #include "../../backend/models/context.h"
 #include "../../ast_token.h"
@@ -17,6 +18,14 @@ struct abstract_node;
 
 template <typename T>
 concept concept_node = std::is_base_of<abstract_node, T>::value;
+
+struct node_trait {
+    node_trait() {}
+    virtual ~node_trait() {}
+};
+
+template <typename T>
+concept concept_node_trait = std::is_base_of<node_trait, T>::value;
 
 template<typename T, typename A>
 concept tree_searcher = requires(T t) {
@@ -33,13 +42,11 @@ wall_e_enum(semantic_error,
 struct abstract_node {
     typedef std::function<wall_e::gram::argument(const wall_e::gram::arg_vector &, const wall_e::index&, const wall_e::gram::environment*)> factory;
     typedef wall_e::vec<std::shared_ptr<const abstract_node>> children_t;
-
-    static constexpr bool debug = false;
-
 private:
 
     static std::vector<backend::context> contexts(const children_t& children);
 
+    const wall_e::gram::environment* m_env;
     const wall_e::text_segment m_segment;
     mutable km2::abstract_node* m_parent = nullptr;
     const children_t m_children;
@@ -48,6 +55,7 @@ private:
     mutable std::map<std::size_t, const abstract_node*> m_ancestor_cache;
     const backend::context m_context;
     const wall_e::index m_index;
+    const wall_e::box_list<node_trait> m_traits;
 
     template<typename T>
     static children_t __cast_to_children(const std::vector<std::shared_ptr<T>>& vecs) {
@@ -59,14 +67,25 @@ private:
         return result;
     }
 public:
-    enum write_format {
-        Simple,
-        TreeWriter
-    };
+    const wall_e::box_list<node_trait>& traits() const { return m_traits; };
+
+    template<concept_node_trait T>
+    inline const T* trait() const {
+        const auto& it = std::find_if(m_traits.begin(), m_traits.end(), [](const node_trait* t) { return dynamic_cast<const T*>(t); });
+        return it != m_traits.end() ? dynamic_cast<const T*>(*it) : nullptr;
+    }
+
+    template<concept_node_trait T>
+    inline bool has() const { return trait<T>(); }
+
+    const wall_e::gram::environment* env() const { return m_env; };
+
     abstract_node(
+            const wall_e::gram::environment* env,
             const wall_e::index& index,
             const children_t &children,
-            const wall_e::text_segment& segment = {}
+            const wall_e::text_segment& segment = {},
+            const wall_e::box_list<node_trait>::factory& traits = {}
             );
 
     inline const abstract_node* parent() const { return m_parent; }
@@ -225,7 +244,7 @@ public:
         return find_until<T, abstract_node, S>([predicate](const std::shared_ptr<const T>& v, const abstract_node*){ return predicate(v); });
     }
 
-    virtual std::ostream& write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const = 0;
+    virtual std::ostream& write(std::ostream &stream, const wall_e::tree_writer::context& ctx) const = 0;
     virtual std::ostream& short_print(std::ostream &stream) const = 0;
     virtual ast_token_list tokens() const = 0;
     virtual ast_token_type rvalue_type() const = 0;

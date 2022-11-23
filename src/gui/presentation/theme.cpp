@@ -35,7 +35,7 @@ Theme *Theme::qtCreator(QObject *parent) {
     static const Formats formats = {
                              { km2::lsp::Namespace, formatFromColor(0x800080) },
                              { km2::lsp::Type, formatFromColor(0x800080) },
-                             //{ km2::lsp::Class, formatFromColor(0x229596) },
+                             { km2::lsp::Class, formatFromColor(0x800080) },
                              //{ km2::lsp::Enum, formatFromColor(0x292747) },
                              //{ km2::lsp::Interface, formatFromColor(0x384756) },
                              //{ km2::lsp::Struct, formatFromColor(0x387476) },

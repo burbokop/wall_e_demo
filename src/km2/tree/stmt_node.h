@@ -12,7 +12,11 @@ class stmt_node : public km2::abstract_value_node {
 public:
     typedef abstract_value_node super_type;
 
-    stmt_node(const wall_e::index &index, std::shared_ptr<abstract_value_node> node = nullptr);
+    stmt_node(
+            const wall_e::gram::environment* env,
+            const wall_e::index &index,
+            std::shared_ptr<abstract_value_node> node
+            );
 
     static wall_e::gram::argument create(const wall_e::gram::arg_vector &args, const wall_e::index &index, const wall_e::gram::environment* env);
 
@@ -29,7 +33,7 @@ public:
     virtual wall_e::list<wall_e::error> errors() const override;
     virtual std::ostream &short_print(std::ostream &stream) const override;
     virtual wall_e::list<ast_token> tokens() const override { return m_node ? m_node->tokens() : wall_e::list<ast_token> {}; }
-    virtual std::ostream &write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const override;
+    virtual std::ostream &write(std::ostream &stream, const wall_e::tree_writer::context& ctx) const override;
     virtual ast_token_type rvalue_type() const override;
     virtual markup_string hover() const override;
 };

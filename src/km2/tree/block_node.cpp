@@ -7,10 +7,11 @@
 #include "stmt_node.h"
 
 km2::block_node::block_node(
+        const wall_e::gram::environment* env,
         const wall_e::index &index,
         const wall_e::vec<std::shared_ptr<km2::stmt_node>> &statements
         )
-    : km2::abstract_value_node(index, cast_to_children(statements)),
+    : km2::abstract_value_node(env, index, cast_to_children(statements)),
       m_statements(statements),
       m_context(/*statements ? statements->context() :*/ backend::context({})),
       m_acc_context(/*statements
@@ -22,11 +23,11 @@ km2::block_node::block_node(
 
 
 wall_e::gram::argument km2::block_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) {
-    if(debug) std::cout << "km2::block_node::create: " << args << std::endl;
+    if(env->verbose()) std::cout << "km2::block_node::create: " << args << std::endl;
     const auto statements = wall_e::gram::argument(args).constrain().filter_map<std::shared_ptr<stmt_node>>([](const wall_e::gram::argument& a){
         return a.option_cast<std::shared_ptr<stmt_node>>();
     });
-    return std::make_shared<block_node>(index, statements);
+    return std::make_shared<block_node>(env, index, statements);
 }
 
 
@@ -34,7 +35,7 @@ wall_e::either<
     wall_e::error,
     km2::backend::value*
 > km2::block_node::generate_backend_value(const std::shared_ptr<km2::backend::unit> &unit) {
-    if(debug) std::cout << wall_e_this_function << std::endl;
+    if(env()->verbose()) std::cout << wall_e_this_function << std::endl;
     /** TODO
     if(m_stmt_node) {
         if(const auto cmd_result = m_stmt_node->generate_backend_value(unit)) {
@@ -144,35 +145,21 @@ wall_e::list<km2::ast_token> km2::block_node::tokens() const {
 }
 
 
-std::ostream &km2::block_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
-    if(fmt == Simple) {
-        stream << std::string(ctx.level(), ' ') << "{block_node}:" << std::endl;
-        //if(m_stmt_node) {
-        //    m_stmt_node->write(stream, fmt, ctx.new_child("stmt"));
-        //} else {
-        //    stream << std::string(ctx.level(), ' ') + "stmt not exist" << std::endl;
-        //}
-        //if(m_next_node) {
-        //    m_next_node->write(stream, fmt, ctx.new_child(""));
-        //} else {
-        //    stream << std::string(ctx.level() + 1, ' ') + "next node not exist" << std::endl;
-        //}
-    } else if(fmt == TreeWriter) {
-        stream << ctx.node_begin()
-               << "block_node"
-               << ctx.node_end()
-               << ctx.edge();
+std::ostream &km2::block_node::write(std::ostream &stream, const wall_e::tree_writer::context &ctx) const {
+    stream << ctx.node_begin()
+           << "block_node"
+           << ctx.node_end()
+           << ctx.edge();
 
-        for(const auto &statement : m_statements) {
-            const auto child_ctx = ctx.new_child("stmt");
-            if(statement) {
-                statement->write(stream, fmt, child_ctx);
-            } else {
-                stream << child_ctx.node_begin()
-                       << "[null statement]"
-                       << child_ctx.node_end()
-                       << child_ctx.edge();
-            }
+    for(const auto &statement : m_statements) {
+        const auto child_ctx = ctx.new_child("stmt");
+        if(statement) {
+            statement->write(stream, child_ctx);
+        } else {
+            stream << child_ctx.node_begin()
+                   << "[null statement]"
+                   << child_ctx.node_end()
+                   << child_ctx.edge();
         }
     }
     return stream;

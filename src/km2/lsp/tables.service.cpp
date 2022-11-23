@@ -6,6 +6,7 @@ const wall_e::map<std::string, km2::lsp::semantic_token_type> &km2::lsp::default
         { "MULTILINE_COMMENT", semantic_token_type::Comment },
         { "DOC", semantic_token_type::Comment },
         { "MULTILINE_DOC", semantic_token_type::Comment },
+        { "TOK_CLASS", semantic_token_type::Keyword },
         { "TOK_ASM", semantic_token_type::Keyword },
         { "TOK_NUMBER", semantic_token_type::Keyword },
         { "TOK_STRING", semantic_token_type::Keyword },

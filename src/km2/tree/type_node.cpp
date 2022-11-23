@@ -30,14 +30,14 @@ km2::markup_string km2::type_node::hover() const {
     return ""_md;
 }
 
-km2::type_node::type_node(
+km2::type_node::type_node(const wall_e::gram::environment *env,
         const wall_e::index& index,
         type t,
         const wall_e::opt<uint16_t> &bits,
         const std::string &original_text,
         const wall_e::text_segment &segment
         )
-    : km2::abstract_type_node(index, {}, segment),
+    : km2::abstract_type_node(env, index, {}, segment),
       m_type(t),
       m_bits(bits),
       m_original_text(original_text) {}
@@ -47,19 +47,19 @@ wall_e::gram::argument km2::type_node::create(const wall_e::gram::arg_vector &ar
         const auto token = args[0].option<wall_e::lex::token>();
         if(token.has_value()) {
             if(token.value().name == "TOK_UNSIGNED") {
-                return std::make_shared<type_node>(index, Unsigned, parse_integer_type(token.value().text), token.value().text, token.value().segment());
+                return std::make_shared<type_node>(env, index, Unsigned, parse_integer_type(token.value().text), token.value().text, token.value().segment());
             } else if(token.value().name == "TOK_SIGNED") {
-                return std::make_shared<type_node>(index, Signed, parse_integer_type(token.value().text), token.value().text, token.value().segment());
+                return std::make_shared<type_node>(env, index, Signed, parse_integer_type(token.value().text), token.value().text, token.value().segment());
             } else if(token.value().name == "TOK_FLOAT") {
-                return std::make_shared<type_node>(index, Float, std::nullopt, token.value().text, token.value().segment());
+                return std::make_shared<type_node>(env, index, Float, std::nullopt, token.value().text, token.value().segment());
             } else if(token.value().name == "TOK_DOUBLE") {
-                return std::make_shared<type_node>(index, Double, std::nullopt, token.value().text, token.value().segment());
+                return std::make_shared<type_node>(env, index, Double, std::nullopt, token.value().text, token.value().segment());
             } else if(token.value().name == "TOK_STRING") {
-                return std::make_shared<type_node>(index, String, std::nullopt, token.value().text, token.value().segment());
+                return std::make_shared<type_node>(env, index, String, std::nullopt, token.value().text, token.value().segment());
             }
         }
     }
-    return std::make_shared<type_node>(index, Undefined, std::nullopt, std::string());
+    return std::make_shared<type_node>(env, index, Undefined, std::nullopt, std::string());
 }
 
 wall_e::either<wall_e::error, km2::backend::type*> km2::type_node::generate_backend_type(const std::shared_ptr<backend::unit> &unit) {
@@ -102,24 +102,22 @@ km2::ast_token_list km2::type_node::tokens() const {
 }
 
 
-std::ostream &km2::type_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
-    if(fmt == Simple) {
-        stream << std::string(ctx.level(), ' ') << "{type_node}:" << std::endl;
-        stream << std::string(ctx.level() + 1, ' ') << "type: " << m_type << std::endl;
-        stream << std::string(ctx.level() + 1, ' ') << "bits: " << m_bits << std::endl;
-    } else if(fmt == TreeWriter) {
-        stream << ctx.node_begin()
-               << "type_node: "
-               << "{ type: " << m_type
-               << ", bits: " << m_bits
-               << " }"
-               << ctx.node_end()
-               << ctx.edge();
-    }
-    return stream;
+std::ostream &km2::type_node::write(std::ostream &stream, const wall_e::tree_writer::context &ctx) const {
+    return stream << ctx.node_begin()
+                  << "type_node: "
+                  << "{ type: " << m_type
+                  << ", bits: " << m_bits
+                  << " }"
+                  << ctx.node_end()
+                  << ctx.edge();
 }
 
 
 km2::ast_token_type km2::type_node::rvalue_type() const {
     return AstType;
+}
+
+
+wall_e::either<wall_e::error, km2::backend::value *> km2::type_node::generate_backend_value(const std::shared_ptr<backend::unit> &unit) {
+    return wall_e::right<backend::value*>(nullptr);
 }

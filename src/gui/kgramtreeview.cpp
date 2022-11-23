@@ -45,7 +45,7 @@ void KGramTreeView::openInBrowser() {
     if(const auto ast_node = tree()->data().option_cast<std::shared_ptr<km2::abstract_node>>()) {
         wall_e::graphviz_tree_writer writer;
         ss << "digraph G {" << std::endl;
-        (*ast_node)->write(ss, km2::abstract_node::TreeWriter, writer.root());
+        (*ast_node)->write(ss, writer.root());
         ss << "}" << std::endl;
     } else {
         wall_e::write_tree(tree()->data(), ss, wall_e::Graphviz);

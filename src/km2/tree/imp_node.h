@@ -22,6 +22,7 @@ public:
     typedef abstract_value_node super_type;
 
     imp_node(
+            const wall_e::gram::environment* env,
             const wall_e::index& index,
             const wall_e::lex::token& keyword_token,
             const wall_e::lex::token& name_token,
@@ -35,7 +36,7 @@ public:
 
     // abstract_node interface
 public:
-    virtual std::ostream &write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const override;
+    virtual std::ostream &write(std::ostream &stream, const wall_e::tree_writer::context &ctx) const override;
     virtual std::ostream &short_print(std::ostream &stream) const override;
     virtual ast_token_list tokens() const override;
     virtual wall_e::list<wall_e::error> errors() const override;

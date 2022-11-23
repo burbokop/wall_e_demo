@@ -20,6 +20,7 @@ public:
     typedef abstract_value_node super_type;
 
     namespace_node(
+            const wall_e::gram::environment* env,
             const wall_e::index& index,
             const wall_e::lex::token& keyword_token,
             const std::shared_ptr<block_node>& block_node
@@ -43,7 +44,7 @@ public:
 public:
     virtual std::ostream &short_print(std::ostream &stream) const override;
     virtual wall_e::list<ast_token> tokens() const override;
-    virtual std::ostream &write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const override;
+    virtual std::ostream &write(std::ostream &stream, const wall_e::tree_writer::context& ctx) const override;
     virtual ast_token_type rvalue_type() const override;
     virtual markup_string hover() const override;
 };

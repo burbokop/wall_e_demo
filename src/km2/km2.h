@@ -113,6 +113,7 @@ public:
           m_flags(flags) {}
 
     const flags& flags() const { return m_flags; }
+    virtual bool verbose() const override { return m_flags.contains(Verbose); }
 
 };
 

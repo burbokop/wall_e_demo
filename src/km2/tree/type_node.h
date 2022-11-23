@@ -27,7 +27,9 @@ public:
     static wall_e::opt<uint16_t> parse_integer_type(const std::string& str);
 
 
-    type_node(const wall_e::index &index,
+    type_node(
+            const wall_e::gram::environment* env,
+            const wall_e::index &index,
             type t,
             const wall_e::opt<uint16_t> &bits,
             const std::string& original_text,
@@ -45,9 +47,13 @@ public:
     virtual std::ostream &short_print(std::ostream &stream) const override;
     virtual wall_e::list<wall_e::error> errors() const override;
     virtual wall_e::list<ast_token> tokens() const override;
-    virtual std::ostream &write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const override;
+    virtual std::ostream &write(std::ostream &stream, const wall_e::tree_writer::context& ctx) const override;
     virtual ast_token_type rvalue_type() const override;
     virtual markup_string hover() const override;
+
+    // abstract_value_node interface
+public:
+    virtual wall_e::either<wall_e::error, backend::value *> generate_backend_value(const std::shared_ptr<backend::unit> &unit) override;
 };
 
 } // namespace km2

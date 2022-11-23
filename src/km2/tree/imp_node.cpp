@@ -21,20 +21,20 @@ std::shared_ptr<const km2::abstract_value_node> km2::imp_node::eval_mod_exp_root
     return nullptr;
 }
 
-km2::imp_node::imp_node(const wall_e::index &index,
+km2::imp_node::imp_node(const wall_e::gram::environment *env, const wall_e::index &index,
         const wall_e::lex::token &keyword_token,
         const wall_e::lex::token &name_token,
         const wall_e::opt<compilation_result> &module_cresult,
         const wall_e::list<wall_e::error> &search_errors
         )
-    : abstract_value_node(index, {}, keyword_token.segment() + name_token.segment()),
+    : abstract_value_node(env, index, {}, keyword_token.segment() + name_token.segment()),
       m_keyword_token(keyword_token),
       m_name_token(name_token),
       m_module_cresult(wall_e::opt_box<compilation_result>::from(module_cresult)),
       m_search_errors(search_errors) {}
 
 wall_e::gram::argument km2::imp_node::create(const wall_e::gram::arg_vector &args, const wall_e::index &index, const wall_e::gram::environment* env) {
-    if(debug) std::cout << "km2::imp_node::create: " << args << std::endl;
+    if(env->verbose()) std::cout << "km2::imp_node::create: " << args << std::endl;
     if(args.size() > 1) {
         const auto module_name_token = args[1].option<wall_e::lex::token>();
 
@@ -46,6 +46,7 @@ wall_e::gram::argument km2::imp_node::create(const wall_e::gram::arg_vector &arg
                 if(std::filesystem::exists(module_uri) && std::filesystem::is_regular_file(module_uri)) {
                     std::ifstream input(module_uri);
                     return std::make_shared<imp_node>(
+                        env,
                         index,
                         args[0].value_or<wall_e::lex::token>(),
                         *module_name_token,
@@ -54,6 +55,7 @@ wall_e::gram::argument km2::imp_node::create(const wall_e::gram::arg_vector &arg
                     );
                 } else {
                     return std::make_shared<imp_node>(
+                        env,
                         index,
                         args[0].value_or<wall_e::lex::token>(),
                         *module_name_token,
@@ -71,6 +73,7 @@ wall_e::gram::argument km2::imp_node::create(const wall_e::gram::arg_vector &arg
                 }
             } else {
                 return std::make_shared<imp_node>(
+                    env,
                     index,
                     args[0].value_or<wall_e::lex::token>(),
                     *module_name_token,
@@ -89,6 +92,7 @@ wall_e::gram::argument km2::imp_node::create(const wall_e::gram::arg_vector &arg
         }
     }
     return std::make_shared<imp_node>(
+                env,
                 index,
                 wall_e::lex::token(),
                 wall_e::lex::token(),
@@ -98,14 +102,14 @@ wall_e::gram::argument km2::imp_node::create(const wall_e::gram::arg_vector &arg
 }
 
 
-std::ostream &km2::imp_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
+std::ostream &km2::imp_node::write(std::ostream &stream, const wall_e::tree_writer::context &ctx) const {
     short_print(stream << ctx.node_begin()) << ctx.node_end() << ctx.edge();
     const auto& cres = *m_module_cresult.get();
     if(cres && cres->root_node()) {
-        cres->root_node()->write(stream, fmt, ctx.new_child("module"));
+        cres->root_node()->write(stream, ctx.new_child("module"));
     }
     if(const auto& exp_root = mod_exp_root()) {
-        exp_root->write(stream, fmt, ctx.new_child("module public api"));
+        exp_root->write(stream, ctx.new_child("module public api"));
     }
     return stream;
 }

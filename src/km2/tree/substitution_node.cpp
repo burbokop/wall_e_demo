@@ -8,21 +8,22 @@ std::shared_ptr<const km2::substitution_node> km2::substitution_node::eval_prev_
     });
 }
 
-km2::substitution_node::substitution_node(
+km2::substitution_node::substitution_node(const wall_e::gram::environment *env,
         const wall_e::index& index,
         const struct lvalue& lvalue,
         const std::shared_ptr<abstract_value_node>& rvalue
         )
-    : abstract_value_node(index, { rvalue }, rvalue ? lvalue.token().segment() + rvalue->segment() : lvalue.token().segment()),
+    : abstract_value_node(env, index, { rvalue }, rvalue ? lvalue.token().segment() + rvalue->segment() : lvalue.token().segment()),
       m_lvalue(lvalue),
       m_rvalue(rvalue) {}
 
 km2::abstract_node::factory km2::substitution_node::create(const lvalue::factory &lval_factory) {
     return [lval_factory](const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) -> wall_e::gram::argument {
-        if(debug) std::cout << wall_e::type_name<substitution_node>() << "::create: " << args << std::endl;
+        if(env->verbose()) std::cout << wall_e::type_name<substitution_node>() << "::create: " << args << std::endl;
         if(args.size() > 2) {
             if(const auto& lval = args[0].option<wall_e::lex::token>().flat_map(lval_factory)) {
                 return std::make_shared<substitution_node>(
+                        env,
                         index,
                         *lval,
                         args[2].cast_or<std::shared_ptr<abstract_value_node>>()
@@ -40,13 +41,13 @@ wall_e::str_list km2::substitution_node::full_name() const {
     return { m_lvalue.pretty_str() };
 }
 
-std::ostream &km2::substitution_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
+std::ostream &km2::substitution_node::write(std::ostream &stream, const wall_e::tree_writer::context &ctx) const {
     stream << ctx.node_begin()
            << "substitution_node: { lvalue: " << m_lvalue.pretty_str() << " }"
            << ctx.node_end()
            << ctx.edge();
 
-    if(m_rvalue) m_rvalue->write(stream, fmt, ctx.new_child("rvalue"));
+    if(m_rvalue) m_rvalue->write(stream, ctx.new_child("rvalue"));
     return stream;
 }
 

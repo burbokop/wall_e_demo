@@ -74,7 +74,6 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/asm_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/block_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/stmt_node.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/internal_block_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/arg_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/proto_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/type_node.cpp
@@ -83,6 +82,9 @@ set(KM2_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/imp_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/substitution_node.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/invocable_node.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/class_node.cpp
+
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/traits/callable_trait.cpp
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/backend.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/unit/unit.cpp
@@ -123,7 +125,6 @@ set(KM2_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/asm_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/block_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/stmt_node.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/internal_block_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/arg_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/proto_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/type_node.h
@@ -132,6 +133,9 @@ set(KM2_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/imp_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/substitution_node.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/invocable_node.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/class_node.h
+
+    ${CMAKE_CURRENT_LIST_DIR}/src/km2/tree/traits/callable_trait.h
 
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/backend.h
     ${CMAKE_CURRENT_LIST_DIR}/src/km2/backend/as.h

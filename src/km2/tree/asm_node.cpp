@@ -3,8 +3,8 @@
 
 #include <iostream>
 
-km2::asm_node::asm_node(const wall_e::index &index, const std::string& text, const wall_e::text_segment &segment)
-    : km2::abstract_value_node(index, {}, wall_e::text_segment()),
+km2::asm_node::asm_node(const wall_e::gram::environment *env, const wall_e::index &index, const std::string& text, const wall_e::text_segment &segment)
+    : km2::abstract_value_node(env, index, {}, wall_e::text_segment()),
       m_text(text) {}
 
 wall_e::gram::argument km2::asm_node::create(const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) {
@@ -16,7 +16,7 @@ wall_e::gram::argument km2::asm_node::create(const wall_e::gram::arg_vector &arg
             text.erase(text.end() - 1, text.end());
             text = wall_e::lex::trim(text, '\t');
             text = wall_e::lex::trim(text);
-            return std::make_shared<asm_node>(index, text, token.segment());
+            return std::make_shared<asm_node>(env, index, text, token.segment());
         }
         return {};
     }
@@ -27,11 +27,11 @@ wall_e::either<
     wall_e::error,
     km2::backend::value*
 > km2::asm_node::generate_backend_value(const std::shared_ptr<backend::unit> &unit) {
-    if(debug) std::cout << wall_e_this_function << std::endl;
+    if(env()->verbose()) std::cout << wall_e_this_function << std::endl;
     return wall_e::left(wall_e::error("asm_node not implemented"));
 }
 
-std::ostream &km2::asm_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
+std::ostream &km2::asm_node::write(std::ostream &stream, const wall_e::tree_writer::context &ctx) const {
     return short_print(stream);
 }
 

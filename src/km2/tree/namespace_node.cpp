@@ -10,22 +10,23 @@
 #include "wall_e/src/macro.h"
 
 
-km2::namespace_node::namespace_node(
+km2::namespace_node::namespace_node(const wall_e::gram::environment *env,
         const wall_e::index &index,
         const wall_e::lex::token &keyword_token,
         const std::shared_ptr<block_node>& block_node
         )
-    : abstract_value_node(index, { block_node }),
+    : abstract_value_node(env, index, { block_node }),
       m_keyword_token(keyword_token),
       m_block_node(block_node),
       m_context({}) {}
 
 km2::abstract_node::factory km2::namespace_node::create(const lvalue::factory& lval_factory) {
     return [lval_factory](const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) -> wall_e::gram::argument {
-        if(debug) std::cout << wall_e::type_name<namespace_node>() << "::create: " << args << std::endl;
+        if(env->verbose()) std::cout << wall_e::type_name<namespace_node>() << "::create: " << args << std::endl;
         if (args.size() > 1) {
                 if(const auto& keyword_token = args[0].option<wall_e::lex::token>()) {
                     return std::make_shared<namespace_node>(
+                                env,
                                 index,
                                 *keyword_token,
                                 args[1].value<std::shared_ptr<block_node>>()
@@ -40,7 +41,7 @@ wall_e::either<
 wall_e::error,
 km2::backend::value*
 > km2::namespace_node::generate_backend_value(const std::shared_ptr<km2::backend::unit> &unit) {
-    if(debug) std::cout << wall_e_this_function << std::endl;
+    if(env()->verbose()) std::cout << wall_e_this_function << std::endl;
     if(m_block_node) {
         unit->cap<backend::namespace_capability>()->begin_namespace(full_name());
 
@@ -102,28 +103,18 @@ km2::ast_token_list km2::namespace_node::tokens() const {
 }
 
 
-std::ostream &km2::namespace_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
-    if(fmt == Simple) {
-        stream << std::string(ctx.level(), ' ') << "{namespace_node}:" << std::endl;
-        //stream << std::string(ctx.level() + 1, ' ') << "name: " << m_name << std::endl;
-        if(m_block_node) {
-            m_block_node->write(stream, fmt, ctx.new_child("block"));
-        } else {
-            stream << std::string(ctx.level() + 1, ' ') + "block node not exist" << std::endl;
-        }
-    } else if(fmt == TreeWriter) {
-        const auto fn = full_name();
-        stream << ctx.node_begin()
-               << "namespace_node: { lvalue: " << lval().map_member_func<std::string>(&lvalue::pretty_str);
-        if(fn.size() > 0) stream << ", name: " << fn;
-        stream << (m_block_node ? "" : ", no block")
-               << " }"
-               << ctx.node_end()
-               << ctx.edge();
+std::ostream &km2::namespace_node::write(std::ostream &stream, const wall_e::tree_writer::context &ctx) const {
+    const auto fn = full_name();
+    stream << ctx.node_begin()
+           << "namespace_node: { lvalue: " << lval().map_member_func<std::string>(&lvalue::pretty_str);
+    if(fn.size() > 0) stream << ", name: " << fn;
+    stream << (m_block_node ? "" : ", no block")
+           << " }"
+           << ctx.node_end()
+           << ctx.edge();
 
-        if(m_block_node) {
-            m_block_node->write(stream, fmt, ctx.new_child("block"));
-        }
+    if(m_block_node) {
+        m_block_node->write(stream, ctx.new_child("block"));
     }
     return stream;
 }

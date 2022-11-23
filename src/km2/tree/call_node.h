@@ -16,8 +16,8 @@ class call_node : public km2::abstract_value_node {
     const wall_e::vec<std::shared_ptr<km2::abstract_value_node>> m_args;
     const wall_e::text_segment m_name_segment;
 
-    std::shared_ptr<const abstract_func_node> eval_declaration() const;
-    const wall_e::lazy<std::shared_ptr<const abstract_func_node>> m_declaration = wall_e::lazy(this, &call_node::eval_declaration);
+    std::shared_ptr<const abstract_value_node> eval_declaration() const;
+    const wall_e::lazy<std::shared_ptr<const abstract_value_node>> m_declaration = wall_e::lazy(this, &call_node::eval_declaration);
 public:
     typedef abstract_value_node super_type;
 
@@ -25,6 +25,7 @@ public:
     wall_e::str_list current_nspace_stack() const;
 
     call_node(
+            const wall_e::gram::environment* env,
             const wall_e::index& index,
             const wall_e::lex::token_vec& apeal_namespace_stack,
             const std::string& name,
@@ -50,7 +51,7 @@ public:
     virtual wall_e::list<wall_e::error> errors() const override;
     virtual std::ostream &short_print(std::ostream &stream) const override;
     virtual wall_e::list<ast_token> tokens() const override;
-    virtual std::ostream &write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context& ctx) const override;
+    virtual std::ostream &write(std::ostream &stream, const wall_e::tree_writer::context& ctx) const override;
     virtual ast_token_type rvalue_type() const override;
     virtual markup_string hover() const override;
 };

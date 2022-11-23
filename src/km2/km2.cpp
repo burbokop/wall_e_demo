@@ -30,6 +30,7 @@
 
 #include "backend/backend.h"
 
+#include <src/km2/tree/class_node.h>
 #include <src/km2/tree/substitution_node.h>
 
 struct __km2_flags_private {
@@ -75,6 +76,7 @@ static const wall_e::lex::pattern_list& km2_lexlist() {
         { std::regex("/\\*\\*([\\s\\S]*?)\\*/"), "MULTILINE_DOC" },
         { std::regex("\\/\\/(.*)\n"), "COMMENT" },
         { std::regex("/\\*([\\s\\S]*?)\\*/"), "MULTILINE_COMMENT" },
+        { wall_e::lex::bounded("class"), "TOK_CLASS" },
         { wall_e::lex::bounded("asm"), "TOK_ASM" },
         { wall_e::lex::bounded("number"), "TOK_NUMBER" },
         { wall_e::lex::bounded("string"), "TOK_STRING" },
@@ -205,7 +207,7 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
         << km2::namespace_node::create(lvalue_fac));
 
     gram_list.push_back("lvalue << TOK_EXP | ID | ANONIMUS_ID"_pattern);
-    gram_list.push_back("rvalue << import | namespace | function_declaration | proto_declaration | const"_pattern);
+    gram_list.push_back("rvalue << import | namespace | class | function_declaration | proto_declaration | const"_pattern);
 
     gram_list.push_back("substitution << lvalue & EQUALS & rvalue"_pattern
                         << km2::substitution_node::create(lvalue_fac));
@@ -224,6 +226,9 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
 
     gram_list.push_back("function_declaration << OP & (EP | decl_arg_list) & block"_pattern
         << km2::function_node::create());
+
+    gram_list.push_back("class << TOK_CLASS & OP & (EP | decl_arg_list) & block"_pattern
+        << km2::class_node::create());
 
     gram_list.push_back("proto_declaration << OP & (EP | decl_arg_list) & type"_pattern
         << km2::proto_node::create());
@@ -318,12 +323,9 @@ km2::compilation_result km2::compile(const backend::backend* b, const std::strin
         log << "root node: " << (*root_node) << std::endl;
 
         if(__flags.verbose) {
-            log << "AST --------" << std::endl;
-            (*root_node)->write(log, abstract_node::Simple, wall_e::tree_writer::context::detached());
             log << "AST GRAPHVIZ" << std::endl;
-
             wall_e::graphviz_tree_writer writer;
-            (*root_node)->write(log, abstract_node::TreeWriter, writer.root());
+            (*root_node)->write(log, writer.root());
             log << "AST END ----" << std::endl;
         }
         if(__flags.verbose) {

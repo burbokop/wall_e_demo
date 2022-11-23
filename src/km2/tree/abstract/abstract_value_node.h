@@ -16,9 +16,11 @@ class abstract_value_node : public km2::abstract_node {
 public:
     typedef abstract_node super_type;
     abstract_value_node(
+            const wall_e::gram::environment* env,
             const wall_e::index& index,
             const children_t &children,
-            const wall_e::text_segment &segment = {}
+            const wall_e::text_segment &segment = {},
+            const wall_e::box_list<node_trait>::factory& traits = {}
             );
 
     virtual wall_e::either<wall_e::error, backend::value*> generate_backend_value(const std::shared_ptr<backend::unit> &unit) = 0;

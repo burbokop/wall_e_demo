@@ -9,18 +9,26 @@
 #include "../backend/models/function_ref.h"
 #include "wall_e/src/macro.h"
 
-km2::proto_node::proto_node(
+#include <src/km2/tree/traits/callable_trait.h>
+
+km2::proto_node::proto_node(const wall_e::gram::environment *env,
         const wall_e::index& index,
         const wall_e::vec<std::shared_ptr<decl_arg_node> > &args,
         std::shared_ptr<abstract_type_node> result_type_node
         )
-    : km2::abstract_func_node(index, cast_to_children(args, wall_e::vec { result_type_node })),
+    : km2::abstract_func_node(
+          env,
+          index,
+          cast_to_children(args, wall_e::vec { result_type_node }),
+          {},
+          wall_e::box_list<node_trait>::factory::make<callable_trait>()
+          ),
       m_args(args),
       m_result_type_node(result_type_node) {}
 
 km2::abstract_node::factory km2::proto_node::create() {
     return [](const wall_e::gram::arg_vector &args, const wall_e::index& index, const wall_e::gram::environment* env) -> wall_e::gram::argument {
-        if(debug) std::cout << "km2::proto_node::create: " << args << std::endl;
+        if(env->verbose()) std::cout << "km2::proto_node::create: " << args << std::endl;
 
         if(args.size() > 2) {
             wall_e::vec<std::shared_ptr<decl_arg_node>> da_nodes;
@@ -33,6 +41,7 @@ km2::abstract_node::factory km2::proto_node::create() {
             }
 
             return std::make_shared<proto_node>(
+                        env,
                         index,
                         da_nodes,
                         args[2].cast_or<std::shared_ptr<abstract_type_node>>()
@@ -46,7 +55,7 @@ wall_e::either<
 wall_e::error,
 km2::backend::value*
 > km2::proto_node::generate_backend_value(const std::shared_ptr<km2::backend::unit> &unit) {
-    if(debug) std::cout << wall_e_this_function << std::endl;
+    if(env()->verbose()) std::cout << wall_e_this_function << std::endl;
     wall_e::vec<backend::type*> arg_types;
     bool is_var_arg = false;
     for(const auto& arg : m_args) {
@@ -108,41 +117,25 @@ km2::ast_token_list km2::proto_node::tokens() const {
     return tokens_from_node_list(m_args) + (m_result_type_node ? m_result_type_node->tokens() : ast_token_list {});
 }
 
-std::ostream &km2::proto_node::write(std::ostream &stream, write_format fmt, const wall_e::tree_writer::context &ctx) const {
-    if(fmt == Simple) {
-        stream << std::string(ctx.level(), ' ') << "{proto_node}:" << std::endl;
-        for(const auto& arg : m_args) {
-            if(arg) {
-                arg->write(stream, fmt, ctx.new_child("arg"));
-            } else {
-                stream << std::string(ctx.level() + 1, ' ') << "arg node missing" << std::endl;
-            }
-        }
-        if(m_result_type_node) {
-            m_result_type_node->write(stream, fmt, ctx.new_child("result type"));
-        } else {
-            stream << std::string(ctx.level() + 1, ' ') << "result type node missing" << std::endl;
-        }
-    } else if(fmt == TreeWriter) {
-        stream << ctx.node_begin()
-               << "proto_node { " << lval().map_member_func<std::string>(&lvalue::pretty_str) << " }"
-               << ctx.node_end()
-               << ctx.edge();
+std::ostream &km2::proto_node::write(std::ostream &stream, const wall_e::tree_writer::context &ctx) const {
+    stream << ctx.node_begin()
+           << "proto_node { " << lval().map_member_func<std::string>(&lvalue::pretty_str) << " }"
+           << ctx.node_end()
+           << ctx.edge();
 
-        for(const auto& arg : m_args) {
-            const auto child_ctx = ctx.new_child("arg");
-            if(arg) {
-                arg->write(stream, fmt, child_ctx);
-            } else {
-                stream << child_ctx.node_begin()
-                       << "[null arg]"
-                       << child_ctx.node_end()
-                       << child_ctx.edge();
-            }
+    for(const auto& arg : m_args) {
+        const auto child_ctx = ctx.new_child("arg");
+        if(arg) {
+            arg->write(stream, child_ctx);
+        } else {
+            stream << child_ctx.node_begin()
+                   << "[null arg]"
+                   << child_ctx.node_end()
+                   << child_ctx.edge();
         }
-        if(m_result_type_node) {
-            m_result_type_node->write(stream, fmt, ctx.new_child("result type"));
-        }
+    }
+    if(m_result_type_node) {
+        m_result_type_node->write(stream, ctx.new_child("result type"));
     }
     return stream;
 }
